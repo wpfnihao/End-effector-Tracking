@@ -1,0 +1,48 @@
+\hypertarget{classKernelBasedTracking}{\section{\-Kernel\-Based\-Tracking \-Class \-Reference}
+\label{classKernelBasedTracking}\index{\-Kernel\-Based\-Tracking@{\-Kernel\-Based\-Tracking}}
+}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classKernelBasedTracking_a65e6532da171554cad0fc74c7d4c7ca6}{void {\bfseries retrieve\-Image} (const cv\-::\-Mat \&img)}\label{classKernelBasedTracking_a65e6532da171554cad0fc74c7d4c7ca6}
+
+\item 
+\hypertarget{classKernelBasedTracking_ad164231a0ee0c622857c1c7ffaf007cd}{void {\bfseries track} (void)}\label{classKernelBasedTracking_ad164231a0ee0c622857c1c7ffaf007cd}
+
+\item 
+\hypertarget{classKernelBasedTracking_a0fb7cd463da00e07d6dca1decc0cf811}{void {\bfseries init\-Target} (const int $\ast$win\-\_\-)}\label{classKernelBasedTracking_a0fb7cd463da00e07d6dca1decc0cf811}
+
+\item 
+\hypertarget{classKernelBasedTracking_a9ca944a7e64bf2530d1f4467fc567221}{cv\-::\-Rect {\bfseries get\-Window} (void)}\label{classKernelBasedTracking_a9ca944a7e64bf2530d1f4467fc567221}
+
+\end{DoxyCompactItemize}
+\subsection*{\-Protected \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classKernelBasedTracking_a4b52e3e90d2efd06f08d2c71766b7c4e}{void {\bfseries create\-\_\-kernel} (cv\-::\-Mat \&kernel)}\label{classKernelBasedTracking_a4b52e3e90d2efd06f08d2c71766b7c4e}
+
+\item 
+\hypertarget{classKernelBasedTracking_a6d9afda53d7fedce891349c0013ab7b4}{cv\-::\-Mat {\bfseries kernel\-\_\-on\-\_\-patch} (cv\-::\-Mat \&input\-\_\-image, int $\ast$patch\-\_\-centre, cv\-::\-Mat input\-\_\-kernel)}\label{classKernelBasedTracking_a6d9afda53d7fedce891349c0013ab7b4}
+
+\item 
+\hypertarget{classKernelBasedTracking_a63af23050ebf423d1fa48817bc0b6b1a}{cv\-::\-Mat {\bfseries create\-\_\-target\-\_\-model} (cv\-::\-Mat \&input\-\_\-image, cv\-::\-Mat \&input\-\_\-kernel)}\label{classKernelBasedTracking_a63af23050ebf423d1fa48817bc0b6b1a}
+
+\item 
+\hypertarget{classKernelBasedTracking_a069228aa013950c25404d1c851c0d088}{cv\-::\-Mat {\bfseries detect\-\_\-object} (cv\-::\-Mat \&input\-\_\-image, cv\-::\-Rect \&box)}\label{classKernelBasedTracking_a069228aa013950c25404d1c851c0d088}
+
+\item 
+\hypertarget{classKernelBasedTracking_acd9923313aab07869c79785f8a5650be}{cv\-::\-Mat {\bfseries assign\-\_\-weight} (cv\-::\-Mat \&input\-\_\-image, cv\-::\-Mat \&target\-\_\-model, cv\-::\-Mat \&target\-\_\-candidate, cv\-::\-Rect \&box)}\label{classKernelBasedTracking_acd9923313aab07869c79785f8a5650be}
+
+\item 
+\hypertarget{classKernelBasedTracking_a49504e1e62b376cc0a46d45254ffcd25}{float {\bfseries calc\-\_\-bhattacharya} (cv\-::\-Mat \&target\-\_\-model, cv\-::\-Mat \&target\-\_\-candidate)}\label{classKernelBasedTracking_a49504e1e62b376cc0a46d45254ffcd25}
+
+\item 
+\hypertarget{classKernelBasedTracking_a7b29cd489be190ab4de25006cf1d60d7}{float {\bfseries trackscale} (float scale, cv\-::\-Rect \&box\-\_\-, cv\-::\-Mat \&target\-\_\-candidate)}\label{classKernelBasedTracking_a7b29cd489be190ab4de25006cf1d60d7}
+
+\end{DoxyCompactItemize}
+
+
+\-The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+include/endeffector\-\_\-tracking/\-Kernel\-Based\-Tracking.\-h\item 
+src/\-Kernel\-Based\-Tracking.\-cpp\end{DoxyCompactItemize}

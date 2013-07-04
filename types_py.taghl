@@ -1,0 +1,4 @@
+syn keyword CTagsImport argparse stat distutils core ArgumentParser generate_environment_script platform sys setuptools copy os print_function
+syn keyword CTagsGlobalVariable code setup_dir args lines system output_filename IS_DARWIN IS_WINDOWS mode environ CMAKE_PREFIX_PATH ENV_VAR_SUBFOLDERS CATKIN_MARKER_FILE
+syn keyword CTagsFunction comment _get_workspaces generate_cmake_file find_env_hooks rollback_env_variables assignment _get_locations _prefix_env_variable prepend_env_variables _parse_arguments _create_mock_setup_function main _rollback_env_variable setup prepend
+

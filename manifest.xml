@@ -1,0 +1,22 @@
+<package>
+  <description brief="endeffector_tracking">
+
+     endeffector_tracking
+
+  </description>
+  <author>sai</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/endeffector_tracking</url>
+  <depend package="image_transport"/>
+  <depend package="roscpp"/>
+  <depend package="std_msgs"/>
+  <depend package="opencv2"/>
+  <depend package="cv_bridge"/>
+  <depend package="uvc_camera"/>
+  <depend package="visp"/>
+  <depend package="visp_bridge"/>
+
+</package>
+
+

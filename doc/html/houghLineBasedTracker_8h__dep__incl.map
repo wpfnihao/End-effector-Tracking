@@ -1,0 +1,6 @@
+<map id="G" name="G">
+<area shape="rect" id="node3" href="$houghLineBasedTracker_8cpp.html" title="The basic houghLineBasedTracker. This is the first workable version using the Hough line detection + ..." alt="" coords="5,83,213,112"/>
+<area shape="rect" id="node5" href="$track__ros_8h.html" title="This class wraps all the tracker and ROS, so all the trackers can be implemented without notice that ..." alt="" coords="237,83,491,112"/>
+<area shape="rect" id="node7" href="$track__node_8cpp.html" title="The program entry of the endeffector_tracking system." alt="" coords="221,160,355,189"/>
+<area shape="rect" id="node9" href="$track__ros_8cpp.html" title="The main tracking class." alt="" coords="379,160,501,189"/>
+</map>

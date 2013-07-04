@@ -1,0 +1,135 @@
+\hypertarget{classCEndeffectorTracking}{\section{\-C\-Endeffector\-Tracking \-Class \-Reference}
+\label{classCEndeffectorTracking}\index{\-C\-Endeffector\-Tracking@{\-C\-Endeffector\-Tracking}}
+}
+\subsection*{\-Public \-Types}
+\begin{DoxyCompactItemize}
+\item 
+enum \hyperlink{classCEndeffectorTracking_a2d651924613cfab97e971e08980be55e}{tracking\-\_\-status} \{ {\bfseries \-T\-R\-A\-C\-K\-I\-N\-G}, 
+{\bfseries \-L\-O\-S\-T}, 
+{\bfseries \-I\-N\-I\-T\-I\-A\-L}
+ \}
+\begin{DoxyCompactList}\small\item\em \-The status of the current tracker. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classCEndeffectorTracking_ab7bf591040f18d2579359d41b0e7b0b9}{\-C\-Endeffector\-Tracking} (int argc, char $\ast$$\ast$argv)
+\begin{DoxyCompactList}\small\item\em constructor \-R\-O\-S procedure initialized here \end{DoxyCompactList}\item 
+void \hyperlink{classCEndeffectorTracking_a2f767ddfe49a2759c6365c910be798cd}{track\-Callback} (const sensor\-\_\-msgs\-::\-Image\-Const\-Ptr \&src\-Img)
+\begin{DoxyCompactList}\small\item\em \-The tracking procedure is done here \-Note that different trackers can be employed here \-This function is only the glue function of \-R\-O\-S and all the other trackers \-Only some very basic info. obtained from the \-R\-O\-S topic is processed here \-I\-N\-I\-T\-I\-A\-L\-: the init points from .init file are obtained if use the \hyperlink{classhoughLineBasedTracker}{hough\-Line\-Based\-Tracker}, the model based on the init points are generated and maintained in the \hyperlink{classhoughLineBasedTracker}{hough\-Line\-Based\-Tracker} (not in this interface class). \-L\-O\-S\-T\-: this is the reinitialization step, including the initial pose of the target, corresponding tracking window, etc. \-T\-R\-A\-C\-K\-I\-N\-G\-: the tracking function provided by other tracking classes, and the tracked object is published as a \-R\-O\-S topic. \end{DoxyCompactList}\item 
+void \hyperlink{classCEndeffectorTracking_a271cd1f30157b1435c58e1e888400650}{msg2mat} (const sensor\-\_\-msgs\-::\-Image\-Const\-Ptr \&src\-Img, cv\-::\-Mat \&cur\-Img\-\_\-)
+\begin{DoxyCompactList}\small\item\em convert from the ros image message to a \-Cv\-Image \end{DoxyCompactList}\item 
+void \hyperlink{classCEndeffectorTracking_a048f6568d6cf831052d4694de357d6e6}{initialize\-Tracker} (const sensor\-\_\-msgs\-::\-Image\-Const\-Ptr \&src\-Img)
+\begin{DoxyCompactList}\small\item\em when initialize the tracker or the tracker lost the target call this function to (re)initialize it \end{DoxyCompactList}\item 
+\hypertarget{classCEndeffectorTracking_a19d89f27cd128c979dbbc5aabdcc12d9}{void {\bfseries track} (void)}\label{classCEndeffectorTracking_a19d89f27cd128c979dbbc5aabdcc12d9}
+
+\item 
+void \hyperlink{classCEndeffectorTracking_a572969355465a57ed51c2298458f3d51}{pub\-Rst} (const sensor\-\_\-msgs\-::\-Image\-Const\-Ptr \&src\-Img)
+\begin{DoxyCompactList}\small\item\em publish the processed \-Img or the tracking rst \-T\-O\-D\-O\-: modifications required. \end{DoxyCompactList}\item 
+\hypertarget{classCEndeffectorTracking_ac0465f0124debc86c253b89712e59dab}{void \hyperlink{classCEndeffectorTracking_ac0465f0124debc86c253b89712e59dab}{get\-Init\-Points} (void)}\label{classCEndeffectorTracking_ac0465f0124debc86c253b89712e59dab}
+
+\begin{DoxyCompactList}\small\item\em \-Init the model from the $\ast$.init file, only used for the cube tracking init\-Click in the \-Vi\-S\-P software is referred for the \-I\-O operations used here fstream is used here. \end{DoxyCompactList}\item 
+\hypertarget{classCEndeffectorTracking_aad664f6b43508e8e0044fef16269c23f}{void \hyperlink{classCEndeffectorTracking_aad664f6b43508e8e0044fef16269c23f}{init\-Model} (void)}\label{classCEndeffectorTracking_aad664f6b43508e8e0044fef16269c23f}
+
+\begin{DoxyCompactList}\small\item\em \-I still don't know how to read the model from the wrl or cad or cao file \-However, it is sufficient to get the cube from the init file if in the future, more complex model is tracked, \-I should reimplement this function. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{\-Constructor \& \-Destructor \-Documentation}
+\hypertarget{classCEndeffectorTracking_ab7bf591040f18d2579359d41b0e7b0b9}{\index{\-C\-Endeffector\-Tracking@{\-C\-Endeffector\-Tracking}!\-C\-Endeffector\-Tracking@{\-C\-Endeffector\-Tracking}}
+\index{\-C\-Endeffector\-Tracking@{\-C\-Endeffector\-Tracking}!CEndeffectorTracking@{\-C\-Endeffector\-Tracking}}
+\subsubsection[{\-C\-Endeffector\-Tracking}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-C\-Endeffector\-Tracking\-::\-C\-Endeffector\-Tracking} (
+\begin{DoxyParamCaption}
+\item[{int}]{argc, }
+\item[{char $\ast$$\ast$}]{argv}
+\end{DoxyParamCaption}
+)}}\label{classCEndeffectorTracking_ab7bf591040f18d2579359d41b0e7b0b9}
+
+
+constructor \-R\-O\-S procedure initialized here 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em argc} & \-Number of the parameters from the command line \\
+\hline
+{\em argv} & \-Pointer of the parameters from the command line \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classCEndeffectorTracking_a048f6568d6cf831052d4694de357d6e6}{\index{\-C\-Endeffector\-Tracking@{\-C\-Endeffector\-Tracking}!initialize\-Tracker@{initialize\-Tracker}}
+\index{initialize\-Tracker@{initialize\-Tracker}!CEndeffectorTracking@{\-C\-Endeffector\-Tracking}}
+\subsubsection[{initialize\-Tracker}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-C\-Endeffector\-Tracking\-::initialize\-Tracker} (
+\begin{DoxyParamCaption}
+\item[{const sensor\-\_\-msgs\-::\-Image\-Const\-Ptr \&}]{src\-Img}
+\end{DoxyParamCaption}
+)}}\label{classCEndeffectorTracking_a048f6568d6cf831052d4694de357d6e6}
+
+
+when initialize the tracker or the tracker lost the target call this function to (re)initialize it 
+
+use the vp\-Mb\-Edge\-Tracker to initialize the tracker
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em src\-Img} & \\
+\hline
+{\em src\-Img} & the sensor\-\_\-msgs of \-R\-O\-S topic, it will be transfered to vp\-Image in the function \\
+\hline
+\end{DoxyParams}
+\hypertarget{classCEndeffectorTracking_a271cd1f30157b1435c58e1e888400650}{\index{\-C\-Endeffector\-Tracking@{\-C\-Endeffector\-Tracking}!msg2mat@{msg2mat}}
+\index{msg2mat@{msg2mat}!CEndeffectorTracking@{\-C\-Endeffector\-Tracking}}
+\subsubsection[{msg2mat}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-C\-Endeffector\-Tracking\-::msg2mat} (
+\begin{DoxyParamCaption}
+\item[{const sensor\-\_\-msgs\-::\-Image\-Const\-Ptr \&}]{src\-Img, }
+\item[{cv\-::\-Mat \&}]{cur\-Img\-\_\-}
+\end{DoxyParamCaption}
+)}}\label{classCEndeffectorTracking_a271cd1f30157b1435c58e1e888400650}
+
+
+convert from the ros image message to a \-Cv\-Image 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em src\-Img} & \\
+\hline
+{\em cur\-Img\-\_\-} & \\
+\hline
+\end{DoxyParams}
+\hypertarget{classCEndeffectorTracking_a572969355465a57ed51c2298458f3d51}{\index{\-C\-Endeffector\-Tracking@{\-C\-Endeffector\-Tracking}!pub\-Rst@{pub\-Rst}}
+\index{pub\-Rst@{pub\-Rst}!CEndeffectorTracking@{\-C\-Endeffector\-Tracking}}
+\subsubsection[{pub\-Rst}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-C\-Endeffector\-Tracking\-::pub\-Rst} (
+\begin{DoxyParamCaption}
+\item[{const sensor\-\_\-msgs\-::\-Image\-Const\-Ptr \&}]{src\-Img}
+\end{DoxyParamCaption}
+)}}\label{classCEndeffectorTracking_a572969355465a57ed51c2298458f3d51}
+
+
+publish the processed \-Img or the tracking rst \-T\-O\-D\-O\-: modifications required. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em src\-Img} & \\
+\hline
+\end{DoxyParams}
+\hypertarget{classCEndeffectorTracking_a2f767ddfe49a2759c6365c910be798cd}{\index{\-C\-Endeffector\-Tracking@{\-C\-Endeffector\-Tracking}!track\-Callback@{track\-Callback}}
+\index{track\-Callback@{track\-Callback}!CEndeffectorTracking@{\-C\-Endeffector\-Tracking}}
+\subsubsection[{track\-Callback}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-C\-Endeffector\-Tracking\-::track\-Callback} (
+\begin{DoxyParamCaption}
+\item[{const sensor\-\_\-msgs\-::\-Image\-Const\-Ptr \&}]{src\-Img}
+\end{DoxyParamCaption}
+)}}\label{classCEndeffectorTracking_a2f767ddfe49a2759c6365c910be798cd}
+
+
+\-The tracking procedure is done here \-Note that different trackers can be employed here \-This function is only the glue function of \-R\-O\-S and all the other trackers \-Only some very basic info. obtained from the \-R\-O\-S topic is processed here \-I\-N\-I\-T\-I\-A\-L\-: the init points from .init file are obtained if use the \hyperlink{classhoughLineBasedTracker}{hough\-Line\-Based\-Tracker}, the model based on the init points are generated and maintained in the \hyperlink{classhoughLineBasedTracker}{hough\-Line\-Based\-Tracker} (not in this interface class). \-L\-O\-S\-T\-: this is the reinitialization step, including the initial pose of the target, corresponding tracking window, etc. \-T\-R\-A\-C\-K\-I\-N\-G\-: the tracking function provided by other tracking classes, and the tracked object is published as a \-R\-O\-S topic. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em src\-Img} & the sensor\-\_\-msgs of \-R\-O\-S topic, the message will be transfered to \-Open\-C\-V image and then stored. \\
+\hline
+\end{DoxyParams}
+
+
+\-The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+include/endeffector\-\_\-tracking/\hyperlink{track__ros_8h}{track\-\_\-ros.\-h}\item 
+src/\hyperlink{track__ros_8cpp}{track\-\_\-ros.\-cpp}\end{DoxyCompactItemize}

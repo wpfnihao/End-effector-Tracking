@@ -1,0 +1,496 @@
+/* written by wpf @ Singapore
+ * Feb - Nov, 2013
+ */
+
+#include "ros/ros.h"
+#include "endeffector_tracking/track_ros.h"
+
+#include "visp/vpDisplay.h"
+#include "visp/vpDisplayX.h"
+
+// for conversion
+#include "visp/vpMeterPixelConversion.h"
+
+#define DEBUG
+using namespace std;
+
+// TODO: vpPoint index may be one pixel larger than cv::Point
+// TODO: the pixel forward projected from the model and the camera pose is incorrect
+//    	 or may be the prediction is incorrect
+// 		 try to correct the forward project procedure 
+
+// constructor
+CEndeffectorTracking::CEndeffectorTracking(int argc, char **argv)
+:status(CEndeffectorTracking::INITIAL)
+,KF(12, 6)
+{
+	//ros::NodeHandle n 
+	//the node handle n is the private member variable of the class 
+
+	//get param from the launch file or command line
+
+	//param([param_name], [member_variable], [default_value])
+	//std::string tmp_param;
+	
+	//TODO:the param namespace is weird, how to figure out the namespace of an param?
+	//n.searchParam("camera_topic", tmp_param);
+	n.param<std::string>("endeffector_tracking/camera_topic", camera_topic, "camera/image_raw");
+	//the config_file containing the info of the cam
+	//n.searchParam("config_file", tmp_param);
+	n.param<std::string>("endeffector_tracking/config_file", config_file, "config.xml");
+	//n.searchParam("model_name", tmp_param);
+	n.param<std::string>("endeffector_tracking/model_name", model_name, "config.wrl");
+	//n.searchParam("init_file", tmp_param);
+	n.param<std::string>("endeffector_tracking/init_file", init_file, "config.init");
+
+
+	image_transport::ImageTransport it(n);
+	//subCam is member variable subscribe to the msg published by the camera
+	//trackCallback do the tracking procedure
+	subCam = it.subscribe(camera_topic, 1, &CEndeffectorTracking::trackCallback, this);
+
+	//publish msgs
+	imgPub = it.advertise("hough", 1);
+
+}
+
+//the tracking procedure is done here
+void CEndeffectorTracking::trackCallback(const sensor_msgs::ImageConstPtr& srcImg)
+{
+	msg2mat(srcImg, this->curImg);
+
+
+	//tracking based on different status
+	if (status == CEndeffectorTracking::LOST || status == CEndeffectorTracking::INITIAL)
+	{
+		// init the model from file
+		// only requires when initializing
+		if (status == CEndeffectorTracking::INITIAL)
+		{
+			// get some basic info about the video
+			cv::Mat grayImg;
+			cv::cvtColor(curImg, grayImg, CV_BGR2GRAY);
+			rows = grayImg.rows;
+			cols = grayImg.cols;
+			
+			// parse the .init file, and get the init points
+			getInitPoints();
+			// get the info of the cube from the init points
+			initCornersLines();
+		}
+
+		initializeTracker(srcImg);
+		//finish the initialization step and start to track
+		status = CEndeffectorTracking::TRACKING;
+	}	
+	else if (status == CEndeffectorTracking::TRACKING)
+	{
+		track(srcImg);
+	}
+}
+
+//convert from the ros image message to a CvImage
+void CEndeffectorTracking::msg2mat(const sensor_msgs::ImageConstPtr& srcImg, cv::Mat& curImg_)	
+{
+	cv_bridge::CvImagePtr cv_ptr;
+	try
+	{
+		cv_ptr = cv_bridge::toCvCopy(srcImg, sensor_msgs::image_encodings::BGR8);
+	}
+	catch (cv_bridge::Exception& e)
+	{
+		ROS_ERROR("%s",e.what());
+		return;
+	}	
+
+	curImg_ = cv_ptr->image; 
+
+}
+
+//hough line detection
+void CEndeffectorTracking::houghLineDetection(const int* win)
+{
+	// Step 1: generate the image patch
+	cv::Mat cannyDst, graySrc;	
+	cv::cvtColor(curImg, graySrc, CV_BGR2GRAY);
+
+	// create the image patch
+	// cv::Range(inclusive, exclusive)
+	int winEnlarge = 20;
+	cv::Mat imgPatch = graySrc(cv::Range(max(win[0]-winEnlarge, 0), min(win[2]+winEnlarge, rows)), cv::Range(max(win[1]-winEnlarge, 0), min(win[3]+winEnlarge, cols)));
+
+	// Step 2: hough Line detection only within the patch 
+	// TODO:may need to tune the param here
+	cv::Canny(imgPatch, cannyDst, 30, 50, 3);
+
+	// tmp lines
+	std::vector<cv::Vec4i> tmpLines;
+	cv::HoughLinesP(cannyDst, tmpLines, 1, CV_PI/180, 50, 30, 10);
+
+	// Step 3: transform the lines got into the global coordinate system
+	std::vector<cv::Vec4i>::const_iterator itr;
+	for (itr = tmpLines.begin(); itr != tmpLines.end(); ++itr)
+	{
+		int x1 = (*itr)[0] + win[0];
+		int x2 = (*itr)[1] + win[1];
+		int x3 = (*itr)[2] + win[0];
+		int x4 = (*itr)[3] + win[1];
+
+		lines.push_back(cv::Vec4i(x1, x2, x3, x4));
+	}
+
+#ifdef DEBUG 
+	cv::Mat cDst;
+	cv::cvtColor(cannyDst, cDst, CV_GRAY2BGR);
+	processedImg = cDst; 
+#endif
+}
+
+
+void CEndeffectorTracking::initializeTracker(const sensor_msgs::ImageConstPtr& srcImg)
+{
+	// the vpImg is a mono channel image
+	vpImage<unsigned char> vpImg;
+	// the operator:=() will allocate the memory automatically
+	vpImg = visp_bridge::toVispImage(*srcImg);
+	vpMbEdgeTracker initializer;
+	// TODO:the params can also be retrieved from the sensor_msgs::CameraInfo using the visp_bridge package
+	initializer.loadConfigFile(config_file);		
+#ifdef DEBUG
+	ROS_INFO("config_file loaded successfully!");
+#endif
+	initializer.getCameraParameters(cam);
+	initializer.loadModel(model_name);
+#ifdef DEBUG
+	ROS_INFO("model_name loaded successfully!");
+#endif
+	initializer.setCovarianceComputation(true);
+
+	//initial the display
+	//these steps are not shown in the manual document
+	vpDisplayX display;
+	display.init(vpImg);
+
+	initializer.initClick(vpImg, init_file);
+#ifdef DEBUG
+	ROS_INFO("initialization done!");
+#endif
+	// obtain the initial pose of the model
+	cMo = initializer.getPose();
+	poseVector.buildFrom(cMo);
+
+	//clean up
+	vpXmlParser::cleanup();
+	
+	// project the model 
+	// both the lines and the corners are projected
+	projectModel(cMo);
+
+	// initialize the Kalman filter to track and predict the pose (cMo) of the pen (endeffector)
+	initKalman();
+}
+
+void CEndeffectorTracking::track(const sensor_msgs::ImageConstPtr& srcImg)
+{
+	// Step 1: predict the target pose using Kalman filter
+	cv::Mat predict = KF.predict();
+	for (int i = 0; i < 6; i++)
+	{
+		// the default matrix type in Kalman filter is CV_32F 
+		p_Pose[i] = predict.at<float>(i, 0);
+	}
+	// convert from pose vector to pose matrix (homogeneous matrix)
+	p_cMo.buildFrom(p_Pose);
+
+	// then project the model
+	projectModel(p_cMo);
+
+	// use the projected model to generate a window, then hough transform can be done only in the window, which will lead to both efficiency and accuracy
+	genTrackingWindow();
+
+	// Step 2: use hough transform to detect lines in the predicted window
+	houghLineDetection(window);
+
+	// Step 3: use the lines detected to track the cube
+	// cMo = ...
+	// poseVector = ...
+	
+	// Step 4: correct the prediction made by Kalman Filter
+	// TODO:delete the measurement when finished the measurement codes
+	cv::Mat measurement(6, 1, CV_32FC1);
+	KF.correct(measurement);
+
+	
+	// Step 5: publish the tracking result
+
+#ifndef DEBUG
+	//test only
+	//draw the rst
+	processedImg = curImg.clone();
+#endif
+
+#ifdef DEBUG
+	for (size_t i = 0; i < lines.size(); i++)
+	{
+		cv::Vec4i l = lines[i];
+		cv::line(processedImg, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), cv::Scalar(0, 0, 255), 3, CV_AA);
+	}
+#endif
+
+	cv_bridge::CvImage out_msg;
+	out_msg.header = srcImg->header;
+	out_msg.encoding = sensor_msgs::image_encodings::BGR8;
+	out_msg.image = processedImg;
+
+	imgPub.publish(out_msg.toImageMsg());
+}
+
+// initClick is referred for parts of the IO codes here
+// fstream used here
+void CEndeffectorTracking::getInitPoints(void)
+{
+	std::fstream finit;	
+	finit.open(init_file.c_str(), std::ios::in);
+	if (finit.fail())
+	{
+		std::cout << "cannot read " << init_file << std::endl;
+		throw vpException(vpException::ioError, "cannot read init file for model initialization!");
+	}
+
+	//file parser
+	//number of points
+	//X Y Z
+	//X Y Z
+	 
+	double X,Y,Z ;
+
+	unsigned int n ;
+	finit >> n ;
+	std::cout << "number of points " << n << std::endl ;
+	for (unsigned int i=0 ; i < n ; i++)
+	{
+		finit >> X ;
+		finit >> Y ;
+		finit >> Z ;
+		// NOTE: X,Y,Z are small float variables in meter, do NOT use int to save them
+		cv::Point3f curP(X, Y, Z);
+		// initialize the initP, which is the member variable of the class
+		initP.push_back(curP); // (X,Y,Z)
+	}
+
+	finit.close();
+}
+
+void CEndeffectorTracking::initCornersLines(void)
+{
+	// Step 1: init the corners
+	//
+	// the corners are arrange by two faces anti-clockwise
+	// the first three ones have the same order with the init points
+	corners.push_back(initP[0]);
+	corners.push_back(initP[1]);
+	corners.push_back(initP[2]);
+
+	//P4
+	cv::Point3f P4(initP[0].x, initP[0].y, initP[2].z);
+	corners.push_back(P4);
+
+	// only y-axis is different from the previous points
+	//P5
+	cv::Point3f P5(initP[0].x, initP[3].y, initP[0].z);
+	corners.push_back(P5);
+
+	//P6
+	corners.push_back(initP[3]);
+
+	//P7
+	cv::Point3f P7(initP[2].x, initP[3].y, initP[2].z);
+	corners.push_back(P7);
+
+	//P8
+	cv::Point3f P8(initP[0].x, initP[3].y, initP[2].z);
+	corners.push_back(P8);
+
+#ifdef DEBUG
+	// TODO:seems correct here
+	float x, y, z;
+	for (int i = 0; i < 8; i++)
+	{
+		x = corners[i].x;
+		y = corners[i].y;
+		z = corners[i].z;
+		std::cout<<"corners here "<<i<<std::endl;
+		std::cout<<x<<y<<z<<std::endl;
+	}
+#endif
+
+	// init the lines of the cube from the points
+	for (unsigned int i = 0; i < 4; i++)
+	{
+		CEndeffectorTracking::modelLine L(2);
+
+		L.push_back(corners[i]);
+		L.push_back(corners[(i+1)%4]);
+
+		model.push_back(L);
+	}
+
+#ifdef DEBUG
+	// TODO:However, something goes wrong here
+	int   len = model[0].size();
+	float dx1 = model[0][0].x;
+	float dy1 = model[0][0].y;
+	float dz1 = model[0][0].z;
+	float dx2 = model[0][1].x;
+	float dy2 = model[0][1].y;
+	float dz2 = model[0][1].z;
+	std::cout<<"length (2 is correct, 4 is incorrect)"<<len<<std::endl;
+	std::cout<<"model lines here"<<std::endl;
+	std::cout<<dx1<<dx2<<dy1<<dy2<<dz1<<dz2<<std::endl;
+#endif
+
+	for (unsigned int i = 4; i < 8; i++)
+	{
+		CEndeffectorTracking::modelLine L(2);
+
+		L.push_back(corners[i]);
+		if (i == 7)
+			L.push_back(corners[4]);
+		else
+			L.push_back(corners[i+1]);
+
+		model.push_back(L);
+	}
+
+	for (unsigned int i = 0; i < 4; i++)
+	{
+		CEndeffectorTracking::modelLine L(2);
+
+		L.push_back(corners[i]);
+		L.push_back(corners[i+4]);
+
+		model.push_back(L);
+	}
+}
+
+void CEndeffectorTracking::projectModel(const vpHomogeneousMatrix& cMo_)
+{
+	// Step 1: project the lines
+	std::vector<CEndeffectorTracking::modelLine>::const_iterator line; 
+	for (line = model.begin(); line != model.end(); ++line)
+	{
+		// the projected line for further processing
+		prjLine L(2);
+		
+		// start to convert
+		//
+		// convert cv::Point to vpPoint
+		vpPoint P[2];
+
+#ifdef DEBUG
+		float dx1 = (*line)[0].x;
+		float dy1 = (*line)[0].y;
+		float dz1 = (*line)[0].z;
+		float dx2 = (*line)[1].x;
+		float dy2 = (*line)[1].y;
+		float dz2 = (*line)[1].z;
+		std::cout<<"model lines for projection here"<<std::endl;
+		std::cout<<dx1<<dx2<<dy1<<dy2<<dz1<<dz2<<std::endl;
+#endif
+
+		P[0].setWorldCoordinates((*line)[0].x, (*line)[0].y, (*line)[0].z);
+		P[1].setWorldCoordinates((*line)[1].x, (*line)[1].y, (*line)[1].z);
+		
+		// project the point
+		P[0].changeFrame(cMo_);
+		P[1].changeFrame(cMo_);
+		P[0].project();	
+		P[1].project();	
+
+		// use the camera intrinsic parameter to get the coordinate in image plane in pixel
+		//FIXME:is the w coordinate always one?
+		double u, v;
+		vpMeterPixelConversion::convertPoint(cam, P[0].get_x(), P[0].get_y(), u, v);
+		L.push_back(cv::Point2f(u, v)); 
+
+		vpMeterPixelConversion::convertPoint(cam, P[1].get_x(), P[1].get_y(), u, v);
+		L.push_back(cv::Point2f(u, v)); 
+
+		// save the lines
+		prjModel.push_back(L);
+	}
+
+	// Step 2: project the corners
+	std::vector<cv::Point3f>::const_iterator corner;
+	for (corner = corners.begin(); corner != corners.end(); ++corner)
+	{
+		// convert cv::Point to vpPoint
+		vpPoint P;
+		P.setWorldCoordinates((*corner).x, (*corner).y, (*corner).z); 
+		// project the point
+		P.changeFrame(cMo_);
+		P.project();
+		// use the camera intrinsic parameter to get the coordinate in image plane in pixel
+		double u, v;
+		vpMeterPixelConversion::convertPoint(cam, P.get_x(), P.get_y(), u, v);
+		prjCorners.push_back(cv::Point2f(u, v)); 
+	}
+}
+
+void CEndeffectorTracking::initKalman(void)
+{
+	// initialize the state transition matrix using PV model
+	cv::Mat st(12, 12, CV_32FC1);
+	cv::setIdentity(st);
+	for (int i = 0; i < 6; i++)
+	{
+		st.at<float>(i, i + 6) = 1;
+	}
+	KF.transitionMatrix = st.clone();
+
+	// initialize other matrices
+	// TODO:should I specify the params here?
+	cv::setIdentity(KF.measurementMatrix);
+	cv::setIdentity(KF.processNoiseCov, cv::Scalar::all(1e-5));
+	cv::setIdentity(KF.measurementNoiseCov, cv::Scalar::all(1e-1));
+	cv::setIdentity(KF.errorCovPost, cv::Scalar::all(1));
+
+	// use the initial pose as the statePost
+	cv::Mat sp(12, 1, CV_32FC1);
+	for (int i = 0; i < 6; i++)
+	{
+		sp.at<float>(i, 0) = poseVector[i];
+	}
+	// the initial velocity is set to zero
+	for (int i = 6; i < 12; i++)
+	{
+		sp.at<float>(i, 0) = 0;
+	}
+	KF.statePost = sp.clone();
+}
+
+void CEndeffectorTracking::genTrackingWindow(void)
+{
+	int left 	= cols, 
+		right 	= 0, 
+		up 		= rows, 
+		bottom 	= 0;
+	// can't use the STL max_element here
+	std::vector<cv::Point2f>::const_iterator corner;
+	for (corner = prjCorners.begin(); corner != prjCorners.end(); ++corner)
+	{
+		// FIXME: Does the visp use the same coordinate system with the OpenCV?
+		if ((*corner).x > bottom)
+			bottom = (*corner).x; 
+		if ((*corner).x < up)
+			up = (*corner).x; 
+		if ((*corner).y < left)
+			left = (*corner).y; 
+		if ((*corner).y > right)
+			right = (*corner).y; 
+	}
+	window[0] = up;
+	window[1] = left;
+	window[2] = bottom;
+	window[3] = right;
+}

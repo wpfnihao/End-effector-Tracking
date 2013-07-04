@@ -1,0 +1,1 @@
+/usr/bin/c++  -fPIC -g   -shared -Wl,-soname,libgtest_main.so -o ../lib/libgtest_main.so CMakeFiles/gtest_main.dir/src/gtest_main.cc.o -L/home/sai/groovy_workspace/endeffector_tracking/gtest/src -lpthread ../lib/libgtest.so -lpthread -Wl,-rpath,/home/sai/groovy_workspace/endeffector_tracking/gtest/src:/home/sai/groovy_workspace/endeffector_tracking/lib 

@@ -1,0 +1,332 @@
+\hypertarget{classkltFbTracker}{\section{klt\-Fb\-Tracker \-Class \-Reference}
+\label{classkltFbTracker}\index{klt\-Fb\-Tracker@{klt\-Fb\-Tracker}}
+}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classkltFbTracker_ad1cb6684fe1235e576acdda1f7595d63}{\hyperlink{classkltFbTracker_ad1cb6684fe1235e576acdda1f7595d63}{klt\-Fb\-Tracker} ()}\label{classkltFbTracker_ad1cb6684fe1235e576acdda1f7595d63}
+
+\begin{DoxyCompactList}\small\item\em constructor \end{DoxyCompactList}\item 
+void \hyperlink{classkltFbTracker_a9e81cb441cb49cdd064343cc19d7f002}{initialize} (const vp\-Camera\-Parameters \&cam\-\_\-, const vp\-Homogeneous\-Matrix \&c\-Mo\-\_\-, const vp\-Pose\-Vector \&pose, int rows\-\_\-, int cols\-\_\-)
+\begin{DoxyCompactList}\small\item\em project the model based on the obtained c\-Mo and init the \-Kalman filter. \end{DoxyCompactList}\item 
+bool \hyperlink{classkltFbTracker_a0873200aa663a771410ed98c86c0f82b}{pub\-Rst} (cv\-::\-Mat \&img, cv\-::\-Rect \&box)
+\begin{DoxyCompactList}\small\item\em publish the tracked rst to the upper level \end{DoxyCompactList}\item 
+void \hyperlink{classkltFbTracker_a4bcd62be59529e0bafd606f8bff6c414}{retrieve\-Image} (const cv\-::\-Mat \&img)
+\begin{DoxyCompactList}\small\item\em retrieve \-Image from the up level class \end{DoxyCompactList}\item 
+\hypertarget{classkltFbTracker_addf646a894f55485b2675009d95c1829}{void \hyperlink{classkltFbTracker_addf646a894f55485b2675009d95c1829}{track} (void)}\label{classkltFbTracker_addf646a894f55485b2675009d95c1829}
+
+\begin{DoxyCompactList}\small\item\em tracking is done here \end{DoxyCompactList}\item 
+void \hyperlink{classkltFbTracker_aa830b7fcfceaa9bfccb77c7eab879ff8}{init\-Model} (std\-::vector$<$ cv\-::\-Point3f $>$ \&init\-P)
+\begin{DoxyCompactList}\small\item\em \-I still don't know how to read the model from the wrl or cad or cao file \-However, it is sufficient to get the cube from the init file if in the future, more complex model is tracked, \-I should reimplement this function the 8 corners of the cube is initialized. the 6 faces of the cube is initialized. this function will be called before initialize. \end{DoxyCompactList}\item 
+\hypertarget{classkltFbTracker_abb7ffa568c30b0f5760fa567abe69505}{void {\bfseries init} (cv\-::\-Mat \&img)}\label{classkltFbTracker_abb7ffa568c30b0f5760fa567abe69505}
+
+\item 
+void \hyperlink{classkltFbTracker_af63e4b7bfd2dabdf681a345a08a6a6ce}{project\-Model} (const vp\-Homogeneous\-Matrix \&c\-Mo\-\_\-)
+\begin{DoxyCompactList}\small\item\em project the model into the image using the provided pose (usually the predicted one or the measured one) \end{DoxyCompactList}\item 
+void \hyperlink{classkltFbTracker_a807b39de5e5d5a6b9dcf14b8efa09f70}{measure\-Pose} (std\-::vector$<$ vp\-Point $>$ \&stable\-Features3d, std\-::vector$<$ cv\-::\-Point2f $>$ \&stable\-Features2d)
+\begin{DoxyCompactList}\small\item\em measure pose from the connected features \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{\-Protected \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+double \hyperlink{classkltFbTracker_afea81d8ad4d23b8162d4bcf8d0ccab37}{pts\-Dist} (double x1, double y1, double x2, double y2)
+\begin{DoxyCompactList}\small\item\em distance between two points \end{DoxyCompactList}\item 
+double \hyperlink{classkltFbTracker_aa87fc08d64e0e4f60ef2b7ce73cb25e8}{pose\-Dist} (const vp\-Pose\-Vector \&p1, const vp\-Pose\-Vector \&p2)
+\begin{DoxyCompactList}\small\item\em distance between two pose\-Vector \end{DoxyCompactList}\item 
+bool \hyperlink{classkltFbTracker_a323a5591070b2b96caf99588f8a1222e}{is\-Flipped} (const vp\-Pose\-Vector \&p1, const vp\-Pose\-Vector \&p2)
+\begin{DoxyCompactList}\small\item\em check whether the pose estimated is flipped \end{DoxyCompactList}\item 
+void \hyperlink{classkltFbTracker_a709489510926fb6cd8a47b880cc4cdc3}{gen\-Features\-For\-Track\-On\-Face} (std\-::vector$<$ vp\-Point $>$ \&features, int face\-I\-D, int num\-Of\-Pts\-Per\-Face)
+\begin{DoxyCompactList}\small\item\em generate features for tracking from the visible faces \end{DoxyCompactList}\item 
+void \hyperlink{classkltFbTracker_a7c36cfa21a75b136d2275601cc1af8ad}{fb\-Tracking} (std\-::vector$<$ cv\-::\-Point2f $>$ \&init\-Features2d, std\-::vector$<$ cv\-::\-Point2f $>$ \&b\-Features, std\-::vector$<$ cv\-::\-Point2f $>$ \&c\-Features, std\-::vector$<$ unsigned char $>$ \&f\-Status, std\-::vector$<$ unsigned char $>$ \&b\-Status)
+\begin{DoxyCompactList}\small\item\em using the forward backward klt tracker to track the obtained features \end{DoxyCompactList}\item 
+void \hyperlink{classkltFbTracker_a5a7504d787d6869ff53a0376aa3e8420}{find\-Stable\-Features} (std\-::vector$<$ vp\-Point $>$ \&init\-Features, std\-::vector$<$ cv\-::\-Point2f $>$ \&init\-Features2d, std\-::vector$<$ cv\-::\-Point2f $>$ \&b\-Features, std\-::vector$<$ cv\-::\-Point2f $>$ \&c\-Features, std\-::vector$<$ unsigned char $>$ \&f\-Status, std\-::vector$<$ unsigned char $>$ \&b\-Status, std\-::vector$<$ vp\-Point $>$ \&stable\-Features3d, std\-::vector$<$ cv\-::\-Point2f $>$ \&stable\-Features2d, float th)
+\begin{DoxyCompactList}\small\item\em find the stably tracked features from the forward backward tracker \end{DoxyCompactList}\item 
+\hypertarget{classkltFbTracker_a9d4f973d649ffead5fa36f67ec316f93}{void \hyperlink{classkltFbTracker_a9d4f973d649ffead5fa36f67ec316f93}{plot\-Rst} (void)}\label{classkltFbTracker_a9d4f973d649ffead5fa36f67ec316f93}
+
+\begin{DoxyCompactList}\small\item\em draw the tracked features and object for visual inspection \end{DoxyCompactList}\item 
+\hypertarget{classkltFbTracker_a2639bdec1cbb1df3549c83c3b9749d7c}{void {\bfseries line2\-Pts} (const int line\-I\-D, int \&p1, int \&p2)}\label{classkltFbTracker_a2639bdec1cbb1df3549c83c3b9749d7c}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classkltFbTracker_a7c36cfa21a75b136d2275601cc1af8ad}{\index{klt\-Fb\-Tracker@{klt\-Fb\-Tracker}!fb\-Tracking@{fb\-Tracking}}
+\index{fb\-Tracking@{fb\-Tracking}!kltFbTracker@{klt\-Fb\-Tracker}}
+\subsubsection[{fb\-Tracking}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf klt\-Fb\-Tracker\-::fb\-Tracking} (
+\begin{DoxyParamCaption}
+\item[{std\-::vector$<$ cv\-::\-Point2f $>$ \&}]{init\-Features2d, }
+\item[{std\-::vector$<$ cv\-::\-Point2f $>$ \&}]{b\-Features, }
+\item[{std\-::vector$<$ cv\-::\-Point2f $>$ \&}]{c\-Features, }
+\item[{std\-::vector$<$ unsigned char $>$ \&}]{f\-Status, }
+\item[{std\-::vector$<$ unsigned char $>$ \&}]{b\-Status}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classkltFbTracker_a7c36cfa21a75b136d2275601cc1af8ad}
+
+
+using the forward backward klt tracker to track the obtained features 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em init\-Features2d} & \\
+\hline
+{\em b\-Features} & \\
+\hline
+{\em c\-Features} & \\
+\hline
+{\em f\-Status} & \\
+\hline
+{\em b\-Status} & \\
+\hline
+\end{DoxyParams}
+\hypertarget{classkltFbTracker_a5a7504d787d6869ff53a0376aa3e8420}{\index{klt\-Fb\-Tracker@{klt\-Fb\-Tracker}!find\-Stable\-Features@{find\-Stable\-Features}}
+\index{find\-Stable\-Features@{find\-Stable\-Features}!kltFbTracker@{klt\-Fb\-Tracker}}
+\subsubsection[{find\-Stable\-Features}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf klt\-Fb\-Tracker\-::find\-Stable\-Features} (
+\begin{DoxyParamCaption}
+\item[{std\-::vector$<$ vp\-Point $>$ \&}]{init\-Features, }
+\item[{std\-::vector$<$ cv\-::\-Point2f $>$ \&}]{init\-Features2d, }
+\item[{std\-::vector$<$ cv\-::\-Point2f $>$ \&}]{b\-Features, }
+\item[{std\-::vector$<$ cv\-::\-Point2f $>$ \&}]{c\-Features, }
+\item[{std\-::vector$<$ unsigned char $>$ \&}]{f\-Status, }
+\item[{std\-::vector$<$ unsigned char $>$ \&}]{b\-Status, }
+\item[{std\-::vector$<$ vp\-Point $>$ \&}]{stable\-Features3d, }
+\item[{std\-::vector$<$ cv\-::\-Point2f $>$ \&}]{stable\-Features2d, }
+\item[{float}]{th}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classkltFbTracker_a5a7504d787d6869ff53a0376aa3e8420}
+
+
+find the stably tracked features from the forward backward tracker 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em init\-Features} & \\
+\hline
+{\em b\-Features} & \\
+\hline
+{\em c\-Features} & \\
+\hline
+{\em f\-Status} & \\
+\hline
+{\em b\-Status} & \\
+\hline
+{\em stable\-Features3d} & \\
+\hline
+{\em stable\-Features2d} & \\
+\hline
+{\em th} & \\
+\hline
+\end{DoxyParams}
+\hypertarget{classkltFbTracker_a709489510926fb6cd8a47b880cc4cdc3}{\index{klt\-Fb\-Tracker@{klt\-Fb\-Tracker}!gen\-Features\-For\-Track\-On\-Face@{gen\-Features\-For\-Track\-On\-Face}}
+\index{gen\-Features\-For\-Track\-On\-Face@{gen\-Features\-For\-Track\-On\-Face}!kltFbTracker@{klt\-Fb\-Tracker}}
+\subsubsection[{gen\-Features\-For\-Track\-On\-Face}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf klt\-Fb\-Tracker\-::gen\-Features\-For\-Track\-On\-Face} (
+\begin{DoxyParamCaption}
+\item[{std\-::vector$<$ vp\-Point $>$ \&}]{features, }
+\item[{int}]{face\-I\-D, }
+\item[{int}]{num\-Of\-Pts\-Per\-Face}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classkltFbTracker_a709489510926fb6cd8a47b880cc4cdc3}
+
+
+generate features for tracking from the visible faces 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em features} & \-:vector containing the features for tracking \\
+\hline
+{\em face\-I\-D} & \-:the id of the visible face \\
+\hline
+\end{DoxyParams}
+\hypertarget{classkltFbTracker_a9e81cb441cb49cdd064343cc19d7f002}{\index{klt\-Fb\-Tracker@{klt\-Fb\-Tracker}!initialize@{initialize}}
+\index{initialize@{initialize}!kltFbTracker@{klt\-Fb\-Tracker}}
+\subsubsection[{initialize}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf klt\-Fb\-Tracker\-::initialize} (
+\begin{DoxyParamCaption}
+\item[{const vp\-Camera\-Parameters \&}]{cam\-\_\-, }
+\item[{const vp\-Homogeneous\-Matrix \&}]{c\-Mo\-\_\-, }
+\item[{const vp\-Pose\-Vector \&}]{pose, }
+\item[{int}]{rows\-\_\-, }
+\item[{int}]{cols\-\_\-}
+\end{DoxyParamCaption}
+)}}\label{classkltFbTracker_a9e81cb441cb49cdd064343cc19d7f002}
+
+
+project the model based on the obtained c\-Mo and init the \-Kalman filter. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em cam\-\_\-} & the camera param \\
+\hline
+{\em c\-Mo\-\_\-} & the initial pose matrix \\
+\hline
+{\em pose} & the initial pose vector \\
+\hline
+{\em rows\-\_\-} & rows of image \\
+\hline
+{\em cols\-\_\-} & cols of image \\
+\hline
+\end{DoxyParams}
+\hypertarget{classkltFbTracker_aa830b7fcfceaa9bfccb77c7eab879ff8}{\index{klt\-Fb\-Tracker@{klt\-Fb\-Tracker}!init\-Model@{init\-Model}}
+\index{init\-Model@{init\-Model}!kltFbTracker@{klt\-Fb\-Tracker}}
+\subsubsection[{init\-Model}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf klt\-Fb\-Tracker\-::init\-Model} (
+\begin{DoxyParamCaption}
+\item[{std\-::vector$<$ cv\-::\-Point3f $>$ \&}]{init\-P}
+\end{DoxyParamCaption}
+)}}\label{classkltFbTracker_aa830b7fcfceaa9bfccb77c7eab879ff8}
+
+
+\-I still don't know how to read the model from the wrl or cad or cao file \-However, it is sufficient to get the cube from the init file if in the future, more complex model is tracked, \-I should reimplement this function the 8 corners of the cube is initialized. the 6 faces of the cube is initialized. this function will be called before initialize. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em init\-P} & \-:the initial points from the $\ast$.init file \\
+\hline
+\end{DoxyParams}
+\hypertarget{classkltFbTracker_a323a5591070b2b96caf99588f8a1222e}{\index{klt\-Fb\-Tracker@{klt\-Fb\-Tracker}!is\-Flipped@{is\-Flipped}}
+\index{is\-Flipped@{is\-Flipped}!kltFbTracker@{klt\-Fb\-Tracker}}
+\subsubsection[{is\-Flipped}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf klt\-Fb\-Tracker\-::is\-Flipped} (
+\begin{DoxyParamCaption}
+\item[{const vp\-Pose\-Vector \&}]{p1, }
+\item[{const vp\-Pose\-Vector \&}]{p2}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classkltFbTracker_a323a5591070b2b96caf99588f8a1222e}
+
+
+check whether the pose estimated is flipped 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em p1} & \\
+\hline
+{\em p2} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+
+\end{DoxyReturn}
+\hypertarget{classkltFbTracker_a807b39de5e5d5a6b9dcf14b8efa09f70}{\index{klt\-Fb\-Tracker@{klt\-Fb\-Tracker}!measure\-Pose@{measure\-Pose}}
+\index{measure\-Pose@{measure\-Pose}!kltFbTracker@{klt\-Fb\-Tracker}}
+\subsubsection[{measure\-Pose}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf klt\-Fb\-Tracker\-::measure\-Pose} (
+\begin{DoxyParamCaption}
+\item[{std\-::vector$<$ vp\-Point $>$ \&}]{stable\-Features3d, }
+\item[{std\-::vector$<$ cv\-::\-Point2f $>$ \&}]{stable\-Features2d}
+\end{DoxyParamCaption}
+)}}\label{classkltFbTracker_a807b39de5e5d5a6b9dcf14b8efa09f70}
+
+
+measure pose from the connected features 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em stable\-Features3d} & \-:the vp\-Point 3d features \\
+\hline
+{\em stable\-Features2d} & \-:the cv\-::\-Point2f 2d features \\
+\hline
+\end{DoxyParams}
+\hypertarget{classkltFbTracker_aa87fc08d64e0e4f60ef2b7ce73cb25e8}{\index{klt\-Fb\-Tracker@{klt\-Fb\-Tracker}!pose\-Dist@{pose\-Dist}}
+\index{pose\-Dist@{pose\-Dist}!kltFbTracker@{klt\-Fb\-Tracker}}
+\subsubsection[{pose\-Dist}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf klt\-Fb\-Tracker\-::pose\-Dist} (
+\begin{DoxyParamCaption}
+\item[{const vp\-Pose\-Vector \&}]{p1, }
+\item[{const vp\-Pose\-Vector \&}]{p2}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline, protected\mbox{]}}}}\label{classkltFbTracker_aa87fc08d64e0e4f60ef2b7ce73cb25e8}
+
+
+distance between two pose\-Vector 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em p1} & \\
+\hline
+{\em p2} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+
+\end{DoxyReturn}
+\hypertarget{classkltFbTracker_af63e4b7bfd2dabdf681a345a08a6a6ce}{\index{klt\-Fb\-Tracker@{klt\-Fb\-Tracker}!project\-Model@{project\-Model}}
+\index{project\-Model@{project\-Model}!kltFbTracker@{klt\-Fb\-Tracker}}
+\subsubsection[{project\-Model}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf klt\-Fb\-Tracker\-::project\-Model} (
+\begin{DoxyParamCaption}
+\item[{const vp\-Homogeneous\-Matrix \&}]{c\-Mo\-\_\-}
+\end{DoxyParamCaption}
+)}}\label{classkltFbTracker_af63e4b7bfd2dabdf681a345a08a6a6ce}
+
+
+project the model into the image using the provided pose (usually the predicted one or the measured one) 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em c\-Mo\-\_\-} & \\
+\hline
+\end{DoxyParams}
+\hypertarget{classkltFbTracker_afea81d8ad4d23b8162d4bcf8d0ccab37}{\index{klt\-Fb\-Tracker@{klt\-Fb\-Tracker}!pts\-Dist@{pts\-Dist}}
+\index{pts\-Dist@{pts\-Dist}!kltFbTracker@{klt\-Fb\-Tracker}}
+\subsubsection[{pts\-Dist}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf klt\-Fb\-Tracker\-::pts\-Dist} (
+\begin{DoxyParamCaption}
+\item[{double}]{x1, }
+\item[{double}]{y1, }
+\item[{double}]{x2, }
+\item[{double}]{y2}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline, protected\mbox{]}}}}\label{classkltFbTracker_afea81d8ad4d23b8162d4bcf8d0ccab37}
+
+
+distance between two points 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em x1} & \\
+\hline
+{\em y1} & \\
+\hline
+{\em x2} & \\
+\hline
+{\em y2} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+
+\end{DoxyReturn}
+\hypertarget{classkltFbTracker_a0873200aa663a771410ed98c86c0f82b}{\index{klt\-Fb\-Tracker@{klt\-Fb\-Tracker}!pub\-Rst@{pub\-Rst}}
+\index{pub\-Rst@{pub\-Rst}!kltFbTracker@{klt\-Fb\-Tracker}}
+\subsubsection[{pub\-Rst}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf klt\-Fb\-Tracker\-::pub\-Rst} (
+\begin{DoxyParamCaption}
+\item[{cv\-::\-Mat \&}]{img, }
+\item[{cv\-::\-Rect \&}]{box}
+\end{DoxyParamCaption}
+)}}\label{classkltFbTracker_a0873200aa663a771410ed98c86c0f82b}
+
+
+publish the tracked rst to the upper level 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em img} & image with the tracker markers \\
+\hline
+{\em box} & tracked box\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+whether the tracker is lost target 
+\end{DoxyReturn}
+\hypertarget{classkltFbTracker_a4bcd62be59529e0bafd606f8bff6c414}{\index{klt\-Fb\-Tracker@{klt\-Fb\-Tracker}!retrieve\-Image@{retrieve\-Image}}
+\index{retrieve\-Image@{retrieve\-Image}!kltFbTracker@{klt\-Fb\-Tracker}}
+\subsubsection[{retrieve\-Image}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf klt\-Fb\-Tracker\-::retrieve\-Image} (
+\begin{DoxyParamCaption}
+\item[{const cv\-::\-Mat \&}]{img}
+\end{DoxyParamCaption}
+)}}\label{classkltFbTracker_a4bcd62be59529e0bafd606f8bff6c414}
+
+
+retrieve \-Image from the up level class 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em img} & the input image \\
+\hline
+\end{DoxyParams}
+
+
+\-The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+include/endeffector\-\_\-tracking/\hyperlink{kltFbTracker_8h}{klt\-Fb\-Tracker.\-h}\item 
+src/\hyperlink{kltFbTracker_8cpp}{klt\-Fb\-Tracker.\-cpp}\end{DoxyCompactItemize}

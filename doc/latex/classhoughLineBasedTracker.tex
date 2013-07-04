@@ -1,0 +1,572 @@
+\hypertarget{classhoughLineBasedTracker}{\section{hough\-Line\-Based\-Tracker \-Class \-Reference}
+\label{classhoughLineBasedTracker}\index{hough\-Line\-Based\-Tracker@{hough\-Line\-Based\-Tracker}}
+}
+\subsection*{\-Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structhoughLineBasedTracker_1_1detectedLine__}{detected\-Line\-\_\-}
+\begin{DoxyCompactList}\small\item\em line detected by hough transform with a corresponding line in the object model. both straight line and line segment are saved in this struct with their corresponding coordinates in object frame. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{\-Public \-Types}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classhoughLineBasedTracker_ac5e746870094fed71d26ed75d4a099e5}{typedef std\-::vector$<$ cv\-::\-Point3f $>$ \hyperlink{classhoughLineBasedTracker_ac5e746870094fed71d26ed75d4a099e5}{model\-Line}}\label{classhoughLineBasedTracker_ac5e746870094fed71d26ed75d4a099e5}
+
+\begin{DoxyCompactList}\small\item\em lines to describe the model in the object frame \end{DoxyCompactList}\item 
+\hypertarget{classhoughLineBasedTracker_a5f50eb8aa0cd3b60d159ef42227f9b48}{typedef struct \*
+\hyperlink{structhoughLineBasedTracker_1_1detectedLine__}{hough\-Line\-Based\-Tracker\-::detected\-Line\-\_\-} \hyperlink{classhoughLineBasedTracker_a5f50eb8aa0cd3b60d159ef42227f9b48}{detected\-Line}}\label{classhoughLineBasedTracker_a5f50eb8aa0cd3b60d159ef42227f9b48}
+
+\begin{DoxyCompactList}\small\item\em line detected by hough transform with a corresponding line in the object model. both straight line and line segment are saved in this struct with their corresponding coordinates in object frame. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classhoughLineBasedTracker_a8486c3de3d20d8ca17d5afa5d13c27dc}{hough\-Line\-Based\-Tracker} ()
+\begin{DoxyCompactList}\small\item\em constructor \end{DoxyCompactList}\item 
+void \hyperlink{classhoughLineBasedTracker_a7a9281df256344be5c9afab200aae2e1}{initialize} (const vp\-Camera\-Parameters \&cam\-\_\-, const vp\-Homogeneous\-Matrix \&c\-Mo\-\_\-, const vp\-Pose\-Vector \&pose, int rows\-\_\-, int cols\-\_\-)
+\begin{DoxyCompactList}\small\item\em brief project the model based on the obtained c\-Mo and init the \-Kalman filter. \end{DoxyCompactList}\item 
+bool \hyperlink{classhoughLineBasedTracker_afb860ab5cf96382106661db117e929ea}{pub\-Rst} (cv\-::\-Mat \&img, cv\-::\-Rect \&box)
+\begin{DoxyCompactList}\small\item\em publish the tracked rst to the upper level \end{DoxyCompactList}\item 
+void \hyperlink{classhoughLineBasedTracker_aefcf18fa7251a151e4fd72355886bd4c}{retrieve\-Image} (const cv\-::\-Mat \&img)
+\begin{DoxyCompactList}\small\item\em retrieve \-Image from the up level class \end{DoxyCompactList}\item 
+void \hyperlink{classhoughLineBasedTracker_a4a61b01d41927fe3db6019484bd02a7b}{hough\-Line\-Detection} (const int $\ast$win)
+\begin{DoxyCompactList}\small\item\em use hough transform to detect lines in a given window \end{DoxyCompactList}\item 
+void \hyperlink{classhoughLineBasedTracker_a6dd7025c8965e34b9bf15601c3783195}{track} (void)
+\begin{DoxyCompactList}\small\item\em tracking is done here \end{DoxyCompactList}\item 
+void \hyperlink{classhoughLineBasedTracker_a4d3b25defc69d5ec0a7341d0939c19b4}{init\-Model} (std\-::vector$<$ cv\-::\-Point3f $>$ \&init\-P)
+\begin{DoxyCompactList}\small\item\em \-I still don't know how to read the model from the wrl or cad or cao file \-However, it is sufficient to get the cube from the init file if in the future, more complex model is tracked, \-I should reimplement this function. \end{DoxyCompactList}\item 
+void \hyperlink{classhoughLineBasedTracker_ab2eb9a610b1f7eac11444be87c951710}{project\-Model} (const vp\-Homogeneous\-Matrix \&c\-Mo\-\_\-)
+\begin{DoxyCompactList}\small\item\em project the model into the image using the provided pose (usually the predicted one or the measured one) \end{DoxyCompactList}\item 
+\hypertarget{classhoughLineBasedTracker_a91d371404d9164b79a76c3a74a51b2f4}{void \hyperlink{classhoughLineBasedTracker_a91d371404d9164b79a76c3a74a51b2f4}{init\-Kalman} (void)}\label{classhoughLineBasedTracker_a91d371404d9164b79a76c3a74a51b2f4}
+
+\begin{DoxyCompactList}\small\item\em initialize the \-Kalman filter, such as the measurement matrix etc. \end{DoxyCompactList}\item 
+\hypertarget{classhoughLineBasedTracker_ab69775ffac23095590728097872f2bc7}{void \hyperlink{classhoughLineBasedTracker_ab69775ffac23095590728097872f2bc7}{make\-Connection} (void)}\label{classhoughLineBasedTracker_ab69775ffac23095590728097872f2bc7}
+
+\begin{DoxyCompactList}\small\item\em link the detected line with the visible line \end{DoxyCompactList}\item 
+\hypertarget{classhoughLineBasedTracker_a53f0e0b7c4640fca24d1795c0a73256f}{void \hyperlink{classhoughLineBasedTracker_a53f0e0b7c4640fca24d1795c0a73256f}{measure\-Pose} (void)}\label{classhoughLineBasedTracker_a53f0e0b7c4640fca24d1795c0a73256f}
+
+\begin{DoxyCompactList}\small\item\em measure pose from the connected features \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{\-Protected \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+double \hyperlink{classhoughLineBasedTracker_add007cef95a4327a9ab419e244fdce27}{compare\-Straight\-Line} (const vp\-Line \&l1, const vp\-Line \&l2, const cv\-::\-Vec4f \&ml1, const cv\-::\-Vec4f \&dl2)
+\begin{DoxyCompactList}\small\item\em calculate the \char`\"{}distance\char`\"{} between two lines \end{DoxyCompactList}\item 
+void \hyperlink{classhoughLineBasedTracker_a85f03d15859e655e0e5806af176e353d}{get\-Panel\-Equ\-From\-Three\-Pt} (const std\-::vector$<$ cv\-::\-Point3f $>$ \&pt, double \&a, double \&b, double \&c, double \&d)
+\begin{DoxyCompactList}\small\item\em give three points in a panel, get the equation of the panel \end{DoxyCompactList}\item 
+void \hyperlink{classhoughLineBasedTracker_acbda1d791078dc58527bfe4d7693908c}{trans\-Line\-Type} (const cv\-::\-Vec4f \&line\-\_\-, vp\-Line \&sl)
+\begin{DoxyCompactList}\small\item\em transform the line segment into straight line \end{DoxyCompactList}\item 
+\hypertarget{classhoughLineBasedTracker_ae5e79ae2fc221b2b591d90f2c334f7c3}{void \hyperlink{classhoughLineBasedTracker_ae5e79ae2fc221b2b591d90f2c334f7c3}{gen\-Tracking\-Window} (void)}\label{classhoughLineBasedTracker_ae5e79ae2fc221b2b591d90f2c334f7c3}
+
+\begin{DoxyCompactList}\small\item\em generate a window for hough transform \end{DoxyCompactList}\item 
+void \hyperlink{classhoughLineBasedTracker_a7ead438c8cf14248b24e538c33a76a0a}{find\-Visible\-Lines} (const vp\-Homogeneous\-Matrix \&c\-Mo\-\_\-)
+\begin{DoxyCompactList}\small\item\em find visible lines using the vp\-Mbt\-Polygon class \end{DoxyCompactList}\item 
+void \hyperlink{classhoughLineBasedTracker_acf7ed7709862ddf301a445a1791d83ab}{line2face} (const int line\-I\-D, int \&f1, int \&f2)
+\begin{DoxyCompactList}\small\item\em find two faces that generate the line \end{DoxyCompactList}\item 
+void \hyperlink{classhoughLineBasedTracker_a387be1e232a912c018c18eec30f6531d}{line2\-Pts} (const int line\-I\-D, int \&p1, int \&p2)
+\begin{DoxyCompactList}\small\item\em get the end points \-I\-Ds from the line \-I\-D \end{DoxyCompactList}\item 
+void \hyperlink{classhoughLineBasedTracker_a63375bf97cd00db97b8b9a638adda72b}{get\-Line\-Equ\-From\-I\-D} (int \-I\-D, double \&a1, double \&b1, double \&c1, double \&d1, double \&a2, double \&b2, double \&c2, double \&d2)
+\begin{DoxyCompactList}\small\item\em get the line equation in 3\-D coordinate system form the line \-I\-D \end{DoxyCompactList}\item 
+void \hyperlink{classhoughLineBasedTracker_a0fc0f63e61bbb1de64adee807e7fc2e6}{get\-Prj\-Line\-Equ} (const cv\-::\-Vec4f \&line\-\_\-, double \&a, double \&b, double \&c)
+\begin{DoxyCompactList}\small\item\em get the line equation in 2\-D coordinate system with two given points ax + by + c = 0 \end{DoxyCompactList}\item 
+void \hyperlink{classhoughLineBasedTracker_a04878ce14fe321139d76c61dbece76ba}{get\-Pt\-From\-Straight\-Line} (int l1, int l2, double \&x, double \&y)
+\begin{DoxyCompactList}\small\item\em the cross point of two straight lines \end{DoxyCompactList}\item 
+bool \hyperlink{classhoughLineBasedTracker_a527cf1cd6b454a3b5b1796402c50fb68}{check\-Pts\-Connection} (double x1, double y1, double x2, double y2, const cv\-::\-Point3f \&w1, const cv\-::\-Point3f \&w2)
+\begin{DoxyCompactList}\small\item\em check the order of endpoints of a given segment just to make sure the line segment is in front of the camera \end{DoxyCompactList}\item 
+double \hyperlink{classhoughLineBasedTracker_a58c8e279a8bafdf1a838a0b37e67fb0a}{pts\-Dist} (double x1, double y1, double x2, double y2)
+\begin{DoxyCompactList}\small\item\em distance between two points \end{DoxyCompactList}\item 
+double \hyperlink{classhoughLineBasedTracker_ac2c71b09acea78ed37cb369747e8c528}{pose\-Dist} (const vp\-Pose\-Vector \&p1, const vp\-Pose\-Vector \&p2)
+\begin{DoxyCompactList}\small\item\em distance between two pose\-Vector \end{DoxyCompactList}\item 
+bool \hyperlink{classhoughLineBasedTracker_a2a0c6bda6c4b63260746b67845524be4}{is\-Flipped} (const vp\-Pose\-Vector \&p1, const vp\-Pose\-Vector \&p2)
+\begin{DoxyCompactList}\small\item\em check whether the pose estimated is flipped \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{\-Constructor \& \-Destructor \-Documentation}
+\hypertarget{classhoughLineBasedTracker_a8486c3de3d20d8ca17d5afa5d13c27dc}{\index{hough\-Line\-Based\-Tracker@{hough\-Line\-Based\-Tracker}!hough\-Line\-Based\-Tracker@{hough\-Line\-Based\-Tracker}}
+\index{hough\-Line\-Based\-Tracker@{hough\-Line\-Based\-Tracker}!houghLineBasedTracker@{hough\-Line\-Based\-Tracker}}
+\subsubsection[{hough\-Line\-Based\-Tracker}]{\setlength{\rightskip}{0pt plus 5cm}{\bf hough\-Line\-Based\-Tracker\-::hough\-Line\-Based\-Tracker} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classhoughLineBasedTracker_a8486c3de3d20d8ca17d5afa5d13c27dc}
+
+
+constructor 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em argc} & \\
+\hline
+{\em argv} & \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classhoughLineBasedTracker_a527cf1cd6b454a3b5b1796402c50fb68}{\index{hough\-Line\-Based\-Tracker@{hough\-Line\-Based\-Tracker}!check\-Pts\-Connection@{check\-Pts\-Connection}}
+\index{check\-Pts\-Connection@{check\-Pts\-Connection}!houghLineBasedTracker@{hough\-Line\-Based\-Tracker}}
+\subsubsection[{check\-Pts\-Connection}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf hough\-Line\-Based\-Tracker\-::check\-Pts\-Connection} (
+\begin{DoxyParamCaption}
+\item[{double}]{x1, }
+\item[{double}]{y1, }
+\item[{double}]{x2, }
+\item[{double}]{y2, }
+\item[{const cv\-::\-Point3f \&}]{w1, }
+\item[{const cv\-::\-Point3f \&}]{w2}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classhoughLineBasedTracker_a527cf1cd6b454a3b5b1796402c50fb68}
+
+
+check the order of endpoints of a given segment just to make sure the line segment is in front of the camera 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em x1} & \\
+\hline
+{\em y1} & \\
+\hline
+{\em x2} & \\
+\hline
+{\em y2} & \\
+\hline
+{\em w1} & \\
+\hline
+{\em w2} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+
+\end{DoxyReturn}
+\hypertarget{classhoughLineBasedTracker_add007cef95a4327a9ab419e244fdce27}{\index{hough\-Line\-Based\-Tracker@{hough\-Line\-Based\-Tracker}!compare\-Straight\-Line@{compare\-Straight\-Line}}
+\index{compare\-Straight\-Line@{compare\-Straight\-Line}!houghLineBasedTracker@{hough\-Line\-Based\-Tracker}}
+\subsubsection[{compare\-Straight\-Line}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf hough\-Line\-Based\-Tracker\-::compare\-Straight\-Line} (
+\begin{DoxyParamCaption}
+\item[{const vp\-Line \&}]{l1, }
+\item[{const vp\-Line \&}]{l2, }
+\item[{const cv\-::\-Vec4f \&}]{ml1, }
+\item[{const cv\-::\-Vec4f \&}]{dl2}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classhoughLineBasedTracker_add007cef95a4327a9ab419e244fdce27}
+
+
+calculate the \char`\"{}distance\char`\"{} between two lines 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em l1} & \\
+\hline
+{\em l2} & \\
+\hline
+{\em ml1} & \\
+\hline
+{\em dl2} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+
+\end{DoxyReturn}
+\hypertarget{classhoughLineBasedTracker_a7ead438c8cf14248b24e538c33a76a0a}{\index{hough\-Line\-Based\-Tracker@{hough\-Line\-Based\-Tracker}!find\-Visible\-Lines@{find\-Visible\-Lines}}
+\index{find\-Visible\-Lines@{find\-Visible\-Lines}!houghLineBasedTracker@{hough\-Line\-Based\-Tracker}}
+\subsubsection[{find\-Visible\-Lines}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf hough\-Line\-Based\-Tracker\-::find\-Visible\-Lines} (
+\begin{DoxyParamCaption}
+\item[{const vp\-Homogeneous\-Matrix \&}]{c\-Mo\-\_\-}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classhoughLineBasedTracker_a7ead438c8cf14248b24e538c33a76a0a}
+
+
+find visible lines using the vp\-Mbt\-Polygon class 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em c\-Mo\-\_\-} & \\
+\hline
+\end{DoxyParams}
+\hypertarget{classhoughLineBasedTracker_a63375bf97cd00db97b8b9a638adda72b}{\index{hough\-Line\-Based\-Tracker@{hough\-Line\-Based\-Tracker}!get\-Line\-Equ\-From\-I\-D@{get\-Line\-Equ\-From\-I\-D}}
+\index{get\-Line\-Equ\-From\-I\-D@{get\-Line\-Equ\-From\-I\-D}!houghLineBasedTracker@{hough\-Line\-Based\-Tracker}}
+\subsubsection[{get\-Line\-Equ\-From\-I\-D}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf hough\-Line\-Based\-Tracker\-::get\-Line\-Equ\-From\-I\-D} (
+\begin{DoxyParamCaption}
+\item[{int}]{\-I\-D, }
+\item[{double \&}]{a1, }
+\item[{double \&}]{b1, }
+\item[{double \&}]{c1, }
+\item[{double \&}]{d1, }
+\item[{double \&}]{a2, }
+\item[{double \&}]{b2, }
+\item[{double \&}]{c2, }
+\item[{double \&}]{d2}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classhoughLineBasedTracker_a63375bf97cd00db97b8b9a638adda72b}
+
+
+get the line equation in 3\-D coordinate system form the line \-I\-D 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em \-I\-D} & \\
+\hline
+{\em a1} & \\
+\hline
+{\em b1} & \\
+\hline
+{\em c1} & \\
+\hline
+{\em d1} & \\
+\hline
+{\em a2} & \\
+\hline
+{\em b2} & \\
+\hline
+{\em c2} & \\
+\hline
+{\em d2} & \\
+\hline
+\end{DoxyParams}
+\hypertarget{classhoughLineBasedTracker_a85f03d15859e655e0e5806af176e353d}{\index{hough\-Line\-Based\-Tracker@{hough\-Line\-Based\-Tracker}!get\-Panel\-Equ\-From\-Three\-Pt@{get\-Panel\-Equ\-From\-Three\-Pt}}
+\index{get\-Panel\-Equ\-From\-Three\-Pt@{get\-Panel\-Equ\-From\-Three\-Pt}!houghLineBasedTracker@{hough\-Line\-Based\-Tracker}}
+\subsubsection[{get\-Panel\-Equ\-From\-Three\-Pt}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf hough\-Line\-Based\-Tracker\-::get\-Panel\-Equ\-From\-Three\-Pt} (
+\begin{DoxyParamCaption}
+\item[{const std\-::vector$<$ cv\-::\-Point3f $>$ \&}]{pt, }
+\item[{double \&}]{a, }
+\item[{double \&}]{b, }
+\item[{double \&}]{c, }
+\item[{double \&}]{d}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classhoughLineBasedTracker_a85f03d15859e655e0e5806af176e353d}
+
+
+give three points in a panel, get the equation of the panel 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em pt} & \\
+\hline
+{\em a} & \\
+\hline
+{\em b} & \\
+\hline
+{\em c} & \\
+\hline
+{\em d} & \\
+\hline
+\end{DoxyParams}
+\hypertarget{classhoughLineBasedTracker_a0fc0f63e61bbb1de64adee807e7fc2e6}{\index{hough\-Line\-Based\-Tracker@{hough\-Line\-Based\-Tracker}!get\-Prj\-Line\-Equ@{get\-Prj\-Line\-Equ}}
+\index{get\-Prj\-Line\-Equ@{get\-Prj\-Line\-Equ}!houghLineBasedTracker@{hough\-Line\-Based\-Tracker}}
+\subsubsection[{get\-Prj\-Line\-Equ}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf hough\-Line\-Based\-Tracker\-::get\-Prj\-Line\-Equ} (
+\begin{DoxyParamCaption}
+\item[{const cv\-::\-Vec4f \&}]{line\-\_\-, }
+\item[{double \&}]{a, }
+\item[{double \&}]{b, }
+\item[{double \&}]{c}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classhoughLineBasedTracker_a0fc0f63e61bbb1de64adee807e7fc2e6}
+
+
+get the line equation in 2\-D coordinate system with two given points ax + by + c = 0 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em line\-\_\-} & \\
+\hline
+{\em a} & \\
+\hline
+{\em b} & \\
+\hline
+{\em c} & \\
+\hline
+\end{DoxyParams}
+\hypertarget{classhoughLineBasedTracker_a04878ce14fe321139d76c61dbece76ba}{\index{hough\-Line\-Based\-Tracker@{hough\-Line\-Based\-Tracker}!get\-Pt\-From\-Straight\-Line@{get\-Pt\-From\-Straight\-Line}}
+\index{get\-Pt\-From\-Straight\-Line@{get\-Pt\-From\-Straight\-Line}!houghLineBasedTracker@{hough\-Line\-Based\-Tracker}}
+\subsubsection[{get\-Pt\-From\-Straight\-Line}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf hough\-Line\-Based\-Tracker\-::get\-Pt\-From\-Straight\-Line} (
+\begin{DoxyParamCaption}
+\item[{int}]{l1, }
+\item[{int}]{l2, }
+\item[{double \&}]{x, }
+\item[{double \&}]{y}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classhoughLineBasedTracker_a04878ce14fe321139d76c61dbece76ba}
+
+
+the cross point of two straight lines 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em l1} & \\
+\hline
+{\em l2} & \\
+\hline
+{\em x} & \\
+\hline
+{\em y} & \\
+\hline
+\end{DoxyParams}
+\hypertarget{classhoughLineBasedTracker_a4a61b01d41927fe3db6019484bd02a7b}{\index{hough\-Line\-Based\-Tracker@{hough\-Line\-Based\-Tracker}!hough\-Line\-Detection@{hough\-Line\-Detection}}
+\index{hough\-Line\-Detection@{hough\-Line\-Detection}!houghLineBasedTracker@{hough\-Line\-Based\-Tracker}}
+\subsubsection[{hough\-Line\-Detection}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf hough\-Line\-Based\-Tracker\-::hough\-Line\-Detection} (
+\begin{DoxyParamCaption}
+\item[{const int $\ast$}]{win}
+\end{DoxyParamCaption}
+)}}\label{classhoughLineBasedTracker_a4a61b01d41927fe3db6019484bd02a7b}
+
+
+use hough transform to detect lines in a given window 
+
+hough line detection
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em win} & \\
+\hline
+\end{DoxyParams}
+\hypertarget{classhoughLineBasedTracker_a7a9281df256344be5c9afab200aae2e1}{\index{hough\-Line\-Based\-Tracker@{hough\-Line\-Based\-Tracker}!initialize@{initialize}}
+\index{initialize@{initialize}!houghLineBasedTracker@{hough\-Line\-Based\-Tracker}}
+\subsubsection[{initialize}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf hough\-Line\-Based\-Tracker\-::initialize} (
+\begin{DoxyParamCaption}
+\item[{const vp\-Camera\-Parameters \&}]{cam\-\_\-, }
+\item[{const vp\-Homogeneous\-Matrix \&}]{c\-Mo\-\_\-, }
+\item[{const vp\-Pose\-Vector \&}]{pose, }
+\item[{int}]{rows\-\_\-, }
+\item[{int}]{cols\-\_\-}
+\end{DoxyParamCaption}
+)}}\label{classhoughLineBasedTracker_a7a9281df256344be5c9afab200aae2e1}
+
+
+brief project the model based on the obtained c\-Mo and init the \-Kalman filter. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em cam\-\_\-} & the camera param \\
+\hline
+{\em c\-Mo\-\_\-} & the initial pose matrix \\
+\hline
+{\em pose} & the initial pose vector \\
+\hline
+{\em rows\-\_\-} & rows of image \\
+\hline
+{\em cols\-\_\-} & cols of image\\
+\hline
+{\em src\-Img} & \\
+\hline
+\end{DoxyParams}
+\hypertarget{classhoughLineBasedTracker_a4d3b25defc69d5ec0a7341d0939c19b4}{\index{hough\-Line\-Based\-Tracker@{hough\-Line\-Based\-Tracker}!init\-Model@{init\-Model}}
+\index{init\-Model@{init\-Model}!houghLineBasedTracker@{hough\-Line\-Based\-Tracker}}
+\subsubsection[{init\-Model}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf hough\-Line\-Based\-Tracker\-::init\-Model} (
+\begin{DoxyParamCaption}
+\item[{std\-::vector$<$ cv\-::\-Point3f $>$ \&}]{init\-P}
+\end{DoxyParamCaption}
+)}}\label{classhoughLineBasedTracker_a4d3b25defc69d5ec0a7341d0939c19b4}
+
+
+\-I still don't know how to read the model from the wrl or cad or cao file \-However, it is sufficient to get the cube from the init file if in the future, more complex model is tracked, \-I should reimplement this function. 
+
+load the cad model and do some initialization
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em init\-P} & \\
+\hline
+\end{DoxyParams}
+\hypertarget{classhoughLineBasedTracker_a2a0c6bda6c4b63260746b67845524be4}{\index{hough\-Line\-Based\-Tracker@{hough\-Line\-Based\-Tracker}!is\-Flipped@{is\-Flipped}}
+\index{is\-Flipped@{is\-Flipped}!houghLineBasedTracker@{hough\-Line\-Based\-Tracker}}
+\subsubsection[{is\-Flipped}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf hough\-Line\-Based\-Tracker\-::is\-Flipped} (
+\begin{DoxyParamCaption}
+\item[{const vp\-Pose\-Vector \&}]{p1, }
+\item[{const vp\-Pose\-Vector \&}]{p2}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classhoughLineBasedTracker_a2a0c6bda6c4b63260746b67845524be4}
+
+
+check whether the pose estimated is flipped 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em p1} & \\
+\hline
+{\em p2} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+
+\end{DoxyReturn}
+\hypertarget{classhoughLineBasedTracker_acf7ed7709862ddf301a445a1791d83ab}{\index{hough\-Line\-Based\-Tracker@{hough\-Line\-Based\-Tracker}!line2face@{line2face}}
+\index{line2face@{line2face}!houghLineBasedTracker@{hough\-Line\-Based\-Tracker}}
+\subsubsection[{line2face}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf hough\-Line\-Based\-Tracker\-::line2face} (
+\begin{DoxyParamCaption}
+\item[{const int}]{line\-I\-D, }
+\item[{int \&}]{f1, }
+\item[{int \&}]{f2}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classhoughLineBasedTracker_acf7ed7709862ddf301a445a1791d83ab}
+
+
+find two faces that generate the line 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em line\-I\-D} & \\
+\hline
+{\em f1} & \\
+\hline
+{\em f2} & \\
+\hline
+\end{DoxyParams}
+\hypertarget{classhoughLineBasedTracker_a387be1e232a912c018c18eec30f6531d}{\index{hough\-Line\-Based\-Tracker@{hough\-Line\-Based\-Tracker}!line2\-Pts@{line2\-Pts}}
+\index{line2\-Pts@{line2\-Pts}!houghLineBasedTracker@{hough\-Line\-Based\-Tracker}}
+\subsubsection[{line2\-Pts}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf hough\-Line\-Based\-Tracker\-::line2\-Pts} (
+\begin{DoxyParamCaption}
+\item[{const int}]{line\-I\-D, }
+\item[{int \&}]{p1, }
+\item[{int \&}]{p2}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classhoughLineBasedTracker_a387be1e232a912c018c18eec30f6531d}
+
+
+get the end points \-I\-Ds from the line \-I\-D 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em line\-I\-D} & \\
+\hline
+{\em p1} & \\
+\hline
+{\em p2} & \\
+\hline
+\end{DoxyParams}
+\hypertarget{classhoughLineBasedTracker_ac2c71b09acea78ed37cb369747e8c528}{\index{hough\-Line\-Based\-Tracker@{hough\-Line\-Based\-Tracker}!pose\-Dist@{pose\-Dist}}
+\index{pose\-Dist@{pose\-Dist}!houghLineBasedTracker@{hough\-Line\-Based\-Tracker}}
+\subsubsection[{pose\-Dist}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf hough\-Line\-Based\-Tracker\-::pose\-Dist} (
+\begin{DoxyParamCaption}
+\item[{const vp\-Pose\-Vector \&}]{p1, }
+\item[{const vp\-Pose\-Vector \&}]{p2}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline, protected\mbox{]}}}}\label{classhoughLineBasedTracker_ac2c71b09acea78ed37cb369747e8c528}
+
+
+distance between two pose\-Vector 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em p1} & \\
+\hline
+{\em p2} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+
+\end{DoxyReturn}
+\hypertarget{classhoughLineBasedTracker_ab2eb9a610b1f7eac11444be87c951710}{\index{hough\-Line\-Based\-Tracker@{hough\-Line\-Based\-Tracker}!project\-Model@{project\-Model}}
+\index{project\-Model@{project\-Model}!houghLineBasedTracker@{hough\-Line\-Based\-Tracker}}
+\subsubsection[{project\-Model}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf hough\-Line\-Based\-Tracker\-::project\-Model} (
+\begin{DoxyParamCaption}
+\item[{const vp\-Homogeneous\-Matrix \&}]{c\-Mo\-\_\-}
+\end{DoxyParamCaption}
+)}}\label{classhoughLineBasedTracker_ab2eb9a610b1f7eac11444be87c951710}
+
+
+project the model into the image using the provided pose (usually the predicted one or the measured one) 
+
+use the camera pose to project the model
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em c\-Mo\-\_\-} & \\
+\hline
+\end{DoxyParams}
+\hypertarget{classhoughLineBasedTracker_a58c8e279a8bafdf1a838a0b37e67fb0a}{\index{hough\-Line\-Based\-Tracker@{hough\-Line\-Based\-Tracker}!pts\-Dist@{pts\-Dist}}
+\index{pts\-Dist@{pts\-Dist}!houghLineBasedTracker@{hough\-Line\-Based\-Tracker}}
+\subsubsection[{pts\-Dist}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf hough\-Line\-Based\-Tracker\-::pts\-Dist} (
+\begin{DoxyParamCaption}
+\item[{double}]{x1, }
+\item[{double}]{y1, }
+\item[{double}]{x2, }
+\item[{double}]{y2}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline, protected\mbox{]}}}}\label{classhoughLineBasedTracker_a58c8e279a8bafdf1a838a0b37e67fb0a}
+
+
+distance between two points 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em x1} & \\
+\hline
+{\em y1} & \\
+\hline
+{\em x2} & \\
+\hline
+{\em y2} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+
+\end{DoxyReturn}
+\hypertarget{classhoughLineBasedTracker_afb860ab5cf96382106661db117e929ea}{\index{hough\-Line\-Based\-Tracker@{hough\-Line\-Based\-Tracker}!pub\-Rst@{pub\-Rst}}
+\index{pub\-Rst@{pub\-Rst}!houghLineBasedTracker@{hough\-Line\-Based\-Tracker}}
+\subsubsection[{pub\-Rst}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf hough\-Line\-Based\-Tracker\-::pub\-Rst} (
+\begin{DoxyParamCaption}
+\item[{cv\-::\-Mat \&}]{img, }
+\item[{cv\-::\-Rect \&}]{box}
+\end{DoxyParamCaption}
+)}}\label{classhoughLineBasedTracker_afb860ab5cf96382106661db117e929ea}
+
+
+publish the tracked rst to the upper level 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em img} & image with the tracker markers \\
+\hline
+{\em box} & tracked box\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+whether the tracker is lost target 
+\end{DoxyReturn}
+\hypertarget{classhoughLineBasedTracker_aefcf18fa7251a151e4fd72355886bd4c}{\index{hough\-Line\-Based\-Tracker@{hough\-Line\-Based\-Tracker}!retrieve\-Image@{retrieve\-Image}}
+\index{retrieve\-Image@{retrieve\-Image}!houghLineBasedTracker@{hough\-Line\-Based\-Tracker}}
+\subsubsection[{retrieve\-Image}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf hough\-Line\-Based\-Tracker\-::retrieve\-Image} (
+\begin{DoxyParamCaption}
+\item[{const cv\-::\-Mat \&}]{img}
+\end{DoxyParamCaption}
+)}}\label{classhoughLineBasedTracker_aefcf18fa7251a151e4fd72355886bd4c}
+
+
+retrieve \-Image from the up level class 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em img} & the input image \\
+\hline
+\end{DoxyParams}
+\hypertarget{classhoughLineBasedTracker_a6dd7025c8965e34b9bf15601c3783195}{\index{hough\-Line\-Based\-Tracker@{hough\-Line\-Based\-Tracker}!track@{track}}
+\index{track@{track}!houghLineBasedTracker@{hough\-Line\-Based\-Tracker}}
+\subsubsection[{track}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf hough\-Line\-Based\-Tracker\-::track} (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{classhoughLineBasedTracker_a6dd7025c8965e34b9bf15601c3783195}
+
+
+tracking is done here 
+
+\-The main tracking function. \hypertarget{classhoughLineBasedTracker_acbda1d791078dc58527bfe4d7693908c}{\index{hough\-Line\-Based\-Tracker@{hough\-Line\-Based\-Tracker}!trans\-Line\-Type@{trans\-Line\-Type}}
+\index{trans\-Line\-Type@{trans\-Line\-Type}!houghLineBasedTracker@{hough\-Line\-Based\-Tracker}}
+\subsubsection[{trans\-Line\-Type}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf hough\-Line\-Based\-Tracker\-::trans\-Line\-Type} (
+\begin{DoxyParamCaption}
+\item[{const cv\-::\-Vec4f \&}]{line\-\_\-, }
+\item[{vp\-Line \&}]{sl}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classhoughLineBasedTracker_acbda1d791078dc58527bfe4d7693908c}
+
+
+transform the line segment into straight line 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em line\-\_\-} & \\
+\hline
+{\em sl} & \\
+\hline
+\end{DoxyParams}
+
+
+\-The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+include/endeffector\-\_\-tracking/\hyperlink{houghLineBasedTracker_8h}{hough\-Line\-Based\-Tracker.\-h}\item 
+src/\hyperlink{houghLineBasedTracker_8cpp}{hough\-Line\-Based\-Tracker.\-cpp}\end{DoxyCompactItemize}
