@@ -8,18 +8,14 @@
  * @date 2013-05-28
  */
 
-#include <visp/vpMbEdgeTracker.h>
-#include <visp/vpImage.h>
-#include <sensor_msgs/image_encodings.h>
-#include <visp/vpCameraParameters.h>
-#include <visp/vpPoseFeatures.h>
-#include <image_transport/image_transport.h>
-
 // for initialization
 #include "visp/vpDisplay.h"
 #include "visp/vpDisplayX.h"
 
-class mbtEdgeTracker
+// for baseTracker
+#include "endeffector_tracking/baseTracker.h"
+
+class mbtEdgeTracker: public baseTracker
 {
 	public:
 		/**
@@ -29,52 +25,25 @@ class mbtEdgeTracker
 
 		/**
 		 * @brief initialize the tracker
+		 * this is a pure virtual function, must be implemented in any tracker derived from this base class
 		 */
-		void initialize(std::string config_file, std::string model_name, std::string init_file);
+		virtual void initialize(std::string config_file, std::string model_name, std::string init_file);
 
 		/**
 		 * @brief publish the tracked rst
 		 *
-		 * @param img
+		 * @param msg
 		 * @param box
 		 *
 		 * @return 
 		 */
-		bool pubRst(sensor_msgs::Image msg, cv::Rect& box);
-
-		/**
-		 * @brief retrieve image from the up level class
-		 *
-		 * @param img
-		 */
-		void retrieveImage(const sensor_msgs::ImageConstPtr& img);
+		virtual bool pubRst(sensor_msgs::Image msg, cv::Rect& box);
 
 		/**
 		 * @brief  tracking is done here
+		 * a pure virtual function
 		 */
-		void track(void);
-
-		// the interface for cooperating with other trackers
-		// these two functions only needed to be called when this tracker is used to incorporate with others
-		/**
-		 * @brief get the pose from the upper level class, which usually provided by other trackers
-		 *
-		 * @param cMo_ the pose
-		 */
-		inline void getPose(vpHomogeneousMatrix& cMo_)
-		{
-			this->cMo = cMo_;
-		}
-
-		/**
-		 * @brief publish the pose calculated by this tracker, which can be used by other trackers to refine the result
-		 *
-		 * @param cMo_ the pose
-		 */
-		inline void pubPose(vpHomogeneousMatrix& cMo_)
-		{
-			cMo_ = this->cMo;
-		}
+		virtual void track(void);
 
 	protected:
 
@@ -83,26 +52,4 @@ class mbtEdgeTracker
 		 * @brief the tracking procedure is actually done based on this class.
 		 */
 		vpMbEdgeTracker tracker;
-
-		/**
-		 * @brief current image
-		 */
-		vpImage<unsigned char> curImg;
-
-		/**
-		 * @brief current camera pose
-		 */
-		vpHomogeneousMatrix cMo;
-
-		/**
-		 * @brief camera parameter
-		 */
-		vpCameraParameters cam;
-
-		/**
-		 * @brief for display the result
-		 */
-		vpDisplayX display;
-
-		std::string cad_name;
 };

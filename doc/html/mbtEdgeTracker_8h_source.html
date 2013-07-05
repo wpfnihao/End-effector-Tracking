@@ -80,50 +80,36 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <a href="mbtEdgeTracker_8h.html">Go to the documentation of this file.</a><div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 
-<a name="l00011"></a>00011 <span class="preprocessor">#include &lt;visp/vpMbEdgeTracker.h&gt;</span>
-<a name="l00012"></a>00012 <span class="preprocessor">#include &lt;visp/vpImage.h&gt;</span>
-<a name="l00013"></a>00013 <span class="preprocessor">#include &lt;sensor_msgs/image_encodings.h&gt;</span>
-<a name="l00014"></a>00014 <span class="preprocessor">#include &lt;visp/vpCameraParameters.h&gt;</span>
-<a name="l00015"></a>00015 <span class="preprocessor">#include &lt;visp/vpPoseFeatures.h&gt;</span>
-<a name="l00016"></a>00016 <span class="preprocessor">#include &lt;image_transport/image_transport.h&gt;</span>
+<a name="l00011"></a>00011 <span class="comment">// for initialization</span>
+<a name="l00012"></a>00012 <span class="preprocessor">#include &quot;visp/vpDisplay.h&quot;</span>
+<a name="l00013"></a>00013 <span class="preprocessor">#include &quot;visp/vpDisplayX.h&quot;</span>
+<a name="l00014"></a>00014 
+<a name="l00015"></a>00015 <span class="comment">// for baseTracker</span>
+<a name="l00016"></a>00016 <span class="preprocessor">#include &quot;<a class="code" href="baseTracker_8h.html" title="the virtual base class of all the model based tracker This class provides the common interface of all...">endeffector_tracking/baseTracker.h</a>&quot;</span>
 <a name="l00017"></a>00017 
-<a name="l00018"></a>00018 <span class="comment">// for initialization</span>
-<a name="l00019"></a>00019 <span class="preprocessor">#include &quot;visp/vpDisplay.h&quot;</span>
-<a name="l00020"></a>00020 <span class="preprocessor">#include &quot;visp/vpDisplayX.h&quot;</span>
-<a name="l00021"></a>00021 
-<a name="l00022"></a><a class="code" href="classmbtEdgeTracker.html">00022</a> <span class="keyword">class </span><a class="code" href="classmbtEdgeTracker.html">mbtEdgeTracker</a>
-<a name="l00023"></a>00023 {
-<a name="l00024"></a>00024         <span class="keyword">public</span>:
-<a name="l00028"></a>00028                 <a class="code" href="classmbtEdgeTracker.html#a5ced2da03b4450be9261485b8396a818" title="the constructor of the class, the basic initialization steps are done here">mbtEdgeTracker</a>();
-<a name="l00029"></a>00029 
-<a name="l00033"></a>00033                 <span class="keywordtype">void</span> <a class="code" href="classmbtEdgeTracker.html#a538786bf1ac308a4d5d093c4cac0d649" title="initialize the tracker">initialize</a>(std::string config_file, std::string model_name, std::string init_file);
-<a name="l00034"></a>00034 
-<a name="l00043"></a>00043                 <span class="keywordtype">bool</span> <a class="code" href="classmbtEdgeTracker.html#a2f85c97bd271cae8e6e32daa4d78a8cd" title="publish the tracked rst">pubRst</a>(sensor_msgs::Image msg, cv::Rect&amp; box);
-<a name="l00044"></a>00044 
-<a name="l00050"></a>00050                 <span class="keywordtype">void</span> <a class="code" href="classmbtEdgeTracker.html#aba2b7204bd1c0041eafbf94574aaa5a9" title="retrieve image from the up level class">retrieveImage</a>(<span class="keyword">const</span> sensor_msgs::ImageConstPtr&amp; img);
-<a name="l00051"></a>00051 
-<a name="l00055"></a>00055                 <span class="keywordtype">void</span> <a class="code" href="classmbtEdgeTracker.html#a15ee6f543ab6e8cd3b24dcc51ff69405" title="tracking is done here">track</a>(<span class="keywordtype">void</span>);
-<a name="l00056"></a>00056 
-<a name="l00057"></a>00057         <span class="keyword">protected</span>:
-<a name="l00058"></a>00058 
-<a name="l00059"></a>00059         <span class="keyword">private</span>:
-<a name="l00063"></a>00063                 vpMbEdgeTracker tracker;
-<a name="l00064"></a>00064 
-<a name="l00068"></a>00068                 vpImage&lt;unsigned char&gt; curImg;
-<a name="l00069"></a>00069 
-<a name="l00073"></a>00073                 vpHomogeneousMatrix cMo;
-<a name="l00074"></a>00074 
-<a name="l00078"></a>00078                 vpCameraParameters cam;
-<a name="l00079"></a>00079 
-<a name="l00083"></a>00083                 vpDisplayX display;
-<a name="l00084"></a>00084 };
+<a name="l00018"></a><a class="code" href="classmbtEdgeTracker.html">00018</a> <span class="keyword">class </span><a class="code" href="classmbtEdgeTracker.html">mbtEdgeTracker</a>: <span class="keyword">public</span> <a class="code" href="classbaseTracker.html">baseTracker</a>
+<a name="l00019"></a>00019 {
+<a name="l00020"></a>00020         <span class="keyword">public</span>:
+<a name="l00024"></a>00024                 <a class="code" href="classmbtEdgeTracker.html#a5ced2da03b4450be9261485b8396a818" title="the constructor of the class, the basic initialization steps are done here">mbtEdgeTracker</a>();
+<a name="l00025"></a>00025 
+<a name="l00030"></a>00030                 <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classmbtEdgeTracker.html#a538786bf1ac308a4d5d093c4cac0d649" title="initialize the tracker this is a pure virtual function, must be implemented in any tracker derived fr...">initialize</a>(std::string config_file, std::string model_name, std::string init_file);
+<a name="l00031"></a>00031 
+<a name="l00040"></a>00040                 <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code" href="classmbtEdgeTracker.html#a2f85c97bd271cae8e6e32daa4d78a8cd" title="publish the tracked rst">pubRst</a>(sensor_msgs::Image msg, cv::Rect&amp; box);
+<a name="l00041"></a>00041 
+<a name="l00046"></a>00046                 <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classmbtEdgeTracker.html#a15ee6f543ab6e8cd3b24dcc51ff69405" title="tracking is done here a pure virtual function">track</a>(<span class="keywordtype">void</span>);
+<a name="l00047"></a>00047 
+<a name="l00048"></a>00048         <span class="keyword">protected</span>:
+<a name="l00049"></a>00049 
+<a name="l00050"></a>00050         <span class="keyword">private</span>:
+<a name="l00054"></a>00054                 vpMbEdgeTracker tracker;
+<a name="l00055"></a>00055 };
 </pre></div></div><!-- contents -->
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerations</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -135,7 +121,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jun 3 2013 19:40:14 for End-effector Tracking by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jul 5 2013 21:04:51 for End-effector Tracking by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.7.6.1
 </small></address>

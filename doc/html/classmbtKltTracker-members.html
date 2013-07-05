@@ -71,6 +71,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
     <ul class="tablist">
       <li><a href="annotated.html"><span>Class&#160;List</span></a></li>
       <li><a href="classes.html"><span>Class&#160;Index</span></a></li>
+      <li><a href="inherits.html"><span>Class&#160;Hierarchy</span></a></li>
       <li><a href="functions.html"><span>Class&#160;Members</span></a></li>
     </ul>
   </div>
@@ -81,18 +82,25 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 This is the complete list of members for <a class="el" href="classmbtKltTracker.html">mbtKltTracker</a>, including all inherited members.<table>
-  <tr class="memlist"><td><a class="el" href="classmbtKltTracker.html#ae4746069ef2f9b24db30970ac353eae5">initialize</a>(std::string config_file, std::string model_name, std::string init_file)</td><td><a class="el" href="classmbtKltTracker.html">mbtKltTracker</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>cad_name</b> (defined in <a class="el" href="classbaseTracker.html">baseTracker</a>)</td><td><a class="el" href="classbaseTracker.html">baseTracker</a></td><td><code> [protected]</code></td></tr>
+  <tr class="memlist"><td><a class="el" href="classbaseTracker.html#a8b52e677c30f1f8d3e7b6998c18d4369">cam</a></td><td><a class="el" href="classbaseTracker.html">baseTracker</a></td><td><code> [protected]</code></td></tr>
+  <tr class="memlist"><td><a class="el" href="classbaseTracker.html#a853f58bceb6082909a5956a7824d4d69">cMo</a></td><td><a class="el" href="classbaseTracker.html">baseTracker</a></td><td><code> [protected]</code></td></tr>
+  <tr class="memlist"><td><a class="el" href="classbaseTracker.html#a6edb382071777cddaf254bc6734b8fa3">curImg</a></td><td><a class="el" href="classbaseTracker.html">baseTracker</a></td><td><code> [protected]</code></td></tr>
+  <tr class="memlist"><td><a class="el" href="classbaseTracker.html#a2855b0e26cf9992a8f5785300525bb6e">display</a></td><td><a class="el" href="classbaseTracker.html">baseTracker</a></td><td><code> [protected]</code></td></tr>
+  <tr class="memlist"><td><a class="el" href="classbaseTracker.html#a07d8b238b21d4d5aa12d38302fd5d863">getPose</a>(vpHomogeneousMatrix &amp;cMo_)</td><td><a class="el" href="classbaseTracker.html">baseTracker</a></td><td><code> [inline]</code></td></tr>
+  <tr class="memlist"><td><a class="el" href="classmbtKltTracker.html#ae4746069ef2f9b24db30970ac353eae5">initialize</a>(std::string config_file, std::string model_name, std::string init_file)</td><td><a class="el" href="classmbtKltTracker.html">mbtKltTracker</a></td><td><code> [virtual]</code></td></tr>
   <tr class="memlist"><td><a class="el" href="classmbtKltTracker.html#ac7bd3fb4472175c6e950eb5c29148d0e">mbtKltTracker</a>()</td><td><a class="el" href="classmbtKltTracker.html">mbtKltTracker</a></td><td></td></tr>
-  <tr class="memlist"><td><a class="el" href="classmbtKltTracker.html#a8e2db146326617d41012b83fe34e15af">pubRst</a>(sensor_msgs::Image msg, cv::Rect &amp;box)</td><td><a class="el" href="classmbtKltTracker.html">mbtKltTracker</a></td><td></td></tr>
-  <tr class="memlist"><td><a class="el" href="classmbtKltTracker.html#a02142ff9f927f98478550cf1146156c9">retrieveImage</a>(const sensor_msgs::ImageConstPtr &amp;img)</td><td><a class="el" href="classmbtKltTracker.html">mbtKltTracker</a></td><td></td></tr>
-  <tr class="memlist"><td><a class="el" href="classmbtKltTracker.html#ab4d84810ff270978235e0eb0cd92e7e6">track</a>(void)</td><td><a class="el" href="classmbtKltTracker.html">mbtKltTracker</a></td><td></td></tr>
+  <tr class="memlist"><td><a class="el" href="classbaseTracker.html#a30e0216b0211dd9874dbf6daf34b4408">pubPose</a>(vpHomogeneousMatrix &amp;cMo_)</td><td><a class="el" href="classbaseTracker.html">baseTracker</a></td><td><code> [inline]</code></td></tr>
+  <tr class="memlist"><td><a class="el" href="classmbtKltTracker.html#a8e2db146326617d41012b83fe34e15af">pubRst</a>(sensor_msgs::Image msg, cv::Rect &amp;box)</td><td><a class="el" href="classmbtKltTracker.html">mbtKltTracker</a></td><td><code> [virtual]</code></td></tr>
+  <tr class="memlist"><td><a class="el" href="classbaseTracker.html#a2198d9d00a0e07c1e47ffb44d0cf77f9">retrieveImage</a>(const sensor_msgs::ImageConstPtr &amp;img)</td><td><a class="el" href="classbaseTracker.html">baseTracker</a></td><td><code> [inline]</code></td></tr>
+  <tr class="memlist"><td><a class="el" href="classmbtKltTracker.html#ab4d84810ff270978235e0eb0cd92e7e6">track</a>(void)</td><td><a class="el" href="classmbtKltTracker.html">mbtKltTracker</a></td><td><code> [virtual]</code></td></tr>
 </table></div><!-- contents -->
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerations</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -104,7 +112,7 @@ This is the complete list of members for <a class="el" href="classmbtKltTracker.
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jun 3 2013 19:40:14 for End-effector Tracking by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jul 5 2013 21:04:51 for End-effector Tracking by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.7.6.1
 </small></address>

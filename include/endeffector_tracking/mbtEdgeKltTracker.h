@@ -6,18 +6,14 @@
  * @date 2013-05-29
  */
 
-#include <visp/vpMbEdgeKltTracker.h>
-#include <visp/vpImage.h>
-#include <sensor_msgs/image_encodings.h>
-#include <visp/vpCameraParameters.h>
-#include <visp/vpPoseFeatures.h>
-#include <image_transport/image_transport.h>
-
 // for initialization
 #include "visp/vpDisplay.h"
 #include "visp/vpDisplayX.h"
 
-class mbtEdgeKltTracker
+// for baseTracker
+#include "endeffector_tracking/baseTracker.h"
+
+class mbtEdgeKltTracker: public baseTracker
 {
 	public:
 		/**
@@ -28,7 +24,7 @@ class mbtEdgeKltTracker
 		/**
 		 * @brief initialize the tracker
 		 */
-		void initialize(std::string config_file, std::string model_name, std::string init_file);
+		virtual void initialize(std::string config_file, std::string model_name, std::string init_file);
 
 		/**
 		 * @brief publish the tracked rst
@@ -38,19 +34,12 @@ class mbtEdgeKltTracker
 		 *
 		 * @return 
 		 */
-		bool pubRst(sensor_msgs::Image msg, cv::Rect& box);
-
-		/**
-		 * @brief retrieve image from the up level class
-		 *
-		 * @param img
-		 */
-		void retrieveImage(const sensor_msgs::ImageConstPtr& img);
+		virtual bool pubRst(sensor_msgs::Image msg, cv::Rect& box);
 
 		/**
 		 * @brief  tracking is done here
 		 */
-		void track(void);
+		virtual void track(void);
 
 	protected:
 
@@ -59,24 +48,4 @@ class mbtEdgeKltTracker
 		 * @brief the tracking procedure is actually done based on this class.
 		 */
 		vpMbEdgeKltTracker tracker;
-
-		/**
-		 * @brief current image
-		 */
-		vpImage<unsigned char> curImg;
-
-		/**
-		 * @brief current camera pose
-		 */
-		vpHomogeneousMatrix cMo;
-
-		/**
-		 * @brief camera parameter
-		 */
-		vpCameraParameters cam;
-
-		/**
-		 * @brief for display the result
-		 */
-		vpDisplayX display;
 };

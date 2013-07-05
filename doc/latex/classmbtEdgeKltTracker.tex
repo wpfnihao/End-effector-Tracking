@@ -1,20 +1,38 @@
 \hypertarget{classmbtEdgeKltTracker}{\section{mbt\-Edge\-Klt\-Tracker \-Class \-Reference}
 \label{classmbtEdgeKltTracker}\index{mbt\-Edge\-Klt\-Tracker@{mbt\-Edge\-Klt\-Tracker}}
 }
+
+
+\-Inheritance diagram for mbt\-Edge\-Klt\-Tracker\-:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=180pt]{classmbtEdgeKltTracker__inherit__graph}
+\end{center}
+\end{figure}
+
+
+\-Collaboration diagram for mbt\-Edge\-Klt\-Tracker\-:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=180pt]{classmbtEdgeKltTracker__coll__graph}
+\end{center}
+\end{figure}
 \subsection*{\-Public \-Member \-Functions}
 \begin{DoxyCompactItemize}
 \item 
 \hypertarget{classmbtEdgeKltTracker_ab26b9dd74f2dd65f194f219313413f22}{\hyperlink{classmbtEdgeKltTracker_ab26b9dd74f2dd65f194f219313413f22}{mbt\-Edge\-Klt\-Tracker} ()}\label{classmbtEdgeKltTracker_ab26b9dd74f2dd65f194f219313413f22}
 
 \begin{DoxyCompactList}\small\item\em the constructor of the class, the basic initialization steps are done here \end{DoxyCompactList}\item 
-\hypertarget{classmbtEdgeKltTracker_a3963a97622eb1b5c7b7c9b8293f419a8}{void \hyperlink{classmbtEdgeKltTracker_a3963a97622eb1b5c7b7c9b8293f419a8}{initialize} (std\-::string config\-\_\-file, std\-::string model\-\_\-name, std\-::string init\-\_\-file)}\label{classmbtEdgeKltTracker_a3963a97622eb1b5c7b7c9b8293f419a8}
+\hypertarget{classmbtEdgeKltTracker_a3963a97622eb1b5c7b7c9b8293f419a8}{virtual void \hyperlink{classmbtEdgeKltTracker_a3963a97622eb1b5c7b7c9b8293f419a8}{initialize} (std\-::string config\-\_\-file, std\-::string model\-\_\-name, std\-::string init\-\_\-file)}\label{classmbtEdgeKltTracker_a3963a97622eb1b5c7b7c9b8293f419a8}
 
 \begin{DoxyCompactList}\small\item\em initialize the tracker \end{DoxyCompactList}\item 
-bool \hyperlink{classmbtEdgeKltTracker_aa5f41d0aecdec85610e24a5e70db0c31}{pub\-Rst} (sensor\-\_\-msgs\-::\-Image msg, cv\-::\-Rect \&box)
+virtual bool \hyperlink{classmbtEdgeKltTracker_aa5f41d0aecdec85610e24a5e70db0c31}{pub\-Rst} (sensor\-\_\-msgs\-::\-Image msg, cv\-::\-Rect \&box)
 \begin{DoxyCompactList}\small\item\em publish the tracked rst \end{DoxyCompactList}\item 
-void \hyperlink{classmbtEdgeKltTracker_a4fe86cb923e54cbe4f3b5b6a313ac888}{retrieve\-Image} (const sensor\-\_\-msgs\-::\-Image\-Const\-Ptr \&img)
-\begin{DoxyCompactList}\small\item\em retrieve image from the up level class \end{DoxyCompactList}\item 
-\hypertarget{classmbtEdgeKltTracker_a91bf02e888da5da55fe5c8ed83550a1a}{void \hyperlink{classmbtEdgeKltTracker_a91bf02e888da5da55fe5c8ed83550a1a}{track} (void)}\label{classmbtEdgeKltTracker_a91bf02e888da5da55fe5c8ed83550a1a}
+\hypertarget{classmbtEdgeKltTracker_a91bf02e888da5da55fe5c8ed83550a1a}{virtual void \hyperlink{classmbtEdgeKltTracker_a91bf02e888da5da55fe5c8ed83550a1a}{track} (void)}\label{classmbtEdgeKltTracker_a91bf02e888da5da55fe5c8ed83550a1a}
 
 \begin{DoxyCompactList}\small\item\em tracking is done here \end{DoxyCompactList}\end{DoxyCompactItemize}
 
@@ -27,7 +45,7 @@ void \hyperlink{classmbtEdgeKltTracker_a4fe86cb923e54cbe4f3b5b6a313ac888}{retrie
 \item[{sensor\-\_\-msgs\-::\-Image}]{msg, }
 \item[{cv\-::\-Rect \&}]{box}
 \end{DoxyParamCaption}
-)}}\label{classmbtEdgeKltTracker_aa5f41d0aecdec85610e24a5e70db0c31}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classmbtEdgeKltTracker_aa5f41d0aecdec85610e24a5e70db0c31}
 
 
 publish the tracked rst 
@@ -42,22 +60,10 @@ publish the tracked rst
 \begin{DoxyReturn}{\-Returns}
 
 \end{DoxyReturn}
-\hypertarget{classmbtEdgeKltTracker_a4fe86cb923e54cbe4f3b5b6a313ac888}{\index{mbt\-Edge\-Klt\-Tracker@{mbt\-Edge\-Klt\-Tracker}!retrieve\-Image@{retrieve\-Image}}
-\index{retrieve\-Image@{retrieve\-Image}!mbtEdgeKltTracker@{mbt\-Edge\-Klt\-Tracker}}
-\subsubsection[{retrieve\-Image}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf mbt\-Edge\-Klt\-Tracker\-::retrieve\-Image} (
-\begin{DoxyParamCaption}
-\item[{const sensor\-\_\-msgs\-::\-Image\-Const\-Ptr \&}]{img}
-\end{DoxyParamCaption}
-)}}\label{classmbtEdgeKltTracker_a4fe86cb923e54cbe4f3b5b6a313ac888}
 
 
-retrieve image from the up level class 
+\-Implements \hyperlink{classbaseTracker_a89709d06921be0e67c88babec80b51e3}{base\-Tracker}.
 
-
-\begin{DoxyParams}{\-Parameters}
-{\em img} & \\
-\hline
-\end{DoxyParams}
 
 
 \-The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}

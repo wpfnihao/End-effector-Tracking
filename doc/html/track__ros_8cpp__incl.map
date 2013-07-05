@@ -1,9 +1,10 @@
 <map id="G" name="G">
-<area shape="rect" id="node5" href="$track__ros_8h.html" title="This class wraps all the tracker and ROS, so all the trackers can be implemented without notice that ..." alt="" coords="1353,83,1561,112"/>
-<area shape="rect" id="node38" href="$KernelBasedTracking_8h_source.html" title="endeffector_tracking/KernelBasedTracking.h" alt="" coords="637,160,915,189"/>
-<area shape="rect" id="node47" href="$CamShiftTracking_8h_source.html" title="endeffector_tracking/CamShiftTracking.h" alt="" coords="5,160,264,189"/>
-<area shape="rect" id="node52" href="$medianFlowTracking_8h_source.html" title="endeffector_tracking/medianFlowTracking.h" alt="" coords="339,160,613,189"/>
-<area shape="rect" id="node60" href="$houghLineBasedTracker_8h.html" title="the head file of the houghLineBasedTracker." alt="" coords="1595,160,1888,189"/>
-<area shape="rect" id="node78" href="$mbtEdgeTracker_8h.html" title="The mbtEdgeTracker class wrap the vpMbEdgeTracker in the visp package to incorporate with endeffector..." alt="" coords="2365,160,2616,189"/>
-<area shape="rect" id="node90" href="$kltFbTracker_8h.html" title="the head file of the kltFbTracker." alt="" coords="1344,160,1571,189"/>
+<area shape="rect" id="node5" href="$track__ros_8h.html" title="This class wraps all the tracker and ROS, so all the trackers can be implemented without notice that ..." alt="" coords="1392,83,1600,112"/>
+<area shape="rect" id="node38" href="$KernelBasedTracking_8h_source.html" title="endeffector_tracking/KernelBasedTracking.h" alt="" coords="678,160,955,189"/>
+<area shape="rect" id="node47" href="$CamShiftTracking_8h_source.html" title="endeffector_tracking/CamShiftTracking.h" alt="" coords="46,160,304,189"/>
+<area shape="rect" id="node52" href="$medianFlowTracking_8h_source.html" title="endeffector_tracking/medianFlowTracking.h" alt="" coords="379,160,654,189"/>
+<area shape="rect" id="node60" href="$houghLineBasedTracker_8h.html" title="the head file of the houghLineBasedTracker." alt="" coords="1584,160,1878,189"/>
+<area shape="rect" id="node77" href="$mbtEdgeTracker_8h.html" title="The mbtEdgeTracker class wrap the vpMbEdgeTracker in the visp package to incorporate with endeffector..." alt="" coords="2760,160,3011,189"/>
+<area shape="rect" id="node92" href="$kltFbTracker_8h.html" title="the head file of the kltFbTracker." alt="" coords="1182,160,1408,189"/>
+<area shape="rect" id="node83" href="$baseTracker_8h.html" title="the virtual base class of all the model based tracker This class provides the common interface of all..." alt="" coords="2358,237,2584,267"/>
 </map>

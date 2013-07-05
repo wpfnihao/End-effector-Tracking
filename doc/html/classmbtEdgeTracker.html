@@ -71,6 +71,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
     <ul class="tablist">
       <li><a href="annotated.html"><span>Class&#160;List</span></a></li>
       <li><a href="classes.html"><span>Class&#160;Index</span></a></li>
+      <li><a href="inherits.html"><span>Class&#160;Hierarchy</span></a></li>
       <li><a href="functions.html"><span>Class&#160;Members</span></a></li>
     </ul>
   </div>
@@ -82,7 +83,21 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="title">mbtEdgeTracker Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-<!-- doxytag: class="mbtEdgeTracker" -->
+<!-- doxytag: class="mbtEdgeTracker" --><!-- doxytag: inherits="baseTracker" --><div class="dynheader">
+Inheritance diagram for mbtEdgeTracker:</div>
+<div class="dyncontent">
+<div class="center"><img src="classmbtEdgeTracker__inherit__graph.png" border="0" usemap="#mbtEdgeTracker_inherit__map" alt="Inheritance graph"/></div>
+<map name="mbtEdgeTracker_inherit__map" id="mbtEdgeTracker_inherit__map">
+<area shape="rect" id="node2" href="classbaseTracker.html" title="baseTracker" alt="" coords="17,5,111,35"/></map>
+<center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
+<div class="dynheader">
+Collaboration diagram for mbtEdgeTracker:</div>
+<div class="dyncontent">
+<div class="center"><img src="classmbtEdgeTracker__coll__graph.png" border="0" usemap="#mbtEdgeTracker_coll__map" alt="Collaboration graph"/></div>
+<map name="mbtEdgeTracker_coll__map" id="mbtEdgeTracker_coll__map">
+<area shape="rect" id="node2" href="classbaseTracker.html" title="baseTracker" alt="" coords="17,5,111,35"/></map>
+<center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
+
 <p><a href="classmbtEdgeTracker-members.html">List of all members.</a></p>
 <table class="memberdecls">
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
@@ -91,15 +106,13 @@ Public Member Functions</h2></td></tr>
 &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmbtEdgeTracker.html#a5ced2da03b4450be9261485b8396a818">mbtEdgeTracker</a> ()</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">the constructor of the class, the basic initialization steps are done here <br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a538786bf1ac308a4d5d093c4cac0d649"></a><!-- doxytag: member="mbtEdgeTracker::initialize" ref="a538786bf1ac308a4d5d093c4cac0d649" args="(std::string config_file, std::string model_name, std::string init_file)" -->
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmbtEdgeTracker.html#a538786bf1ac308a4d5d093c4cac0d649">initialize</a> (std::string config_file, std::string model_name, std::string init_file)</td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">initialize the tracker <br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmbtEdgeTracker.html#a2f85c97bd271cae8e6e32daa4d78a8cd">pubRst</a> (sensor_msgs::Image msg, cv::Rect &amp;box)</td></tr>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmbtEdgeTracker.html#a538786bf1ac308a4d5d093c4cac0d649">initialize</a> (std::string config_file, std::string model_name, std::string init_file)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">initialize the tracker this is a pure virtual function, must be implemented in any tracker derived from this base class <br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmbtEdgeTracker.html#a2f85c97bd271cae8e6e32daa4d78a8cd">pubRst</a> (sensor_msgs::Image msg, cv::Rect &amp;box)</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">publish the tracked rst  <a href="#a2f85c97bd271cae8e6e32daa4d78a8cd"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmbtEdgeTracker.html#aba2b7204bd1c0041eafbf94574aaa5a9">retrieveImage</a> (const sensor_msgs::ImageConstPtr &amp;img)</td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">retrieve image from the up level class  <a href="#aba2b7204bd1c0041eafbf94574aaa5a9"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a15ee6f543ab6e8cd3b24dcc51ff69405"></a><!-- doxytag: member="mbtEdgeTracker::track" ref="a15ee6f543ab6e8cd3b24dcc51ff69405" args="(void)" -->
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmbtEdgeTracker.html#a15ee6f543ab6e8cd3b24dcc51ff69405">track</a> (void)</td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">tracking is done here <br/></td></tr>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmbtEdgeTracker.html#a15ee6f543ab6e8cd3b24dcc51ff69405">track</a> (void)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">tracking is done here a pure virtual function <br/></td></tr>
 </table>
 <hr/><h2>Member Function Documentation</h2>
 <a class="anchor" id="a2f85c97bd271cae8e6e32daa4d78a8cd"></a><!-- doxytag: member="mbtEdgeTracker::pubRst" ref="a2f85c97bd271cae8e6e32daa4d78a8cd" args="(sensor_msgs::Image msg, cv::Rect &amp;box)" -->
@@ -121,7 +134,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td></td>
+          <td></td><td><code> [virtual]</code></td>
         </tr>
       </table>
 </div>
@@ -130,37 +143,14 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <p>publish the tracked rst </p>
 <dl class="params"><dt><b>Parameters:</b></dt><dd>
   <table class="params">
-    <tr><td class="paramname">img</td><td></td></tr>
+    <tr><td class="paramname">msg</td><td></td></tr>
     <tr><td class="paramname">box</td><td></td></tr>
   </table>
   </dd>
 </dl>
 <dl class="return"><dt><b>Returns:</b></dt><dd></dd></dl>
 
-</div>
-</div>
-<a class="anchor" id="aba2b7204bd1c0041eafbf94574aaa5a9"></a><!-- doxytag: member="mbtEdgeTracker::retrieveImage" ref="aba2b7204bd1c0041eafbf94574aaa5a9" args="(const sensor_msgs::ImageConstPtr &amp;img)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void <a class="el" href="classmbtEdgeTracker.html#aba2b7204bd1c0041eafbf94574aaa5a9">mbtEdgeTracker::retrieveImage</a> </td>
-          <td>(</td>
-          <td class="paramtype">const sensor_msgs::ImageConstPtr &amp;&#160;</td>
-          <td class="paramname"><em>img</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>retrieve image from the up level class </p>
-<dl class="params"><dt><b>Parameters:</b></dt><dd>
-  <table class="params">
-    <tr><td class="paramname">img</td><td></td></tr>
-  </table>
-  </dd>
-</dl>
+<p>Implements <a class="el" href="classbaseTracker.html#a89709d06921be0e67c88babec80b51e3">baseTracker</a>.</p>
 
 </div>
 </div>
@@ -174,7 +164,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerations</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -186,7 +176,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jun 3 2013 19:40:14 for End-effector Tracking by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jul 5 2013 21:04:51 for End-effector Tracking by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.7.6.1
 </small></address>

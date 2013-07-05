@@ -5,6 +5,6 @@ var searchData=
   ['mbtedgeklttracker',['mbtEdgeKltTracker',['../classmbtEdgeKltTracker.html#ab26b9dd74f2dd65f194f219313413f22',1,'mbtEdgeKltTracker']]],
   ['mbtedgetracker',['mbtEdgeTracker',['../classmbtEdgeTracker.html#a5ced2da03b4450be9261485b8396a818',1,'mbtEdgeTracker']]],
   ['mbtklttracker',['mbtKltTracker',['../classmbtKltTracker.html#ac7bd3fb4472175c6e950eb5c29148d0e',1,'mbtKltTracker']]],
-  ['measurepose',['measurePose',['../classhoughLineBasedTracker.html#a53f0e0b7c4640fca24d1795c0a73256f',1,'houghLineBasedTracker::measurePose()'],['../classkltFbTracker.html#a807b39de5e5d5a6b9dcf14b8efa09f70',1,'kltFbTracker::measurePose()']]],
+  ['measurepose',['measurePose',['../classhoughLineBasedTracker.html#a53f0e0b7c4640fca24d1795c0a73256f',1,'houghLineBasedTracker::measurePose()'],['../classkltFbTracker.html#adcddd61877b534e1c03099e18ce61468',1,'kltFbTracker::measurePose()']]],
   ['msg2mat',['msg2mat',['../classCEndeffectorTracking.html#a271cd1f30157b1435c58e1e888400650',1,'CEndeffectorTracking']]]
 ];

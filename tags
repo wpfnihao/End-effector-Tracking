@@ -14,15 +14,8 @@ ARCHITECTURE_ID	CMakeFiles/CompilerIdCXX/CMakeCXXCompilerId.cpp	184;"	d	file:
 ARCHITECTURE_ID	CMakeFiles/CompilerIdCXX/CMakeCXXCompilerId.cpp	187;"	d	file:
 ARCHITECTURE_ID	CMakeFiles/CompilerIdCXX/CMakeCXXCompilerId.cpp	190;"	d	file:
 ARCHITECTURE_ID	CMakeFiles/CompilerIdCXX/CMakeCXXCompilerId.cpp	194;"	d	file:
-ArgumentParser	catkin_generated/stamps/endeffector_tracking/interrogate_setup_dot_py.py	/^from argparse import ArgumentParser$/;"	i
-CATKIN_MARKER_FILE	catkin_generated/installspace/_setup_util.py	/^CATKIN_MARKER_FILE = '.catkin'$/;"	v
-CATKIN_MARKER_FILE	devel/_setup_util.py	/^CATKIN_MARKER_FILE = '.catkin'$/;"	v
 CEndeffectorTracking	include/endeffector_tracking/track_ros.h	/^class CEndeffectorTracking$/;"	c
 CEndeffectorTracking	src/track_ros.cpp	/^CEndeffectorTracking::CEndeffectorTracking(int argc, char **argv)$/;"	f	class:CEndeffectorTracking
-CMAKE_PREFIX_PATH	catkin_generated/installspace/_setup_util.py	/^CMAKE_PREFIX_PATH = '\/opt\/ros\/groovy'.split(';')$/;"	v
-CMAKE_PREFIX_PATH	catkin_generated/installspace/_setup_util.py	/^CMAKE_PREFIX_PATH = os.pathsep.join(CMAKE_PREFIX_PATH)$/;"	v
-CMAKE_PREFIX_PATH	devel/_setup_util.py	/^CMAKE_PREFIX_PATH = '\/opt\/ros\/groovy'.split(';')$/;"	v
-CMAKE_PREFIX_PATH	devel/_setup_util.py	/^CMAKE_PREFIX_PATH = os.pathsep.join(CMAKE_PREFIX_PATH)$/;"	v
 COMPILER_ID	CMakeFiles/CompilerIdC/CMakeCCompilerId.c	10;"	d	file:
 COMPILER_ID	CMakeFiles/CompilerIdC/CMakeCCompilerId.c	13;"	d	file:
 COMPILER_ID	CMakeFiles/CompilerIdC/CMakeCCompilerId.c	16;"	d	file:
@@ -72,14 +65,8 @@ COMPILER_ID	CMakeFiles/CompilerIdCXX/CMakeCXXCompilerId.cpp	80;"	d	file:
 COMPILER_ID	CMakeFiles/CompilerIdCXX/CMakeCXXCompilerId.cpp	9;"	d	file:
 CamShiftTracking	include/endeffector_tracking/CamShiftTracking.h	/^class CamShiftTracking$/;"	c
 CamShiftTracking	src/CamShiftTracking.cpp	/^CamShiftTracking::CamShiftTracking()$/;"	f	class:CamShiftTracking
-ENV_VAR_SUBFOLDERS	catkin_generated/installspace/_setup_util.py	/^ENV_VAR_SUBFOLDERS = {$/;"	v
-ENV_VAR_SUBFOLDERS	devel/_setup_util.py	/^ENV_VAR_SUBFOLDERS = {$/;"	v
 ID_VOID_MAIN	CMakeFiles/CompilerIdC/CMakeCCompilerId.c	6;"	d	file:
 INITIAL	include/endeffector_tracking/track_ros.h	/^		INITIAL$/;"	e	enum:CEndeffectorTracking::tracking_status
-IS_DARWIN	catkin_generated/installspace/_setup_util.py	/^IS_DARWIN = (system == 'Darwin')$/;"	v
-IS_DARWIN	devel/_setup_util.py	/^IS_DARWIN = (system == 'Darwin')$/;"	v
-IS_WINDOWS	catkin_generated/installspace/_setup_util.py	/^IS_WINDOWS = (system == 'Windows')$/;"	v
-IS_WINDOWS	devel/_setup_util.py	/^IS_WINDOWS = (system == 'Windows')$/;"	v
 KF	include/endeffector_tracking/houghLineBasedTracker.h	/^	cv::KalmanFilter KF;$/;"	m	class:houghLineBasedTracker
 KernelBasedTracking	include/endeffector_tracking/KernelBasedTracking.h	/^class KernelBasedTracking$/;"	c
 KernelBasedTracking	src/KernelBasedTracking.cpp	/^KernelBasedTracking::KernelBasedTracking()$/;"	f	class:KernelBasedTracking
@@ -138,85 +125,55 @@ PLATFORM_ID	CMakeFiles/CompilerIdCXX/CMakeCXXCompilerId.cpp	95;"	d	file:
 PLATFORM_ID	CMakeFiles/CompilerIdCXX/CMakeCXXCompilerId.cpp	98;"	d	file:
 TRACKING	include/endeffector_tracking/track_ros.h	/^		TRACKING,$/;"	e	enum:CEndeffectorTracking::tracking_status
 TrackerWindow	include/endeffector_tracking/track_ros.h	/^	cv::Rect TrackerWindow;$/;"	m	class:CEndeffectorTracking
-_create_mock_setup_function	catkin_generated/stamps/endeffector_tracking/interrogate_setup_dot_py.py	/^def _create_mock_setup_function(package_name, outfile):$/;"	f
-_get_locations	catkin_generated/stamps/endeffector_tracking/interrogate_setup_dot_py.py	/^def _get_locations(pkgs, package_dir):$/;"	f
-_get_workspaces	catkin_generated/installspace/_setup_util.py	/^def _get_workspaces(environ, include_fuerte=False):$/;"	f
-_get_workspaces	devel/_setup_util.py	/^def _get_workspaces(environ, include_fuerte=False):$/;"	f
-_parse_arguments	catkin_generated/installspace/_setup_util.py	/^def _parse_arguments(args=None):$/;"	f
-_parse_arguments	devel/_setup_util.py	/^def _parse_arguments(args=None):$/;"	f
-_prefix_env_variable	catkin_generated/installspace/_setup_util.py	/^def _prefix_env_variable(environ, name, paths, subfolder):$/;"	f
-_prefix_env_variable	devel/_setup_util.py	/^def _prefix_env_variable(environ, name, paths, subfolder):$/;"	f
-_rollback_env_variable	catkin_generated/installspace/_setup_util.py	/^def _rollback_env_variable(environ, name, subfolder):$/;"	f
-_rollback_env_variable	devel/_setup_util.py	/^def _rollback_env_variable(environ, name, subfolder):$/;"	f
+activeModelTracker	include/endeffector_tracking/activeModelTracker.h	/^class activeModelTracker$/;"	c
 alpha	include/endeffector_tracking/KernelBasedTracking.h	/^		float alpha;$/;"	m	class:KernelBasedTracking
-argparse	catkin_generated/generate_cached_setup.py	/^import argparse$/;"	i
-argparse	catkin_generated/installspace/_setup_util.py	/^import argparse$/;"	i
-argparse	devel/_setup_util.py	/^import argparse$/;"	i
-args	catkin_generated/installspace/_setup_util.py	/^        args = _parse_arguments()$/;"	v
-args	devel/_setup_util.py	/^        args = _parse_arguments()$/;"	v
 assign_weight	src/KernelBasedTracking.cpp	/^KernelBasedTracking::assign_weight(cv::Mat &input_image,cv::Mat &target_model,cv::Mat &target_candidate,cv::Rect &box_)$/;"	f	class:KernelBasedTracking
-assignment	catkin_generated/installspace/_setup_util.py	/^def assignment(key, value):$/;"	f
-assignment	devel/_setup_util.py	/^def assignment(key, value):$/;"	f
 backproj	include/endeffector_tracking/CamShiftTracking.h	/^		cv::Mat hsv, hue, mask, hist, backproj;$/;"	m	class:CamShiftTracking
+baseTracker	include/endeffector_tracking/baseTracker.h	/^class baseTracker$/;"	c
 bin_width	include/endeffector_tracking/KernelBasedTracking.h	/^		int bin_width;$/;"	m	class:KernelBasedTracking
 box	include/endeffector_tracking/KernelBasedTracking.h	/^		cv::Rect box;$/;"	m	class:KernelBasedTracking
 cFeatures	include/endeffector_tracking/medianFlowTracking.h	/^		std::vector<cv::Point2f> pFeatures, cFeatures;$/;"	m	class:medianFlowTracking
 cImg	include/endeffector_tracking/medianFlowTracking.h	/^		cv::Mat pImg, cImg;$/;"	m	class:medianFlowTracking
+cMo	include/endeffector_tracking/activeModelTracker.h	/^		vpHomogeneousMatrix cMo;		$/;"	m	class:activeModelTracker
+cMo	include/endeffector_tracking/baseTracker.h	/^		vpHomogeneousMatrix cMo;$/;"	m	class:baseTracker
 cMo	include/endeffector_tracking/houghLineBasedTracker.h	/^	vpHomogeneousMatrix cMo;$/;"	m	class:houghLineBasedTracker
 cMo	include/endeffector_tracking/kltFbTracker.h	/^	vpHomogeneousMatrix cMo;$/;"	m	class:kltFbTracker
-cMo	include/endeffector_tracking/mbtEdgeKltTracker.h	/^		vpHomogeneousMatrix cMo;$/;"	m	class:mbtEdgeKltTracker
-cMo	include/endeffector_tracking/mbtEdgeTracker.h	/^		vpHomogeneousMatrix cMo;$/;"	m	class:mbtEdgeTracker
-cMo	include/endeffector_tracking/mbtKltTracker.h	/^		vpHomogeneousMatrix cMo;$/;"	m	class:mbtKltTracker
 cMo	include/endeffector_tracking/track_ros.h	/^	vpHomogeneousMatrix cMo;$/;"	m	class:CEndeffectorTracking
 cPyramid	include/endeffector_tracking/kltFbTracker.h	/^	std::vector<cv::Mat> pPyramid, cPyramid;$/;"	m	class:kltFbTracker
 cPyramid	include/endeffector_tracking/medianFlowTracking.h	/^		std::vector<cv::Mat> pPyramid, cPyramid;$/;"	m	class:medianFlowTracking
-cad_name	include/endeffector_tracking/mbtEdgeTracker.h	/^		std::string cad_name;$/;"	m	class:mbtEdgeTracker
+cad_name	include/endeffector_tracking/baseTracker.h	/^		std::string cad_name;$/;"	m	class:baseTracker
 calc_bhattacharya	src/KernelBasedTracking.cpp	/^KernelBasedTracking::calc_bhattacharya(cv::Mat &target_model,cv::Mat &target_candidate)$/;"	f	class:KernelBasedTracking
+cam	include/endeffector_tracking/baseTracker.h	/^		vpCameraParameters cam;$/;"	m	class:baseTracker
 cam	include/endeffector_tracking/houghLineBasedTracker.h	/^	vpCameraParameters cam;$/;"	m	class:houghLineBasedTracker
 cam	include/endeffector_tracking/kltFbTracker.h	/^	vpCameraParameters cam;$/;"	m	class:kltFbTracker
-cam	include/endeffector_tracking/mbtEdgeKltTracker.h	/^		vpCameraParameters cam;$/;"	m	class:mbtEdgeKltTracker
-cam	include/endeffector_tracking/mbtEdgeTracker.h	/^		vpCameraParameters cam;$/;"	m	class:mbtEdgeTracker
-cam	include/endeffector_tracking/mbtKltTracker.h	/^		vpCameraParameters cam;$/;"	m	class:mbtKltTracker
 cam	include/endeffector_tracking/track_ros.h	/^	vpCameraParameters cam;$/;"	m	class:CEndeffectorTracking
 camera_topic	include/endeffector_tracking/track_ros.h	/^	std::string camera_topic;$/;"	m	class:CEndeffectorTracking
 cbox	include/endeffector_tracking/medianFlowTracking.h	/^		cv::Rect pbox, cbox;$/;"	m	class:medianFlowTracking
 checkPtsConnection	src/houghLineBasedTracker.cpp	/^houghLineBasedTracker::checkPtsConnection(double x1, double y1, double x2, double y2, const cv::Point3f& w1, const cv::Point3f& w2)$/;"	f	class:houghLineBasedTracker
-code	catkin_generated/generate_cached_setup.py	/^code = generate_environment_script('\/home\/sai\/groovy_workspace\/endeffector_tracking\/devel\/env.sh')$/;"	v
 cols	include/endeffector_tracking/houghLineBasedTracker.h	/^	int rows, cols;$/;"	m	class:houghLineBasedTracker
 cols	include/endeffector_tracking/kltFbTracker.h	/^	int rows, cols;$/;"	m	class:kltFbTracker
 cols	include/endeffector_tracking/track_ros.h	/^	int rows, cols;$/;"	m	class:CEndeffectorTracking
-comment	catkin_generated/installspace/_setup_util.py	/^def comment(msg):$/;"	f
-comment	devel/_setup_util.py	/^def comment(msg):$/;"	f
 compareStraightLine	src/houghLineBasedTracker.cpp	/^houghLineBasedTracker::compareStraightLine(const vpLine& l1, const vpLine& l2, const cv::Vec4f& ml1, const cv::Vec4f& dl2)$/;"	f	class:houghLineBasedTracker
 config_file	include/endeffector_tracking/track_ros.h	/^	std::string config_file;$/;"	m	class:CEndeffectorTracking
-copy	catkin_generated/installspace/_setup_util.py	/^import copy$/;"	i
-copy	devel/_setup_util.py	/^import copy$/;"	i
-core	catkin_generated/stamps/endeffector_tracking/interrogate_setup_dot_py.py	/^import distutils.core$/;"	i
 corners	include/endeffector_tracking/houghLineBasedTracker.h	/^	std::vector<cv::Point3f> corners;$/;"	m	class:houghLineBasedTracker
 corners	include/endeffector_tracking/kltFbTracker.h	/^	std::vector<cv::Point3f> corners;$/;"	m	class:kltFbTracker
 create_kernel	src/KernelBasedTracking.cpp	/^KernelBasedTracking::create_kernel(cv::Mat &kernel_)$/;"	f	class:KernelBasedTracking
 create_target_model	src/KernelBasedTracking.cpp	/^KernelBasedTracking::create_target_model(cv::Mat &input_image, cv::Mat &input_kernel)$/;"	f	class:KernelBasedTracking
 csTracker	include/endeffector_tracking/track_ros.h	/^	CamShiftTracking csTracker;$/;"	m	class:CEndeffectorTracking
+curImg	include/endeffector_tracking/baseTracker.h	/^		vpImage<unsigned char> curImg;$/;"	m	class:baseTracker
 curImg	include/endeffector_tracking/houghLineBasedTracker.h	/^	cv::Mat curImg;$/;"	m	class:houghLineBasedTracker
 curImg	include/endeffector_tracking/kltFbTracker.h	/^	cv::Mat curImg, preImg;$/;"	m	class:kltFbTracker
-curImg	include/endeffector_tracking/mbtEdgeKltTracker.h	/^		vpImage<unsigned char> curImg;$/;"	m	class:mbtEdgeKltTracker
-curImg	include/endeffector_tracking/mbtEdgeTracker.h	/^		vpImage<unsigned char> curImg;$/;"	m	class:mbtEdgeTracker
-curImg	include/endeffector_tracking/mbtKltTracker.h	/^		vpImage<unsigned char> curImg;$/;"	m	class:mbtKltTracker
 curImg	include/endeffector_tracking/track_ros.h	/^	cv::Mat curImg;$/;"	m	class:CEndeffectorTracking
+deformSilhouette	src/activeModelTracker.cpp	/^activeModelTracker::deformSilhouette(vpHomogeneousMatrix& cMo_)$/;"	f	class:activeModelTracker
 detectID	include/endeffector_tracking/houghLineBasedTracker.h	/^		int detectID; 		\/\/ detected line ID$/;"	m	struct:houghLineBasedTracker::detectedLine_
 detect_object	src/KernelBasedTracking.cpp	/^KernelBasedTracking::detect_object(cv::Mat &input_image, cv::Rect &box_)$/;"	f	class:KernelBasedTracking
 detectedCorners	include/endeffector_tracking/houghLineBasedTracker.h	/^	std::vector<vpPoint> detectedCorners;$/;"	m	class:houghLineBasedTracker
 detectedLine	include/endeffector_tracking/houghLineBasedTracker.h	/^	} detectedLine;$/;"	t	class:houghLineBasedTracker	typeref:struct:houghLineBasedTracker::detectedLine_
 detectedLine_	include/endeffector_tracking/houghLineBasedTracker.h	/^	typedef struct detectedLine_$/;"	s	class:houghLineBasedTracker
 detectedModel	include/endeffector_tracking/houghLineBasedTracker.h	/^	std::vector<detectedLine> detectedModel;$/;"	m	class:houghLineBasedTracker
-display	include/endeffector_tracking/mbtEdgeKltTracker.h	/^		vpDisplayX display;$/;"	m	class:mbtEdgeKltTracker
-display	include/endeffector_tracking/mbtEdgeTracker.h	/^		vpDisplayX display;$/;"	m	class:mbtEdgeTracker
-display	include/endeffector_tracking/mbtKltTracker.h	/^		vpDisplayX display;$/;"	m	class:mbtKltTracker
-distutils	catkin_generated/stamps/endeffector_tracking/interrogate_setup_dot_py.py	/^import distutils.core$/;"	i
+display	include/endeffector_tracking/baseTracker.h	/^		vpDisplayX display;$/;"	m	class:baseTracker
 dx	include/endeffector_tracking/medianFlowTracking.h	/^		float dx, dy;$/;"	m	class:medianFlowTracking
 dy	include/endeffector_tracking/medianFlowTracking.h	/^		float dx, dy;$/;"	m	class:medianFlowTracking
-environ	catkin_generated/installspace/_setup_util.py	/^    environ = dict(os.environ)$/;"	v
-environ	devel/_setup_util.py	/^    environ = dict(os.environ)$/;"	v
 fbError	include/endeffector_tracking/kltFbTracker.h	/^	std::vector<float> fbError;$/;"	m	class:kltFbTracker
 fbTracker	include/endeffector_tracking/track_ros.h	/^	kltFbTracker fbTracker;$/;"	m	class:CEndeffectorTracking
 fbTracking	src/kltFbTracker.cpp	/^kltFbTracker::fbTracking($/;"	f	class:kltFbTracker
@@ -224,20 +181,17 @@ findMotion	src/medianFlowTracking.cpp	/^medianFlowTracking::findMotion(const std
 findStableFeatures	src/kltFbTracker.cpp	/^kltFbTracker::findStableFeatures($/;"	f	class:kltFbTracker
 findStableFeatures	src/medianFlowTracking.cpp	/^medianFlowTracking::findStableFeatures($/;"	f	class:medianFlowTracking
 findVisibleLines	src/houghLineBasedTracker.cpp	/^houghLineBasedTracker::findVisibleLines(const vpHomogeneousMatrix& cMo_)$/;"	f	class:houghLineBasedTracker
-find_env_hooks	catkin_generated/installspace/_setup_util.py	/^def find_env_hooks(environ, cmake_prefix_path):$/;"	f
-find_env_hooks	devel/_setup_util.py	/^def find_env_hooks(environ, cmake_prefix_path):$/;"	f
 frame	include/endeffector_tracking/CamShiftTracking.h	/^		cv::Mat image, frame;$/;"	m	class:CamShiftTracking
 frame_count	include/endeffector_tracking/KernelBasedTracking.h	/^		int frame_count;$/;"	m	class:KernelBasedTracking
 genFeaturesForTrackOnFace	src/kltFbTracker.cpp	/^kltFbTracker::genFeaturesForTrackOnFace(std::vector<vpPoint>& features, int faceID, int numOfPtsPerFace)$/;"	f	class:kltFbTracker
 genInitFeatures	src/medianFlowTracking.cpp	/^medianFlowTracking::genInitFeatures(cv::Rect box, int size, std::vector<cv::Point2f>& features)$/;"	f	class:medianFlowTracking
 genTrackingWindow	src/houghLineBasedTracker.cpp	/^houghLineBasedTracker::genTrackingWindow(void)$/;"	f	class:houghLineBasedTracker
-generate_cmake_file	catkin_generated/stamps/endeffector_tracking/interrogate_setup_dot_py.py	/^def generate_cmake_file(package_name, version, scripts, package_dir, pkgs):$/;"	f
-generate_environment_script	catkin_generated/generate_cached_setup.py	/^from catkin.environment_cache import generate_environment_script$/;"	i
 getInitPoints	src/track_ros.cpp	/^CEndeffectorTracking::getInitPoints(void)$/;"	f	class:CEndeffectorTracking
 getLineEquFromID	src/houghLineBasedTracker.cpp	/^houghLineBasedTracker::getLineEquFromID(int ID, double& a1,double& b1,double& c1,double& d1,double& a2,double& b2,double& c2,double& d2)$/;"	f	class:houghLineBasedTracker
 getPanelEquFromThreePt	src/houghLineBasedTracker.cpp	/^houghLineBasedTracker::getPanelEquFromThreePt(const std::vector<cv::Point3f>& pt, double& a, double& b, double& c, double& d)$/;"	f	class:houghLineBasedTracker
+getPose	include/endeffector_tracking/activeModelTracker.h	/^		inline void getPose(vpHomogeneousMatrix& cMo_)$/;"	f	class:activeModelTracker
+getPose	include/endeffector_tracking/baseTracker.h	/^		inline void getPose(vpHomogeneousMatrix& cMo_)$/;"	f	class:baseTracker
 getPose	include/endeffector_tracking/kltFbTracker.h	/^	inline void getPose(vpHomogeneousMatrix& cMo_)$/;"	f	class:kltFbTracker
-getPose	include/endeffector_tracking/mbtEdgeTracker.h	/^		inline void getPose(vpHomogeneousMatrix& cMo_)$/;"	f	class:mbtEdgeTracker
 getPrjLineEqu	src/houghLineBasedTracker.cpp	/^houghLineBasedTracker::getPrjLineEqu(const cv::Vec4f& line_, double& a, double& b, double& c)$/;"	f	class:houghLineBasedTracker
 getPtFromStraightLine	src/houghLineBasedTracker.cpp	/^houghLineBasedTracker::getPtFromStraightLine(int l1, int l2, double& x, double& y)$/;"	f	class:houghLineBasedTracker
 getWindow	src/CamShiftTracking.cpp	/^CamShiftTracking::getWindow(void)$/;"	f	class:CamShiftTracking
@@ -290,23 +244,20 @@ line2Pts	src/houghLineBasedTracker.cpp	/^houghLineBasedTracker::line2Pts(const i
 line2Pts	src/kltFbTracker.cpp	/^kltFbTracker::line2Pts(const int lineID, int& p1, int& p2)$/;"	f	class:kltFbTracker
 line2face	src/houghLineBasedTracker.cpp	/^houghLineBasedTracker::line2face(const int lineID, int& f1, int& f2)$/;"	f	class:houghLineBasedTracker
 lineID	include/endeffector_tracking/houghLineBasedTracker.h	/^		int lineID; 		\/\/ ID of the line in the cad model of the target object$/;"	m	struct:houghLineBasedTracker::detectedLine_
-lines	catkin_generated/installspace/_setup_util.py	/^    lines = []$/;"	v
-lines	devel/_setup_util.py	/^    lines = []$/;"	v
 lines	include/endeffector_tracking/houghLineBasedTracker.h	/^	std::vector<cv::Vec4f> lines;$/;"	m	class:houghLineBasedTracker
 main	CMakeFiles/CompilerIdC/CMakeCCompilerId.c	/^int main(int argc, char* argv[])$/;"	f
 main	CMakeFiles/CompilerIdC/CMakeCCompilerId.c	/^void main() {}$/;"	f
 main	CMakeFiles/CompilerIdCXX/CMakeCXXCompilerId.cpp	/^int main(int argc, char* argv[])$/;"	f
-main	catkin_generated/stamps/endeffector_tracking/interrogate_setup_dot_py.py	/^def main():$/;"	f
 main	src/track_node.cpp	/^int main(int argc, char **argv)$/;"	f
 makeConnection	src/houghLineBasedTracker.cpp	/^houghLineBasedTracker::makeConnection(void)$/;"	f	class:houghLineBasedTracker
 mask	include/endeffector_tracking/CamShiftTracking.h	/^		cv::Mat hsv, hue, mask, hist, backproj;$/;"	m	class:CamShiftTracking
 maxLevel	include/endeffector_tracking/kltFbTracker.h	/^	int maxLevel;$/;"	m	class:kltFbTracker
 maxLevel	include/endeffector_tracking/medianFlowTracking.h	/^		int maxLevel;$/;"	m	class:medianFlowTracking
-mbtEdgeKltTracker	include/endeffector_tracking/mbtEdgeKltTracker.h	/^class mbtEdgeKltTracker$/;"	c
+mbtEdgeKltTracker	include/endeffector_tracking/mbtEdgeKltTracker.h	/^class mbtEdgeKltTracker: public baseTracker$/;"	c
 mbtEdgeKltTracker	src/mbtEdgeKltTracker.cpp	/^mbtEdgeKltTracker::mbtEdgeKltTracker()$/;"	f	class:mbtEdgeKltTracker
-mbtEdgeTracker	include/endeffector_tracking/mbtEdgeTracker.h	/^class mbtEdgeTracker$/;"	c
+mbtEdgeTracker	include/endeffector_tracking/mbtEdgeTracker.h	/^class mbtEdgeTracker: public baseTracker$/;"	c
 mbtEdgeTracker	src/mbtEdgeTracker.cpp	/^mbtEdgeTracker::mbtEdgeTracker()$/;"	f	class:mbtEdgeTracker
-mbtKltTracker	include/endeffector_tracking/mbtKltTracker.h	/^class mbtKltTracker$/;"	c
+mbtKltTracker	include/endeffector_tracking/mbtKltTracker.h	/^class mbtKltTracker: public baseTracker$/;"	c
 mbtKltTracker	src/mbtKltTracker.cpp	/^mbtKltTracker::mbtKltTracker()$/;"	f	class:mbtKltTracker
 meTracker	include/endeffector_tracking/track_ros.h	/^	mbtEdgeTracker meTracker;$/;"	m	class:CEndeffectorTracking
 measurePose	src/houghLineBasedTracker.cpp	/^houghLineBasedTracker::measurePose(void)$/;"	f	class:houghLineBasedTracker
@@ -314,7 +265,6 @@ measurePose	src/kltFbTracker.cpp	/^kltFbTracker::measurePose(std::vector<vpPoint
 medianFlowTracking	include/endeffector_tracking/medianFlowTracking.h	/^class medianFlowTracking$/;"	c
 medianFlowTracking	src/medianFlowTracking.cpp	/^medianFlowTracking::medianFlowTracking()$/;"	f	class:medianFlowTracking
 mfTracker	include/endeffector_tracking/track_ros.h	/^	medianFlowTracking mfTracker;$/;"	m	class:CEndeffectorTracking
-mode	catkin_generated/generate_cached_setup.py	/^mode = os.stat(output_filename).st_mode$/;"	v
 model	include/endeffector_tracking/KernelBasedTracking.h	/^		int model;$/;"	m	class:KernelBasedTracking
 model	include/endeffector_tracking/houghLineBasedTracker.h	/^	std::vector<modelLine> model;$/;"	m	class:houghLineBasedTracker
 modelLine	include/endeffector_tracking/houghLineBasedTracker.h	/^	typedef std::vector<cv::Point3f> modelLine;$/;"	t	class:houghLineBasedTracker
@@ -324,11 +274,6 @@ n	include/endeffector_tracking/track_ros.h	/^	ros::NodeHandle n;$/;"	m	class:CEn
 no_of_bins	include/endeffector_tracking/KernelBasedTracking.h	/^		int no_of_bins;$/;"	m	class:KernelBasedTracking
 orig_img	include/endeffector_tracking/KernelBasedTracking.h	/^		cv::Mat orig_img;$/;"	m	class:KernelBasedTracking
 origin	include/endeffector_tracking/CamShiftTracking.h	/^		cv::Point origin;$/;"	m	class:CamShiftTracking
-os	catkin_generated/generate_cached_setup.py	/^import os$/;"	i
-os	catkin_generated/installspace/_setup_util.py	/^import os$/;"	i
-os	catkin_generated/stamps/endeffector_tracking/interrogate_setup_dot_py.py	/^import os$/;"	i
-os	devel/_setup_util.py	/^import os$/;"	i
-output_filename	catkin_generated/generate_cached_setup.py	/^output_filename = '\/home\/sai\/groovy_workspace\/endeffector_tracking\/catkin_generated\/setup_cached.sh'$/;"	v
 p1	include/endeffector_tracking/houghLineBasedTracker.h	/^		vpPoint p1, p2; 	\/\/ line segment$/;"	m	struct:houghLineBasedTracker::detectedLine_
 p2	include/endeffector_tracking/houghLineBasedTracker.h	/^		vpPoint p1, p2; 	\/\/ line segment$/;"	m	struct:houghLineBasedTracker::detectedLine_
 pFeatures	include/endeffector_tracking/medianFlowTracking.h	/^		std::vector<cv::Point2f> pFeatures, cFeatures;$/;"	m	class:medianFlowTracking
@@ -341,8 +286,6 @@ p_cMo	include/endeffector_tracking/kltFbTracker.h	/^	vpHomogeneousMatrix p_cMo;$
 pbox	include/endeffector_tracking/medianFlowTracking.h	/^		cv::Rect pbox, cbox;$/;"	m	class:medianFlowTracking
 phranges	include/endeffector_tracking/CamShiftTracking.h	/^		const float* phranges;$/;"	m	class:CamShiftTracking
 pi1	include/endeffector_tracking/KernelBasedTracking.h	/^		float pi1;$/;"	m	class:KernelBasedTracking
-platform	catkin_generated/installspace/_setup_util.py	/^import platform$/;"	i
-platform	devel/_setup_util.py	/^import platform$/;"	i
 plotRst	src/kltFbTracker.cpp	/^kltFbTracker::plotRst(void)$/;"	f	class:kltFbTracker
 poseDist	src/houghLineBasedTracker.cpp	/^houghLineBasedTracker::poseDist(const vpPoseVector& p1, const vpPoseVector& p2)$/;"	f	class:houghLineBasedTracker
 poseDist	src/kltFbTracker.cpp	/^kltFbTracker::poseDist(const vpPoseVector& p1, const vpPoseVector& p2)$/;"	f	class:kltFbTracker
@@ -350,14 +293,6 @@ poseVector	include/endeffector_tracking/houghLineBasedTracker.h	/^	vpPoseVector 
 poseVector	include/endeffector_tracking/kltFbTracker.h	/^	vpPoseVector poseVector;$/;"	m	class:kltFbTracker
 poseVector	include/endeffector_tracking/track_ros.h	/^	vpPoseVector poseVector;$/;"	m	class:CEndeffectorTracking
 preImg	include/endeffector_tracking/kltFbTracker.h	/^	cv::Mat curImg, preImg;$/;"	m	class:kltFbTracker
-prepend	catkin_generated/installspace/_setup_util.py	/^def prepend(environ, key, prefix):$/;"	f
-prepend	devel/_setup_util.py	/^def prepend(environ, key, prefix):$/;"	f
-prepend_env_variables	catkin_generated/installspace/_setup_util.py	/^def prepend_env_variables(environ, env_var_subfolders, workspaces):$/;"	f
-prepend_env_variables	devel/_setup_util.py	/^def prepend_env_variables(environ, env_var_subfolders, workspaces):$/;"	f
-print_function	catkin_generated/generate_cached_setup.py	/^from __future__ import print_function$/;"	i
-print_function	catkin_generated/installspace/_setup_util.py	/^from __future__ import print_function$/;"	i
-print_function	catkin_generated/stamps/endeffector_tracking/interrogate_setup_dot_py.py	/^from __future__ import print_function$/;"	i
-print_function	devel/_setup_util.py	/^from __future__ import print_function$/;"	i
 prjCorners	include/endeffector_tracking/houghLineBasedTracker.h	/^	std::vector<cv::Point2f> prjCorners;$/;"	m	class:houghLineBasedTracker
 prjCorners	include/endeffector_tracking/kltFbTracker.h	/^	std::vector<cv::Point2f> prjCorners;$/;"	m	class:kltFbTracker
 prjModel	include/endeffector_tracking/houghLineBasedTracker.h	/^	std::vector<cv::Vec4f> prjModel;$/;"	m	class:houghLineBasedTracker
@@ -368,8 +303,9 @@ projectModel	src/houghLineBasedTracker.cpp	/^houghLineBasedTracker::projectModel
 projectModel	src/kltFbTracker.cpp	/^kltFbTracker::projectModel(const vpHomogeneousMatrix& cMo_)$/;"	f	class:kltFbTracker
 ptsDist	src/houghLineBasedTracker.cpp	/^houghLineBasedTracker::ptsDist(double x1, double y1, double x2, double y2)$/;"	f	class:houghLineBasedTracker
 ptsDist	src/kltFbTracker.cpp	/^kltFbTracker::ptsDist(double x1, double y1, double x2, double y2)$/;"	f	class:kltFbTracker
+pubPose	include/endeffector_tracking/activeModelTracker.h	/^		inline void pubPose(vpHomogeneousMatrix& cMo_)$/;"	f	class:activeModelTracker
+pubPose	include/endeffector_tracking/baseTracker.h	/^		inline void pubPose(vpHomogeneousMatrix& cMo_)$/;"	f	class:baseTracker
 pubPose	include/endeffector_tracking/kltFbTracker.h	/^	inline void pubPose(vpHomogeneousMatrix& cMo_)$/;"	f	class:kltFbTracker
-pubPose	include/endeffector_tracking/mbtEdgeTracker.h	/^		inline void pubPose(vpHomogeneousMatrix& cMo_)$/;"	f	class:mbtEdgeTracker
 pubRst	src/houghLineBasedTracker.cpp	/^houghLineBasedTracker::pubRst(cv::Mat& img, cv::Rect& box)$/;"	f	class:houghLineBasedTracker
 pubRst	src/kltFbTracker.cpp	/^kltFbTracker::pubRst(cv::Mat& img, cv::Rect& box)$/;"	f	class:kltFbTracker
 pubRst	src/mbtEdgeKltTracker.cpp	/^mbtEdgeKltTracker::pubRst(sensor_msgs::Image msg, cv::Rect& box)$/;"	f	class:mbtEdgeKltTracker
@@ -380,41 +316,27 @@ pyg	include/endeffector_tracking/houghLineBasedTracker.h	/^	vpMbtPolygon pyg[6];
 pyg	include/endeffector_tracking/kltFbTracker.h	/^	vpMbtPolygon pyg[6];$/;"	m	class:kltFbTracker
 range	include/endeffector_tracking/KernelBasedTracking.h	/^		int range;$/;"	m	class:KernelBasedTracking
 refinePose	src/kltFbTracker.cpp	/^kltFbTracker::refinePose(void)$/;"	f	class:kltFbTracker
+retrieveImage	include/endeffector_tracking/baseTracker.h	/^		inline void retrieveImage(const sensor_msgs::ImageConstPtr& img)$/;"	f	class:baseTracker
 retrieveImage	src/CamShiftTracking.cpp	/^CamShiftTracking::retrieveImage(const cv::Mat& img)$/;"	f	class:CamShiftTracking
 retrieveImage	src/KernelBasedTracking.cpp	/^KernelBasedTracking::retrieveImage(const cv::Mat& img)$/;"	f	class:KernelBasedTracking
 retrieveImage	src/houghLineBasedTracker.cpp	/^houghLineBasedTracker::retrieveImage(const cv::Mat& img)$/;"	f	class:houghLineBasedTracker
 retrieveImage	src/kltFbTracker.cpp	/^kltFbTracker::retrieveImage(const cv::Mat& img)$/;"	f	class:kltFbTracker
-retrieveImage	src/mbtEdgeKltTracker.cpp	/^mbtEdgeKltTracker::retrieveImage(const sensor_msgs::ImageConstPtr& img)$/;"	f	class:mbtEdgeKltTracker
-retrieveImage	src/mbtEdgeTracker.cpp	/^mbtEdgeTracker::retrieveImage(const sensor_msgs::ImageConstPtr& img)$/;"	f	class:mbtEdgeTracker
-retrieveImage	src/mbtKltTracker.cpp	/^mbtKltTracker::retrieveImage(const sensor_msgs::ImageConstPtr& img)$/;"	f	class:mbtKltTracker
 retrieveImage	src/medianFlowTracking.cpp	/^medianFlowTracking::retrieveImage(const cv::Mat& img)$/;"	f	class:medianFlowTracking
-rollback_env_variables	catkin_generated/installspace/_setup_util.py	/^def rollback_env_variables(environ, env_var_subfolders):$/;"	f
-rollback_env_variables	devel/_setup_util.py	/^def rollback_env_variables(environ, env_var_subfolders):$/;"	f
 rows	include/endeffector_tracking/houghLineBasedTracker.h	/^	int rows, cols;$/;"	m	class:houghLineBasedTracker
 rows	include/endeffector_tracking/kltFbTracker.h	/^	int rows, cols;$/;"	m	class:kltFbTracker
 rows	include/endeffector_tracking/track_ros.h	/^	int rows, cols;$/;"	m	class:CEndeffectorTracking
 selection	include/endeffector_tracking/CamShiftTracking.h	/^		cv::Rect selection;$/;"	m	class:CamShiftTracking
-setup	catkin_generated/stamps/endeffector_tracking/interrogate_setup_dot_py.py	/^    def setup(*args, **kwargs):$/;"	f	function:_create_mock_setup_function
-setup_dir	catkin_generated/installspace/_setup_util.py	/^setup_dir = '\/usr\/local'$/;"	v
-setup_dir	devel/_setup_util.py	/^setup_dir = '\/home\/sai\/groovy_workspace\/endeffector_tracking\/devel'$/;"	v
-setuptools	catkin_generated/stamps/endeffector_tracking/interrogate_setup_dot_py.py	/^    import setuptools$/;"	i
 smin	include/endeffector_tracking/CamShiftTracking.h	/^		int vmin, vmax, smin;$/;"	m	class:CamShiftTracking
 stableFeatures2d	include/endeffector_tracking/kltFbTracker.h	/^	std::vector<cv::Point2f> stableFeatures2d;$/;"	m	class:kltFbTracker
 stableFeatures3d	include/endeffector_tracking/kltFbTracker.h	/^	std::vector<vpPoint> stableFeatures3d;$/;"	m	class:kltFbTracker
 stableInitFeatures2d	include/endeffector_tracking/kltFbTracker.h	/^	std::vector<cv::Point2f> stableInitFeatures2d;$/;"	m	class:kltFbTracker
-stat	catkin_generated/generate_cached_setup.py	/^import stat$/;"	i
 status	include/endeffector_tracking/track_ros.h	/^	tracking_status status;$/;"	m	class:CEndeffectorTracking
 subCam	include/endeffector_tracking/track_ros.h	/^	image_transport::Subscriber subCam;$/;"	m	class:CEndeffectorTracking
-sys	catkin_generated/generate_cached_setup.py	/^import sys$/;"	i
-sys	catkin_generated/installspace/_setup_util.py	/^import sys$/;"	i
-sys	catkin_generated/stamps/endeffector_tracking/interrogate_setup_dot_py.py	/^import sys$/;"	i
-sys	devel/_setup_util.py	/^import sys$/;"	i
-system	catkin_generated/installspace/_setup_util.py	/^system = platform.system()$/;"	v
-system	devel/_setup_util.py	/^system = platform.system()$/;"	v
 target_candidate_hist	include/endeffector_tracking/KernelBasedTracking.h	/^		cv::Mat target_hist,target_candidate_hist,weight;$/;"	m	class:KernelBasedTracking
 target_hist	include/endeffector_tracking/KernelBasedTracking.h	/^		cv::Mat target_hist,target_candidate_hist,weight;$/;"	m	class:KernelBasedTracking
 track	src/CamShiftTracking.cpp	/^CamShiftTracking::track(void)$/;"	f	class:CamShiftTracking
 track	src/KernelBasedTracking.cpp	/^KernelBasedTracking::track()$/;"	f	class:KernelBasedTracking
+track	src/activeModelTracker.cpp	/^activeModelTracker::track(void)$/;"	f	class:activeModelTracker
 track	src/houghLineBasedTracker.cpp	/^houghLineBasedTracker::track(void)$/;"	f	class:houghLineBasedTracker
 track	src/kltFbTracker.cpp	/^kltFbTracker::track(void)$/;"	f	class:kltFbTracker
 track	src/mbtEdgeKltTracker.cpp	/^mbtEdgeKltTracker::track(void)$/;"	f	class:mbtEdgeKltTracker

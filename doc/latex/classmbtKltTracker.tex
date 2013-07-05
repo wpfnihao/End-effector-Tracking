@@ -1,19 +1,37 @@
 \hypertarget{classmbtKltTracker}{\section{mbt\-Klt\-Tracker \-Class \-Reference}
 \label{classmbtKltTracker}\index{mbt\-Klt\-Tracker@{mbt\-Klt\-Tracker}}
 }
+
+
+\-Inheritance diagram for mbt\-Klt\-Tracker\-:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=158pt]{classmbtKltTracker__inherit__graph}
+\end{center}
+\end{figure}
+
+
+\-Collaboration diagram for mbt\-Klt\-Tracker\-:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=158pt]{classmbtKltTracker__coll__graph}
+\end{center}
+\end{figure}
 \subsection*{\-Public \-Member \-Functions}
 \begin{DoxyCompactItemize}
 \item 
 \hypertarget{classmbtKltTracker_ac7bd3fb4472175c6e950eb5c29148d0e}{\hyperlink{classmbtKltTracker_ac7bd3fb4472175c6e950eb5c29148d0e}{mbt\-Klt\-Tracker} ()}\label{classmbtKltTracker_ac7bd3fb4472175c6e950eb5c29148d0e}
 
 \begin{DoxyCompactList}\small\item\em the constructor of the class, the basic initialization steps are done here \end{DoxyCompactList}\item 
-\hypertarget{classmbtKltTracker_ae4746069ef2f9b24db30970ac353eae5}{void \hyperlink{classmbtKltTracker_ae4746069ef2f9b24db30970ac353eae5}{initialize} (std\-::string config\-\_\-file, std\-::string model\-\_\-name, std\-::string init\-\_\-file)}\label{classmbtKltTracker_ae4746069ef2f9b24db30970ac353eae5}
+\hypertarget{classmbtKltTracker_ae4746069ef2f9b24db30970ac353eae5}{virtual void \hyperlink{classmbtKltTracker_ae4746069ef2f9b24db30970ac353eae5}{initialize} (std\-::string config\-\_\-file, std\-::string model\-\_\-name, std\-::string init\-\_\-file)}\label{classmbtKltTracker_ae4746069ef2f9b24db30970ac353eae5}
 
 \begin{DoxyCompactList}\small\item\em initialize the tracker \end{DoxyCompactList}\item 
-bool \hyperlink{classmbtKltTracker_a8e2db146326617d41012b83fe34e15af}{pub\-Rst} (sensor\-\_\-msgs\-::\-Image msg, cv\-::\-Rect \&box)
+virtual bool \hyperlink{classmbtKltTracker_a8e2db146326617d41012b83fe34e15af}{pub\-Rst} (sensor\-\_\-msgs\-::\-Image msg, cv\-::\-Rect \&box)
 \begin{DoxyCompactList}\small\item\em publish the tracked rst \end{DoxyCompactList}\item 
-void \hyperlink{classmbtKltTracker_a02142ff9f927f98478550cf1146156c9}{retrieve\-Image} (const sensor\-\_\-msgs\-::\-Image\-Const\-Ptr \&img)
-\begin{DoxyCompactList}\small\item\em retrieve image from the up level class \end{DoxyCompactList}\item 
 \hypertarget{classmbtKltTracker_ab4d84810ff270978235e0eb0cd92e7e6}{void \hyperlink{classmbtKltTracker_ab4d84810ff270978235e0eb0cd92e7e6}{track} (void)}\label{classmbtKltTracker_ab4d84810ff270978235e0eb0cd92e7e6}
 
 \begin{DoxyCompactList}\small\item\em tracking is done here \end{DoxyCompactList}\end{DoxyCompactItemize}
@@ -27,7 +45,7 @@ void \hyperlink{classmbtKltTracker_a02142ff9f927f98478550cf1146156c9}{retrieve\-
 \item[{sensor\-\_\-msgs\-::\-Image}]{msg, }
 \item[{cv\-::\-Rect \&}]{box}
 \end{DoxyParamCaption}
-)}}\label{classmbtKltTracker_a8e2db146326617d41012b83fe34e15af}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classmbtKltTracker_a8e2db146326617d41012b83fe34e15af}
 
 
 publish the tracked rst 
@@ -42,22 +60,10 @@ publish the tracked rst
 \begin{DoxyReturn}{\-Returns}
 
 \end{DoxyReturn}
-\hypertarget{classmbtKltTracker_a02142ff9f927f98478550cf1146156c9}{\index{mbt\-Klt\-Tracker@{mbt\-Klt\-Tracker}!retrieve\-Image@{retrieve\-Image}}
-\index{retrieve\-Image@{retrieve\-Image}!mbtKltTracker@{mbt\-Klt\-Tracker}}
-\subsubsection[{retrieve\-Image}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf mbt\-Klt\-Tracker\-::retrieve\-Image} (
-\begin{DoxyParamCaption}
-\item[{const sensor\-\_\-msgs\-::\-Image\-Const\-Ptr \&}]{img}
-\end{DoxyParamCaption}
-)}}\label{classmbtKltTracker_a02142ff9f927f98478550cf1146156c9}
 
 
-retrieve image from the up level class 
+\-Implements \hyperlink{classbaseTracker_a89709d06921be0e67c88babec80b51e3}{base\-Tracker}.
 
-
-\begin{DoxyParams}{\-Parameters}
-{\em img} & \\
-\hline
-\end{DoxyParams}
 
 
 \-The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}

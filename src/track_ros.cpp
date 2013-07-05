@@ -267,13 +267,13 @@ CEndeffectorTracking::getInitPoints(void)
 	finit.close();
 }
 
-void
 /**
  * @brief publish the processed Img or the tracking rst
  * 			TODO: modifications required.
  *
  * @param srcImg
  */
+void
 CEndeffectorTracking::pubRst(const sensor_msgs::ImageConstPtr& srcImg)
 {
 	// Step 5: publish the tracking result

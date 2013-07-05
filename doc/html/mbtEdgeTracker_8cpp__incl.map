@@ -1,3 +1,4 @@
 <map id="G" name="G">
-<area shape="rect" id="node3" href="$mbtEdgeTracker_8h.html" title="The mbtEdgeTracker class wrap the vpMbEdgeTracker in the visp package to incorporate with endeffector..." alt="" coords="633,83,884,112"/>
+<area shape="rect" id="node3" href="$mbtEdgeTracker_8h.html" title="The mbtEdgeTracker class wrap the vpMbEdgeTracker in the visp package to incorporate with endeffector..." alt="" coords="580,83,831,112"/>
+<area shape="rect" id="node9" href="$baseTracker_8h.html" title="the virtual base class of all the model based tracker This class provides the common interface of all..." alt="" coords="645,160,872,189"/>
 </map>

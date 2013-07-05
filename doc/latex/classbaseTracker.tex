@@ -1,0 +1,130 @@
+\hypertarget{classbaseTracker}{\section{base\-Tracker \-Class \-Reference}
+\label{classbaseTracker}\index{base\-Tracker@{base\-Tracker}}
+}
+
+
+\-Inheritance diagram for base\-Tracker\-:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classbaseTracker__inherit__graph}
+\end{center}
+\end{figure}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classbaseTracker_a540e094b670af7eb5080d32ed04f688c}{virtual void \hyperlink{classbaseTracker_a540e094b670af7eb5080d32ed04f688c}{initialize} (std\-::string config\-\_\-file, std\-::string model\-\_\-name, std\-::string init\-\_\-file)=0}\label{classbaseTracker_a540e094b670af7eb5080d32ed04f688c}
+
+\begin{DoxyCompactList}\small\item\em initialize the tracker this is a pure virtual function, must be implemented in any tracker derived from this base class \end{DoxyCompactList}\item 
+virtual bool \hyperlink{classbaseTracker_a89709d06921be0e67c88babec80b51e3}{pub\-Rst} (sensor\-\_\-msgs\-::\-Image msg, cv\-::\-Rect \&box)=0
+\begin{DoxyCompactList}\small\item\em publish the tracked rst \end{DoxyCompactList}\item 
+void \hyperlink{classbaseTracker_a2198d9d00a0e07c1e47ffb44d0cf77f9}{retrieve\-Image} (const sensor\-\_\-msgs\-::\-Image\-Const\-Ptr \&img)
+\begin{DoxyCompactList}\small\item\em retrieve image from the up level class \end{DoxyCompactList}\item 
+\hypertarget{classbaseTracker_ac46db4ee279f65cf9eb8d1e679f064f2}{virtual void \hyperlink{classbaseTracker_ac46db4ee279f65cf9eb8d1e679f064f2}{track} (void)=0}\label{classbaseTracker_ac46db4ee279f65cf9eb8d1e679f064f2}
+
+\begin{DoxyCompactList}\small\item\em tracking is done here a pure virtual function \end{DoxyCompactList}\item 
+void \hyperlink{classbaseTracker_a07d8b238b21d4d5aa12d38302fd5d863}{get\-Pose} (vp\-Homogeneous\-Matrix \&c\-Mo\-\_\-)
+\begin{DoxyCompactList}\small\item\em get the pose from the upper level class, which usually provided by other trackers \end{DoxyCompactList}\item 
+void \hyperlink{classbaseTracker_a30e0216b0211dd9874dbf6daf34b4408}{pub\-Pose} (vp\-Homogeneous\-Matrix \&c\-Mo\-\_\-)
+\begin{DoxyCompactList}\small\item\em publish the pose calculated by this tracker, which can be used by other trackers to refine the result \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{\-Protected \-Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classbaseTracker_a6edb382071777cddaf254bc6734b8fa3}{vp\-Image$<$ unsigned char $>$ \hyperlink{classbaseTracker_a6edb382071777cddaf254bc6734b8fa3}{cur\-Img}}\label{classbaseTracker_a6edb382071777cddaf254bc6734b8fa3}
+
+\begin{DoxyCompactList}\small\item\em current image \end{DoxyCompactList}\item 
+\hypertarget{classbaseTracker_a853f58bceb6082909a5956a7824d4d69}{vp\-Homogeneous\-Matrix \hyperlink{classbaseTracker_a853f58bceb6082909a5956a7824d4d69}{c\-Mo}}\label{classbaseTracker_a853f58bceb6082909a5956a7824d4d69}
+
+\begin{DoxyCompactList}\small\item\em current camera pose \end{DoxyCompactList}\item 
+\hypertarget{classbaseTracker_a8b52e677c30f1f8d3e7b6998c18d4369}{vp\-Camera\-Parameters \hyperlink{classbaseTracker_a8b52e677c30f1f8d3e7b6998c18d4369}{cam}}\label{classbaseTracker_a8b52e677c30f1f8d3e7b6998c18d4369}
+
+\begin{DoxyCompactList}\small\item\em camera parameter \end{DoxyCompactList}\item 
+\hypertarget{classbaseTracker_a2855b0e26cf9992a8f5785300525bb6e}{vp\-Display\-X \hyperlink{classbaseTracker_a2855b0e26cf9992a8f5785300525bb6e}{display}}\label{classbaseTracker_a2855b0e26cf9992a8f5785300525bb6e}
+
+\begin{DoxyCompactList}\small\item\em for display the result \end{DoxyCompactList}\item 
+\hypertarget{classbaseTracker_a5cc247766a9d0044bb5bf48a98c1bbf0}{std\-::string {\bfseries cad\-\_\-name}}\label{classbaseTracker_a5cc247766a9d0044bb5bf48a98c1bbf0}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classbaseTracker_a07d8b238b21d4d5aa12d38302fd5d863}{\index{base\-Tracker@{base\-Tracker}!get\-Pose@{get\-Pose}}
+\index{get\-Pose@{get\-Pose}!baseTracker@{base\-Tracker}}
+\subsubsection[{get\-Pose}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf base\-Tracker\-::get\-Pose} (
+\begin{DoxyParamCaption}
+\item[{vp\-Homogeneous\-Matrix \&}]{c\-Mo\-\_\-}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classbaseTracker_a07d8b238b21d4d5aa12d38302fd5d863}
+
+
+get the pose from the upper level class, which usually provided by other trackers 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em c\-Mo\-\_\-} & the pose \\
+\hline
+\end{DoxyParams}
+\hypertarget{classbaseTracker_a30e0216b0211dd9874dbf6daf34b4408}{\index{base\-Tracker@{base\-Tracker}!pub\-Pose@{pub\-Pose}}
+\index{pub\-Pose@{pub\-Pose}!baseTracker@{base\-Tracker}}
+\subsubsection[{pub\-Pose}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf base\-Tracker\-::pub\-Pose} (
+\begin{DoxyParamCaption}
+\item[{vp\-Homogeneous\-Matrix \&}]{c\-Mo\-\_\-}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classbaseTracker_a30e0216b0211dd9874dbf6daf34b4408}
+
+
+publish the pose calculated by this tracker, which can be used by other trackers to refine the result 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em c\-Mo\-\_\-} & the pose \\
+\hline
+\end{DoxyParams}
+\hypertarget{classbaseTracker_a89709d06921be0e67c88babec80b51e3}{\index{base\-Tracker@{base\-Tracker}!pub\-Rst@{pub\-Rst}}
+\index{pub\-Rst@{pub\-Rst}!baseTracker@{base\-Tracker}}
+\subsubsection[{pub\-Rst}]{\setlength{\rightskip}{0pt plus 5cm}virtual bool {\bf base\-Tracker\-::pub\-Rst} (
+\begin{DoxyParamCaption}
+\item[{sensor\-\_\-msgs\-::\-Image}]{msg, }
+\item[{cv\-::\-Rect \&}]{box}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}pure virtual\mbox{]}}}}\label{classbaseTracker_a89709d06921be0e67c88babec80b51e3}
+
+
+publish the tracked rst 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em msg} & \\
+\hline
+{\em box} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+
+\end{DoxyReturn}
+
+
+\-Implemented in \hyperlink{classmbtEdgeTracker_a2f85c97bd271cae8e6e32daa4d78a8cd}{mbt\-Edge\-Tracker}, \hyperlink{classmbtKltTracker_a8e2db146326617d41012b83fe34e15af}{mbt\-Klt\-Tracker}, and \hyperlink{classmbtEdgeKltTracker_aa5f41d0aecdec85610e24a5e70db0c31}{mbt\-Edge\-Klt\-Tracker}.
+
+\hypertarget{classbaseTracker_a2198d9d00a0e07c1e47ffb44d0cf77f9}{\index{base\-Tracker@{base\-Tracker}!retrieve\-Image@{retrieve\-Image}}
+\index{retrieve\-Image@{retrieve\-Image}!baseTracker@{base\-Tracker}}
+\subsubsection[{retrieve\-Image}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf base\-Tracker\-::retrieve\-Image} (
+\begin{DoxyParamCaption}
+\item[{const sensor\-\_\-msgs\-::\-Image\-Const\-Ptr \&}]{img}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classbaseTracker_a2198d9d00a0e07c1e47ffb44d0cf77f9}
+
+
+retrieve image from the up level class 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em img} & \\
+\hline
+\end{DoxyParams}
+
+
+\-The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/endeffector\-\_\-tracking/\hyperlink{baseTracker_8h}{base\-Tracker.\-h}\end{DoxyCompactItemize}

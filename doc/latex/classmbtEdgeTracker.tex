@@ -1,22 +1,40 @@
 \hypertarget{classmbtEdgeTracker}{\section{mbt\-Edge\-Tracker \-Class \-Reference}
 \label{classmbtEdgeTracker}\index{mbt\-Edge\-Tracker@{mbt\-Edge\-Tracker}}
 }
+
+
+\-Inheritance diagram for mbt\-Edge\-Tracker\-:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=168pt]{classmbtEdgeTracker__inherit__graph}
+\end{center}
+\end{figure}
+
+
+\-Collaboration diagram for mbt\-Edge\-Tracker\-:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=168pt]{classmbtEdgeTracker__coll__graph}
+\end{center}
+\end{figure}
 \subsection*{\-Public \-Member \-Functions}
 \begin{DoxyCompactItemize}
 \item 
 \hypertarget{classmbtEdgeTracker_a5ced2da03b4450be9261485b8396a818}{\hyperlink{classmbtEdgeTracker_a5ced2da03b4450be9261485b8396a818}{mbt\-Edge\-Tracker} ()}\label{classmbtEdgeTracker_a5ced2da03b4450be9261485b8396a818}
 
 \begin{DoxyCompactList}\small\item\em the constructor of the class, the basic initialization steps are done here \end{DoxyCompactList}\item 
-\hypertarget{classmbtEdgeTracker_a538786bf1ac308a4d5d093c4cac0d649}{void \hyperlink{classmbtEdgeTracker_a538786bf1ac308a4d5d093c4cac0d649}{initialize} (std\-::string config\-\_\-file, std\-::string model\-\_\-name, std\-::string init\-\_\-file)}\label{classmbtEdgeTracker_a538786bf1ac308a4d5d093c4cac0d649}
+\hypertarget{classmbtEdgeTracker_a538786bf1ac308a4d5d093c4cac0d649}{virtual void \hyperlink{classmbtEdgeTracker_a538786bf1ac308a4d5d093c4cac0d649}{initialize} (std\-::string config\-\_\-file, std\-::string model\-\_\-name, std\-::string init\-\_\-file)}\label{classmbtEdgeTracker_a538786bf1ac308a4d5d093c4cac0d649}
 
-\begin{DoxyCompactList}\small\item\em initialize the tracker \end{DoxyCompactList}\item 
-bool \hyperlink{classmbtEdgeTracker_a2f85c97bd271cae8e6e32daa4d78a8cd}{pub\-Rst} (sensor\-\_\-msgs\-::\-Image msg, cv\-::\-Rect \&box)
+\begin{DoxyCompactList}\small\item\em initialize the tracker this is a pure virtual function, must be implemented in any tracker derived from this base class \end{DoxyCompactList}\item 
+virtual bool \hyperlink{classmbtEdgeTracker_a2f85c97bd271cae8e6e32daa4d78a8cd}{pub\-Rst} (sensor\-\_\-msgs\-::\-Image msg, cv\-::\-Rect \&box)
 \begin{DoxyCompactList}\small\item\em publish the tracked rst \end{DoxyCompactList}\item 
-void \hyperlink{classmbtEdgeTracker_aba2b7204bd1c0041eafbf94574aaa5a9}{retrieve\-Image} (const sensor\-\_\-msgs\-::\-Image\-Const\-Ptr \&img)
-\begin{DoxyCompactList}\small\item\em retrieve image from the up level class \end{DoxyCompactList}\item 
-\hypertarget{classmbtEdgeTracker_a15ee6f543ab6e8cd3b24dcc51ff69405}{void \hyperlink{classmbtEdgeTracker_a15ee6f543ab6e8cd3b24dcc51ff69405}{track} (void)}\label{classmbtEdgeTracker_a15ee6f543ab6e8cd3b24dcc51ff69405}
+\hypertarget{classmbtEdgeTracker_a15ee6f543ab6e8cd3b24dcc51ff69405}{virtual void \hyperlink{classmbtEdgeTracker_a15ee6f543ab6e8cd3b24dcc51ff69405}{track} (void)}\label{classmbtEdgeTracker_a15ee6f543ab6e8cd3b24dcc51ff69405}
 
-\begin{DoxyCompactList}\small\item\em tracking is done here \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em tracking is done here a pure virtual function \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \subsection{\-Member \-Function \-Documentation}
@@ -27,14 +45,14 @@ void \hyperlink{classmbtEdgeTracker_aba2b7204bd1c0041eafbf94574aaa5a9}{retrieve\
 \item[{sensor\-\_\-msgs\-::\-Image}]{msg, }
 \item[{cv\-::\-Rect \&}]{box}
 \end{DoxyParamCaption}
-)}}\label{classmbtEdgeTracker_a2f85c97bd271cae8e6e32daa4d78a8cd}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classmbtEdgeTracker_a2f85c97bd271cae8e6e32daa4d78a8cd}
 
 
 publish the tracked rst 
 
 
 \begin{DoxyParams}{\-Parameters}
-{\em img} & \\
+{\em msg} & \\
 \hline
 {\em box} & \\
 \hline
@@ -42,22 +60,10 @@ publish the tracked rst
 \begin{DoxyReturn}{\-Returns}
 
 \end{DoxyReturn}
-\hypertarget{classmbtEdgeTracker_aba2b7204bd1c0041eafbf94574aaa5a9}{\index{mbt\-Edge\-Tracker@{mbt\-Edge\-Tracker}!retrieve\-Image@{retrieve\-Image}}
-\index{retrieve\-Image@{retrieve\-Image}!mbtEdgeTracker@{mbt\-Edge\-Tracker}}
-\subsubsection[{retrieve\-Image}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf mbt\-Edge\-Tracker\-::retrieve\-Image} (
-\begin{DoxyParamCaption}
-\item[{const sensor\-\_\-msgs\-::\-Image\-Const\-Ptr \&}]{img}
-\end{DoxyParamCaption}
-)}}\label{classmbtEdgeTracker_aba2b7204bd1c0041eafbf94574aaa5a9}
 
 
-retrieve image from the up level class 
+\-Implements \hyperlink{classbaseTracker_a89709d06921be0e67c88babec80b51e3}{base\-Tracker}.
 
-
-\begin{DoxyParams}{\-Parameters}
-{\em img} & \\
-\hline
-\end{DoxyParams}
 
 
 \-The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}

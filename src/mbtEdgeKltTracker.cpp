@@ -11,6 +11,8 @@
 // opencv2 headers
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+
+// visp_bridge
 #include <conversions/image.h>
 
 
@@ -39,12 +41,6 @@ mbtEdgeKltTracker::pubRst(sensor_msgs::Image msg, cv::Rect& box)
 	tracker.display(curImg, cMo, cam, vpColor::red, 2);
 	msg = visp_bridge::toSensorMsgsImage(curImg);
 	return false;
-}
-
-void 
-mbtEdgeKltTracker::retrieveImage(const sensor_msgs::ImageConstPtr& img)
-{
-	curImg = visp_bridge::toVispImage(*img);	
 }
 
 void 
