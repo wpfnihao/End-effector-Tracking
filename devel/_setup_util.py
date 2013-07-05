@@ -43,7 +43,7 @@ import sys
 
 # environment at generation time
 CMAKE_PREFIX_PATH = '/opt/ros/groovy'.split(';')
-setup_dir = '/home/sai/groovy_workspace/endeffector_tracking/devel'
+setup_dir = '/home/pengfei/groovy_workspace/endeffector_tracking/devel'
 if setup_dir not in CMAKE_PREFIX_PATH:
     CMAKE_PREFIX_PATH.insert(0, setup_dir)
 CMAKE_PREFIX_PATH = os.pathsep.join(CMAKE_PREFIX_PATH)

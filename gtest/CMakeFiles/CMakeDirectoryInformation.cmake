@@ -3,7 +3,7 @@
 
 # Relative path conversion top directories.
 SET(CMAKE_RELATIVE_PATH_TOP_SOURCE "/usr/src/gtest")
-SET(CMAKE_RELATIVE_PATH_TOP_BINARY "/home/sai/groovy_workspace/endeffector_tracking")
+SET(CMAKE_RELATIVE_PATH_TOP_BINARY "/home/pengfei/groovy_workspace/endeffector_tracking")
 
 # Force unix paths in dependencies.
 SET(CMAKE_FORCE_UNIX_PATHS 1)
@@ -11,6 +11,19 @@ SET(CMAKE_FORCE_UNIX_PATHS 1)
 # The C and CXX include file search paths:
 SET(CMAKE_C_INCLUDE_PATH
   "include"
+  "/opt/ros/groovy/stacks/vision_visp/visp/install/include"
+  "/usr/include/libxml2"
+  "/opt/ros/groovy/include/opencv"
+  "/opt/ros/groovy/include"
+  "/usr/include/gtk-2.0"
+  "/usr/include/glib-2.0"
+  "/usr/lib/i386-linux-gnu/glib-2.0/include"
+  "/usr/include/pango-1.0"
+  "/usr/include/atk-1.0"
+  "/usr/lib/i386-linux-gnu/gtk-2.0/include"
+  "/usr/include/cairo"
+  "/usr/include/gdk-pixbuf-2.0"
+  "/opt/ros/groovy/stacks/vision_visp/visp_bridge/src"
   "/usr/src/gtest/include"
   "/usr/src/gtest"
   )
