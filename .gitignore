@@ -12,6 +12,9 @@
 *.la
 *.a
 
+#bin
+bin/*
+
 #catkin
 catkin/*
 CATKIN_IGNORE

@@ -1,4 +1,4 @@
-# Install script for directory: /home/pengfei/fuerte_workspace/endeffector_tracking
+# Install script for directory: /home/sai/fuerte_workspace/endeffector_tracking
 
 # Set the install prefix
 IF(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -38,7 +38,7 @@ ELSE(CMAKE_INSTALL_COMPONENT)
   SET(CMAKE_INSTALL_MANIFEST "install_manifest.txt")
 ENDIF(CMAKE_INSTALL_COMPONENT)
 
-FILE(WRITE "/home/pengfei/fuerte_workspace/endeffector_tracking/${CMAKE_INSTALL_MANIFEST}" "")
+FILE(WRITE "/home/sai/fuerte_workspace/endeffector_tracking/${CMAKE_INSTALL_MANIFEST}" "")
 FOREACH(file ${CMAKE_INSTALL_MANIFEST_FILES})
-  FILE(APPEND "/home/pengfei/fuerte_workspace/endeffector_tracking/${CMAKE_INSTALL_MANIFEST}" "${file}\n")
+  FILE(APPEND "/home/sai/fuerte_workspace/endeffector_tracking/${CMAKE_INSTALL_MANIFEST}" "${file}\n")
 ENDFOREACH(file)
