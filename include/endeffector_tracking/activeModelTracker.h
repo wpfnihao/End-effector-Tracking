@@ -14,15 +14,31 @@
 #include <visp/vpPoseFeatures.h>
 #include <image_transport/image_transport.h>
 
-class activeModelTracker
+//user defined
+#include "endeffector_tracking/cadModel.h"
+
+class activeModelTracker: public cadModel
 {
 	public:
 
-		void initialize();
+		/**
+		 * @brief call getInitPoints() first before calling this function
+		 *
+		 * @param cam_
+		 * @param cMo_
+		 * @param rows_
+		 * @param cols_
+		 */
+		void initialize(const vpHomogeneousMatrix& cam_, const vpHomogeneousMatrix& cMo_, int rows_, int cols_);
 
-		void pubRst();
+		void pubRst(cv::Mat& img);
 
-		void retrieveImage();
+		/**
+		 * @brief retrieve the next frame from the webcam for tracking
+		 *
+		 * @param img
+		 */
+		inline void retrieveImage(const cv::Mat& img);
 
 		/**
 		 * @brief the implementation of the active silhouette model
@@ -53,9 +69,26 @@ class activeModelTracker
 
 		void deformSilhouette(vpHomogeneousMatrix& cMo_);
 
+		void plotRst(void);
+
+		void genControlPoints(std::vector<vpPoint>& controlPoints_);
+
+		double lineSlope(cv::Point curPnt, cv::Point prePnt, cv::Point nxtPnt, bool& isHorizontal);
 	private:
 		/**
 		 * @brief The pose of the tracked object.
 		 */
 		vpHomogeneousMatrix cMo;		
+
+		int rows, cols;
+
+		vpCameraParameters cam;
+
+		cv::Mat curImg, processedImg;
+
+		/**
+		 * @brief map<lineID, controlPoints>
+		 * std::vector<vpPoint> 0-1:projected corners; 2-end, controlPoints
+		 */
+		std::map<int, std::vector<vpPoint> > controlPoints;
 };

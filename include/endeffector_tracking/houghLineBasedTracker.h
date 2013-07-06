@@ -34,6 +34,7 @@
 #include <iostream>
 #include <cmath>
 
+//TODO: this class should be reimplemented by inherit from the cadModel class
 class houghLineBasedTracker
 {
 // enum, typedef, struct, class ...

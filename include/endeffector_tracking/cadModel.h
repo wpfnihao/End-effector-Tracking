@@ -6,6 +6,9 @@
  * @date 2013-07-06
  */
 
+#ifndef CADMODEL_INCLUDED
+#define CADMODEL_INCLUDED
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
@@ -46,6 +49,11 @@ class cadModel
 	 */
 	std::vector<cv::Point2f> prjCorners;
 
+	/**
+	 * @brief the visibility of lines
+	 */
+	bool isVisible[12];
+
 	protected:
 	/**
 	 * @brief  project the model into the image using the provided  pose (usually the predicted one or the measured one)
@@ -66,8 +74,50 @@ class cadModel
 	 */
 	void initModel(void);
 
+	/**
+	 * @brief  get the end points IDs from the line ID
+	 *
+	 * @param lineID
+	 * @param p1
+	 * @param p2
+	 */
+	void line2Pts(const int lineID, int& p1, int& p2); 
+
+	/**
+	 * @brief  find two faces that generate the line
+	 *
+	 * @param lineID
+	 * @param f1
+	 * @param f2
+	 */
+	void line2face(const int lineID, int& f1, int& f2);
+
+	/**
+	 * @brief  find visible lines using the vpMbtPolygon class
+	 *
+	 * @param cMo_
+	 */
+	void findVisibleLines(const vpHomogeneousMatrix& cMo_);
+
+	/**
+	 * @brief  distance between two points
+	 *
+	 * @param x1
+	 * @param y1
+	 * @param x2
+	 * @param y2
+	 *
+	 * @return 
+	 */
+	inline double ptsDist(double x1, double y1, double x2, double y2)
+{
+	return std::sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+}
+
 	// the member functions
 	public:
 
 	void getInitPoints(const std::string& init_file);
 };
+
+#endif

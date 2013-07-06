@@ -175,17 +175,6 @@ public:
 // utility functions
 protected:
 
-	/**
-	 * @brief  distance between two points
-	 *
-	 * @param x1
-	 * @param y1
-	 * @param x2
-	 * @param y2
-	 *
-	 * @return 
-	 */
-	inline double ptsDist(double x1, double y1, double x2, double y2);
 
 	/**
 	 * @brief  distance between two poseVector
@@ -256,6 +245,4 @@ protected:
 	 * @brief draw the tracked features and object for visual inspection
 	 */
 	void plotRst(void);
-
-	void line2Pts(const int lineID, int& p1, int& p2);
 };

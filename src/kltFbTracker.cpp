@@ -148,11 +148,6 @@ kltFbTracker::measurePose(std::vector<vpPoint>& stableFeatures3d, std::vector<cv
 	}
 }
 
-inline double 
-kltFbTracker::ptsDist(double x1, double y1, double x2, double y2)
-{
-	return std::sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
-}
 
 inline double 
 kltFbTracker::poseDist(const vpPoseVector& p1, const vpPoseVector& p2)
@@ -315,32 +310,6 @@ kltFbTracker::init(cv::Mat& img)
 
 	cv::cvtColor(img, curImg, CV_BGR2GRAY);
 	cv::buildOpticalFlowPyramid(curImg, cPyramid, cv::Size(winSize, winSize), maxLevel);
-}
-
-void
-kltFbTracker::line2Pts(const int lineID, int& p1, int& p2)
-{
-	if (lineID < 4)
-	{
-		// four lines of the upper face
-		p1 = lineID;
-		p2 = (lineID + 1) % 4;
-	}
-	else if (lineID >= 4 && lineID < 8)
-	{
-		// four lines of the bottom face
-		p1 = lineID;
-		if (lineID == 7)
-			p2 = 4;
-		else
-			p2 = lineID + 1;
-	}
-	else // 8 - 11
-	{
-		// four vertical lines
-		p1 = lineID - 8;
-		p2 = lineID - 4;
-	}
 }
 
 void

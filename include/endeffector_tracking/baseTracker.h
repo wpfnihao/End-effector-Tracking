@@ -8,6 +8,9 @@
  * @date 2013-07-05
  */
 
+#ifndef BASETRACKER_INCLUDED
+#define BASETRACKER_INCLUDED
+
 #include <visp/vpMbEdgeTracker.h>
 #include <visp/vpImage.h>
 #include <sensor_msgs/image_encodings.h>
@@ -97,3 +100,5 @@ class baseTracker
 			cMo_ = this->cMo;
 		}
 };
+
+#endif

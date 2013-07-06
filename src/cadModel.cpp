@@ -168,3 +168,103 @@ cadModel::projectModel(const vpHomogeneousMatrix& cMo_, const vpCameraParameters
 		prjCorners.push_back(cv::Point2f(u, v)); 
 	}
 }
+
+void 
+cadModel::findVisibleLines(const vpHomogeneousMatrix& cMo_)
+{
+	// find visible polygons
+	//
+	// six faces (polygons)
+	bool isVisibleFace[6];
+	for (int i = 0; i < 6; i++)
+	{
+		isVisibleFace[i] = pyg[i].isVisible(cMo_);
+	}
+
+	for (int i = 0; i < 12; i++)
+	{
+		int f1, f2;
+		line2face(i, f1, f2);
+		if (isVisibleFace[f1] || isVisibleFace[f2])
+			this->isVisible[i] = true;
+		else
+			this->isVisible[i] = false;
+
+		// tmp 
+		//this->isVisible[i] = true;
+	}
+
+}
+
+void
+cadModel::line2face(const int lineID, int& f1, int& f2)
+{
+	//0: 0 2
+	//1: 0 3
+	//2: 0 4
+	//3: 0 5
+	//
+	//4: 1 2
+	//5: 1 3
+	//6: 1 4
+	//7: 1 5
+	//
+	//8: 2 5
+	//9: 2 3
+	//10:3 4
+	//11:4 5
+	
+	if (lineID > 11 or lineID < 0)
+	{
+		std::cout<<"wrong lineID!"<<std::endl;
+		return;
+	}
+	
+	if (lineID < 4)
+	{
+		f1 = 0;
+		f2 = lineID + 2;
+	}
+	else if (lineID >= 4 && lineID < 8)
+	{
+		f1 = 1;
+		f2 = lineID - 2;
+	}
+	else if (lineID == 8)
+	{
+		f1 = 2;
+		f2 = 5;
+	}
+	else // 9 - 11
+	{
+		f1 = lineID - 7;
+		f2 = lineID - 6;
+	}
+}
+
+void
+cadModel::line2Pts(const int lineID, int& p1, int& p2)
+{
+	if (lineID < 4)
+	{
+		// four lines of the upper face
+		p1 = lineID;
+		p2 = (lineID + 1) % 4;
+	}
+	else if (lineID >= 4 && lineID < 8)
+	{
+		// four lines of the bottom face
+		p1 = lineID;
+		if (lineID == 7)
+			p2 = 4;
+		else
+			p2 = lineID + 1;
+	}
+	else // 8 - 11
+	{
+		// four vertical lines
+		p1 = lineID - 8;
+		p2 = lineID - 4;
+	}
+}
+
