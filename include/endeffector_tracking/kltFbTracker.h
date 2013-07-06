@@ -34,7 +34,10 @@
 #include <iostream>
 #include <cmath>
 
-class kltFbTracker
+// user defined 
+#include "endeffector_tracking/cadModel.h"
+
+class kltFbTracker: public cadModel
 {
 // enum, typedef, struct, class ...
 public:
@@ -101,30 +104,9 @@ private:
 	 */
 	bool isLost;
 
-	// the cube
-	/**
-	 * @brief  cube corners
-	 */
-	std::vector<cv::Point3f> corners;
-
-	/**
-	 * @brief  the polygon form description of the cube
-	 * 			VERY IMPORTANT:
-	 * 			new operator used in vpMbtPolygon class and operator=() is NOT redefined in the class, which means the vpMbtPolygon instants should be instantiated in the constructor of this class, if not, the data will NOT be properly copied during push_back and the whole program will crash.
-	 * 			vpMbtPolygon pyg1, pyg2, pyg3, pyg4, pyg5, pyg6;
-	 */
-	vpMbtPolygon pyg[6];
 	/* End of global state */
 
 
-	/* projected model */
-
-	/**
-	 * @brief  projected corners
-	 */
-	std::vector<cv::Point2f> prjCorners;
-
-	/* End of predicted model */
 
 // member functions
 public:
@@ -171,26 +153,8 @@ public:
 	 */
 	void refinePose(void);
 
-	/**
-	 * @brief  I still don't know how to read the model from the wrl or cad or cao file
-	 * However, it is sufficient to get the cube from the init file
-	 * if in the future, more complex model is tracked, I should reimplement this function
-	 * the 8 corners of the cube is initialized.
-	 * the 6 faces of the cube is initialized.
-	 * this function will be called before initialize.
-	 *
-	 * @param initP :the initial points from the *.init file
-	 */
-	void initModel(std::vector<cv::Point3f>& initP);
-
 	void init(cv::Mat& img);
 
-	/**
-	 * @brief  project the model into the image using the provided  pose (usually the predicted one or the measured one)
-	 *
-	 * @param cMo_
-	 */
-	void projectModel(const vpHomogeneousMatrix& cMo_);
 
 	/**
 	 * @brief  measure pose from the connected features

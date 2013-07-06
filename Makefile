@@ -177,6 +177,19 @@ ROSBUILD_gensrv_lisp/fast:
 .PHONY : ROSBUILD_gensrv_lisp/fast
 
 #=============================================================================
+# Target rules for targets named cadModel
+
+# Build rule for target.
+cadModel: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 cadModel
+.PHONY : cadModel
+
+# fast build rule for target.
+cadModel/fast:
+	$(MAKE) -f CMakeFiles/cadModel.dir/build.make CMakeFiles/cadModel.dir/build
+.PHONY : cadModel/fast
+
+#=============================================================================
 # Target rules for targets named clean-test-results
 
 # Build rule for target.
@@ -428,6 +441,21 @@ src/KernelBasedTracking.s:
 .PHONY : src/KernelBasedTracking.s
 
 # target to build an object file
+src/cadModel.o:
+	$(MAKE) -f CMakeFiles/cadModel.dir/build.make CMakeFiles/cadModel.dir/src/cadModel.o
+.PHONY : src/cadModel.o
+
+# target to preprocess a source file
+src/cadModel.i:
+	$(MAKE) -f CMakeFiles/cadModel.dir/build.make CMakeFiles/cadModel.dir/src/cadModel.i
+.PHONY : src/cadModel.i
+
+# target to generate assembly for a file
+src/cadModel.s:
+	$(MAKE) -f CMakeFiles/cadModel.dir/build.make CMakeFiles/cadModel.dir/src/cadModel.s
+.PHONY : src/cadModel.s
+
+# target to build an object file
 src/houghLineBasedTracker.o:
 	$(MAKE) -f CMakeFiles/houghLineBasedTracker.dir/build.make CMakeFiles/houghLineBasedTracker.dir/src/houghLineBasedTracker.o
 .PHONY : src/houghLineBasedTracker.o
@@ -529,6 +557,7 @@ help:
 	@echo "... ROSBUILD_genmsg_lisp"
 	@echo "... ROSBUILD_gensrv_cpp"
 	@echo "... ROSBUILD_gensrv_lisp"
+	@echo "... cadModel"
 	@echo "... clean-test-results"
 	@echo "... edit_cache"
 	@echo "... houghLineBasedTracker"
@@ -554,6 +583,9 @@ help:
 	@echo "... src/KernelBasedTracking.o"
 	@echo "... src/KernelBasedTracking.i"
 	@echo "... src/KernelBasedTracking.s"
+	@echo "... src/cadModel.o"
+	@echo "... src/cadModel.i"
+	@echo "... src/cadModel.s"
 	@echo "... src/houghLineBasedTracker.o"
 	@echo "... src/houghLineBasedTracker.i"
 	@echo "... src/houghLineBasedTracker.s"

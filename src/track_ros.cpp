@@ -89,11 +89,7 @@ CEndeffectorTracking::trackCallback(const sensor_msgs::ImageConstPtr& srcImg)
 			rows = grayImg.rows;
 			cols = grayImg.cols;
 			
-			// parse the .init file, and get the init points
-			getInitPoints();
-			// get the info of the cube from the init points
-			//hlTracker.initModel(initP);
-			fbTracker.initModel(initP);
+			fbTracker.getInitPoints(init_file);
 			fbTracker.init(curImg);
 
 			meTracker.retrieveImage(srcImg);
@@ -224,47 +220,6 @@ CEndeffectorTracking::initializeTracker(const sensor_msgs::ImageConstPtr& srcImg
 
 	//clean up
 	vpXmlParser::cleanup();
-}
-
-
-/**
- * @brief  	Init the model from the *.init file, only used for the cube tracking
- * 			initClick in the ViSP software is referred for the IO operations used here
- *  		fstream is used here
- */
-void 
-CEndeffectorTracking::getInitPoints(void)
-{
-	std::fstream finit;	
-	finit.open(init_file.c_str(), std::ios::in);
-	if (finit.fail())
-	{
-		std::cout << "cannot read " << init_file << std::endl;
-		throw vpException(vpException::ioError, "cannot read init file for model initialization!");
-	}
-
-	//file parser
-	//number of points
-	//X Y Z
-	//X Y Z
-	 
-	double X,Y,Z ;
-
-	unsigned int n ;
-	finit >> n ;
-	std::cout << "number of points " << n << std::endl ;
-	for (unsigned int i=0 ; i < n ; i++)
-	{
-		finit >> X ;
-		finit >> Y ;
-		finit >> Z ;
-		// NOTE: X,Y,Z are small float variables in meter, do NOT use int to save them
-		cv::Point3f curP(X, Y, Z);
-		// initialize the initP, which is the member variable of the class
-		initP.push_back(curP); // (X,Y,Z)
-	}
-
-	finit.close();
 }
 
 /**

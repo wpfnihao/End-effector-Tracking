@@ -41,7 +41,7 @@ kltFbTracker::initialize(const vpCameraParameters& cam_, const vpHomogeneousMatr
 	this->cam = cam_;
 	// project the model 
 	// both the lines and the corners are projected
-	projectModel(cMo);
+	projectModel(cMo, cam);
 }
 
 void 
@@ -99,127 +99,6 @@ kltFbTracker::track(void)
 
 	// Step 6: do some checks (optional)
 	
-}
-
-void 
-kltFbTracker::initModel(std::vector<cv::Point3f>& initP)
-{
-	// Step 1: init the corners
-	//
-	// the corners are arrange by two faces anti-clockwise
-	// the first three ones have the same order with the init points
-	// I've checked the points here, seems correct
-	corners.push_back(initP[0]);
-	corners.push_back(initP[1]);
-	corners.push_back(initP[2]);
-
-	// P4
-	cv::Point3f P4(initP[0].x, initP[0].y, initP[2].z);
-	corners.push_back(P4);
-
-	// only y-axis is different from the previous points
-	// P5
-	cv::Point3f P5(initP[0].x, initP[3].y, initP[0].z);
-	corners.push_back(P5);
-
-	// P6
-	corners.push_back(initP[3]);
-
-	// P7
-	cv::Point3f P7(initP[2].x, initP[3].y, initP[2].z);
-	corners.push_back(P7);
-
-	// P8
-	cv::Point3f P8(initP[0].x, initP[3].y, initP[2].z);
-	corners.push_back(P8);
-
-
-	// Step 2: init the polygons from the corners
-	//
-	// six faces
-	// FIXME:the corners are added according to right hand coordinate system
-	// with normal of the face points from inside to the outside
-	// check whether it is the case in visp
-	//
-	//
-	//
-	// VERY IMPORTANT:
-	// new operator used in vpMbtPolygon class and operator=() is NOT redefined in the class, which means the vpMbtPolygon instants should be instantiated in the constructor of this class, if not, the data will NOT be properly copied during push_back and the whole program will crash.
-	
-	// each face is a rectangle
-	//
-	// face 1
-	// corner order: 0, 1, 2, 3 
-	pyg[0].setNbPoint(4);
-	for (int i = 0; i < 4; i++)
-	{
-		vpPoint p;
-		p.setWorldCoordinates(corners[i].x,corners[i].y,corners[i].z);
-		pyg[0].addPoint(i, p);
-	}
-
-	// face 2
-	// corner order 4, 7, 6, 5
-	pyg[1].setNbPoint(4);
-	for (int i = 0; i < 4; i++)
-	{
-		vpPoint p;
-		int idx = 4 + (4 - i) % 4;
-		p.setWorldCoordinates(corners[idx].x,corners[idx].y,corners[idx].z);
-		pyg[1].addPoint(i, p);
-	}
-
-	// face 3 - 6
-	// corner order 
-	// 3: 0, 4, 5, 1
-	// 4: 1, 5, 6, 2
-	// 5: 2, 6, 7, 3
-	// 6: 3, 7, 4, 0
-	for (int i = 0; i < 4; i++)
-	{
-		pyg[i + 2].setNbPoint(4);
-		for (int j = 0; j < 4; j++)
-		{
-			int idx;
-
-			// get the corner index
-			if (j == 0)
-				idx =  i;
-			else if (j == 1)
-				idx = 4 + i;
-			else if (j == 2)
-				idx = 4 + (i + 1) % 4;
-			else if (j == 3)
-				idx = (i + 1) % 4;
-
-			vpPoint p;
-			p.setWorldCoordinates(corners[idx].x, corners[idx].y, corners[idx].z);
-			pyg[i + 2].addPoint(j, p);
-		}
-	}
-} // end of initModel
-
-void 
-kltFbTracker::projectModel(const vpHomogeneousMatrix& cMo_)
-{
-	// do some clearing
-	prjCorners.clear();
-	
-	// Step 2: project the corners
-	std::vector<cv::Point3f>::const_iterator corner;
-	for (corner = corners.begin(); corner != corners.end(); ++corner)
-	{
-		// convert cv::Point to vpPoint
-		vpPoint P;
-		P.setWorldCoordinates((*corner).x, (*corner).y, (*corner).z); 
-		// project the point
-		P.changeFrame(cMo_);
-		P.project();
-		// use the camera intrinsic parameter to get the coordinate in image plane in pixel
-		double u, v;
-		vpMeterPixelConversion::convertPoint(cam, P.get_x(), P.get_y(), u, v);
-		prjCorners.push_back(cv::Point2f(u, v)); 
-	}
 }
 
 void
@@ -409,7 +288,7 @@ kltFbTracker::findStableFeatures(
 void 
 kltFbTracker::plotRst(void)
 {
-	projectModel(cMo);
+	projectModel(cMo, cam);
 
 	// tracked corners
 	for (size_t i = 0; i < prjCorners.size(); i++)
@@ -431,6 +310,9 @@ kltFbTracker::plotRst(void)
 void
 kltFbTracker::init(cv::Mat& img)
 {
+	// init the model
+	initModel();
+
 	cv::cvtColor(img, curImg, CV_BGR2GRAY);
 	cv::buildOpticalFlowPyramid(curImg, cPyramid, cv::Size(winSize, winSize), maxLevel);
 }

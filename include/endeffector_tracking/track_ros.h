@@ -67,7 +67,6 @@ private:
 	 */
 	tracking_status status;
 
-
 	// different type of trackers
 	KernelBasedTracking kbTracker;
 	CamShiftTracking csTracker;
@@ -135,11 +134,6 @@ private:
 	 */
 	vpCameraParameters cam;
 
-	/**
-	 * @brief  initial points defined in the .init file
-	 */
-	std::vector<cv::Point3f> initP;
-
 // member functions
 public:
 	// constructor
@@ -166,14 +160,4 @@ public:
 
 	// publish the tracking result
 	void pubRst(const sensor_msgs::ImageConstPtr& srcImg);
-
-	// parse the .init file, and get the init points
-	void getInitPoints(void);
-
-	/**
-	 * @brief  I still don't know how to read the model from the wrl or cad or cao file
-	* However, it is sufficient to get the cube from the init file
-	* if in the future, more complex model is tracked, I should reimplement this function
-	 */
-	void initModel(void);
 };
