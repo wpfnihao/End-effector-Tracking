@@ -73,7 +73,11 @@ class activeModelTracker: public cadModel
 
 		void genControlPoints(std::vector<vpPoint>& controlPoints_);
 
-		double lineSlope(cv::Point curPnt, cv::Point prePnt, cv::Point nxtPnt, bool& isHorizontal);
+		double lineSlope( cv::Point prePnt, cv::Point nxtPnt, bool& isHorizontal);
+
+		void deformLine(double step, bool isHorizontal, std::vector<vpPoint>& controlPoints_, const cv::Mat& gradient, int rows, int cols, int detectionRange);
+
+		void sobelGradient(const cv::Mat& curImg, cv::Mat& gradient);
 	private:
 		/**
 		 * @brief The pose of the tracked object.

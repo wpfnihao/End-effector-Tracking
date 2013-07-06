@@ -50,7 +50,23 @@ activeModelTracker::deformSilhouette(vpHomogeneousMatrix& cMo_)
 	}
 	
 	// step 2: actively find the high gradient region
+	// step 2.1: for each line, get its slope
+	// step 2.2: for each control point on the line, find the position with the highest gradient magnitude
 	//
+	for (int i = 0; i < 12; i++)
+	{
+		if (isVisible[i])
+		{
+			cv::Point p1(controlPoints[i][0].get_x(), controlPoints[i][0].get_y());
+			cv::Point p2(controlPoints[i][1].get_x(), controlPoints[i][1].get_y());
+			bool isHorizontal;
+			double step = lineSlope(p1, p2, isHorizontal);
+
+			cv::Mat gradient;
+			sobelGradient(curImg, gradient);
+			deformLine(step, isHorizontal, controlPoints[i], gradient, rows, cols, detectionRange);
+		}
+	}
 	// step 3: based on the tentatively moved control points, estimate the pose
 }
 
@@ -117,7 +133,7 @@ activeModelTracker::genControlPoints(std::vector<vpPoint>& controlPoints_)
 }
 
 double 
-activeModelTracker::lineSlope( cv::Point curPnt, cv::Point prePnt, cv::Point nxtPnt, bool& isHorizontal )
+activeModelTracker::lineSlope( cv::Point prePnt, cv::Point nxtPnt, bool& isHorizontal )
 {
 	isHorizontal = false;
 	if (prePnt.y - nxtPnt.y == 0)
@@ -140,4 +156,21 @@ activeModelTracker::lineSlope( cv::Point curPnt, cv::Point prePnt, cv::Point nxt
 			return -(double)abs(prePnt.y - nxtPnt.y) / abs(prePnt.x - nxtPnt.x);
 		}
 	}
+}
+
+void 
+activeModelTracker::deformLine(double step, bool isHorizontal, std::vector<vpPoint>& controlPoints_, const cv::Mat& gradient, int rows, int cols, int detectionRange)
+{
+
+}
+
+void 
+activeModelTracker::sobelGradient(const cv::Mat& curImg, cv::Mat& gradient)
+{
+	cv::Mat sobel_x, sobel_y;
+	cv::Sobel(curImg, sobel_x, CV_16S, 1, 0, 3);
+	cv::convertScaleAbs(sobel_x, sobel_x);
+	cv::Sobel(curImg, sobel_y, CV_16S, 0, 1, 3);
+	cv::convertScaleAbs(sobel_y, sobel_y);
+	cv::addWeighted(sobel_x, 0.5, sobel_y, 0.5, 0, gradient);
 }
