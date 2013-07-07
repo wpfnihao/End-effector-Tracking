@@ -29,7 +29,7 @@ class activeModelTracker: public cadModel
 		 * @param rows_
 		 * @param cols_
 		 */
-		void initialize(const vpHomogeneousMatrix& cam_, const vpHomogeneousMatrix& cMo_, int rows_, int cols_);
+		void initialize(const vpCameraParameters& cam_, const vpHomogeneousMatrix& cMo_, int rows_, int cols_);
 
 		void pubRst(cv::Mat& img);
 
@@ -38,7 +38,12 @@ class activeModelTracker: public cadModel
 		 *
 		 * @param img
 		 */
-		inline void retrieveImage(const cv::Mat& img);
+		inline void retrieveImage(const cv::Mat& img)
+		{
+			cv::cvtColor(img, curImg, CV_BGR2GRAY);
+
+			processedImg = img.clone();
+		}
 
 		/**
 		 * @brief the implementation of the active silhouette model
@@ -78,6 +83,14 @@ class activeModelTracker: public cadModel
 		void deformLine(double step, bool isHorizontal, std::vector<vpPoint>& controlPoints_, const cv::Mat& gradient, int rows, int cols, int detectionRange);
 
 		void sobelGradient(const cv::Mat& curImg, cv::Mat& gradient);
+
+		inline void checkIndex(int& cx, int& cy, const int& rows, const int& cols)
+		{
+			cx = cx < 0 ? 0 : cx;
+			cx = cx >= cols ? (cols - 1) : cx;
+			cy = cy < 0 ? 0 : cy;
+			cy = cy >= rows ? (rows - 1) : cy;
+		}	
 	private:
 		/**
 		 * @brief The pose of the tracked object.

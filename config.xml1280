@@ -34,12 +34,12 @@
 	</klt>
 	<!-- TODO:the data used here are extracted from the projection matrix -->
 	<camera>
-		<width>640</width>
-		<height>480</height>
-		<u0>331.122546</u0>
-		<v0>246.159102</v0>
-		<px>614.864696</px>
-		<py>616.453600</py>
+		<width>1280</width>
+		<height>720</height>
+		<u0>689.658184</u0>
+		<v0>388.278025</v0>
+		<px>928.851501</px>
+		<py>939.641479</py>
 	</camera>
 </conf>
 

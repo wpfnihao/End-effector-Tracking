@@ -13,6 +13,10 @@
 void
 activeModelTracker::track(void)
 {
+	for (int i = 0; i < 5; i++)
+	{
+		deformSilhouette(cMo);
+	}
 }
 
 void 
@@ -64,14 +68,44 @@ activeModelTracker::deformSilhouette(vpHomogeneousMatrix& cMo_)
 
 			cv::Mat gradient;
 			sobelGradient(curImg, gradient);
+			int detectionRange = 5;
 			deformLine(step, isHorizontal, controlPoints[i], gradient, rows, cols, detectionRange);
 		}
 	}
+
 	// step 3: based on the tentatively moved control points, estimate the pose
+	//
+	vpPoseFeatures pose;
+	for (int i = 0; i < 12; i++)
+	{
+		if (isVisible[i])
+		{
+			for (size_t j = 0; j < controlPoints[i].size(); j++)
+			{
+				double x, y;
+				vpPixelMeterConversion::convertPoint(cam, controlPoints[i][j].get_x(), controlPoints[i][j].get_y(), x, y);
+				controlPoints[i][j].set_x(x);
+				controlPoints[i][j].set_y(y);
+				pose.addFeaturePoint(controlPoints[i][j]);
+				// debug only
+				// tracked features
+				cv::circle(processedImg, cv::Point(x, y), 3, cv::Scalar(0, 0, 255));
+			}
+		}
+	}	
+	pose.setLambda(0.6);
+	try
+	{
+		pose.computePose(cMo_);
+	}
+	catch(...) // catch all kinds of Exceptions
+	{
+		std::cout<<"Exception raised in computing pose"<<std::endl;
+	}
 }
 
 void 
-activeModelTracker::initialize(const vpHomogeneousMatrix& cam_, const vpHomogeneousMatrix& cMo_, int rows_, int cols_)
+activeModelTracker::initialize(const vpCameraParameters& cam_, const vpHomogeneousMatrix& cMo_, int rows_, int cols_)
 {
 	this->rows = rows_;
 	this->cols = cols_;
@@ -79,14 +113,6 @@ activeModelTracker::initialize(const vpHomogeneousMatrix& cam_, const vpHomogene
 	this->cam = cam_;
 
 	initModel();
-}
-
-inline void 
-activeModelTracker::retrieveImage(const cv::Mat& img)
-{
-	// no copy
-	// retrieved image has been preprocessed and should be gray scale
-	curImg = img;
 }
 
 void 
@@ -161,16 +187,60 @@ activeModelTracker::lineSlope( cv::Point prePnt, cv::Point nxtPnt, bool& isHoriz
 void 
 activeModelTracker::deformLine(double step, bool isHorizontal, std::vector<vpPoint>& controlPoints_, const cv::Mat& gradient, int rows, int cols, int detectionRange)
 {
+	// for each point on the line
+	for (size_t i = 0; i < controlPoints_.size(); i++)
+	{
+		int x = controlPoints_[i].get_x();
+		int y = controlPoints_[i].get_y();
+		int cx = x, 
+			cy = y;
+		int tmpx = x, 
+			tmpy = y;
+		float maxGradient = gradient.at<float>(cy, cx);
+		for(int j = -detectionRange; j <= detectionRange; j++)
+		{
+			// the normal of the line
+			if (isHorizontal)
+			{
+				cx = x + j;
+			}
+			else if (abs(step) < 1)
+			{
+				cy = y + j;
+				cx = x + step * j;
+			}
+			else
+			{
+				cx = x + j;
+				cy = y + step * j;
+			}
 
+			// check whether the pixel is in the image 
+			checkIndex(cx, cy, rows, cols);
+
+			if (gradient.at<float>(cy, cx) > maxGradient)
+			{
+				maxGradient = gradient.at<float>(cy, cx);
+				tmpx = cx;
+				tmpy = cy;
+			}
+		}
+		controlPoints_[i].set_x(tmpx);
+		controlPoints_[i].set_y(tmpy);
+	}
 }
 
 void 
 activeModelTracker::sobelGradient(const cv::Mat& curImg, cv::Mat& gradient)
 {
 	cv::Mat sobel_x, sobel_y;
-	cv::Sobel(curImg, sobel_x, CV_16S, 1, 0, 3);
+	cv::Sobel(curImg, sobel_x, CV_32F, 1, 0, 3);
 	cv::convertScaleAbs(sobel_x, sobel_x);
-	cv::Sobel(curImg, sobel_y, CV_16S, 0, 1, 3);
+	cv::Sobel(curImg, sobel_y, CV_32F, 0, 1, 3);
 	cv::convertScaleAbs(sobel_y, sobel_y);
 	cv::addWeighted(sobel_x, 0.5, sobel_y, 0.5, 0, gradient);
 }
+
+void 
+activeModelTracker::plotRst(void)
+{}

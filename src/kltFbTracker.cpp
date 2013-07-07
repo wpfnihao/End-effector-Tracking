@@ -63,7 +63,7 @@ kltFbTracker::track(void)
 
 
 	// number of points used to track per face = (numOfPtsPerFace +1) * (numOfPtsPerFace + 1);
-	int numOfPtsPerFace = 10;
+	int numOfPtsPerFace = 7;
 	bool isVisibleFace[6];
 	for (int i = 0; i < 6; i++)
 	{

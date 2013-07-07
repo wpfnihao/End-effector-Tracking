@@ -92,8 +92,8 @@ CEndeffectorTracking::trackCallback(const sensor_msgs::ImageConstPtr& srcImg)
 			fbTracker.getInitPoints(init_file);
 			fbTracker.init(curImg);
 
-			meTracker.retrieveImage(srcImg);
-			meTracker.initialize(config_file, model_name, init_file);
+			amTracker.getInitPoints(init_file);
+			amTracker.initialize(cam, cMo, rows, cols);
 			//kltTracker.retrieveImage(srcImg);
 			//kltTracker.initialize(config_file, model_name, init_file);
 			//mekltTracker.retrieveImage(srcImg);
@@ -106,6 +106,8 @@ CEndeffectorTracking::trackCallback(const sensor_msgs::ImageConstPtr& srcImg)
 		fbTracker.retrieveImage(curImg);
 		fbTracker.initialize(this->cam, cMo, poseVector, rows, cols);
 
+		amTracker.retrieveImage(curImg);
+		amTracker.initialize(cam, cMo, rows, cols);
 		//csTracker.retrieveImage(curImg);
 		//kbTracker.retrieveImage(curImg);
 		//genTrackingWindow();
@@ -140,12 +142,17 @@ CEndeffectorTracking::trackCallback(const sensor_msgs::ImageConstPtr& srcImg)
 		for (int i = 0; i < 1; i++)
 		{
 		fbTracker.track();
-		fbTracker.refinePose();
+		//fbTracker.refinePose();
 		}
 		fbTracker.pubPose(cMo);
 		if(fbTracker.pubRst(this->processedImg, this->TrackerWindow))
 			status = CEndeffectorTracking::LOST;
 		
+		amTracker.getPose(cMo);
+		amTracker.retrieveImage(curImg);
+		amTracker.track();
+		amTracker.pubPose(cMo);
+		amTracker.pubRst(this->processedImg);
 		//meTracker.getPose(cMo);
 		//meTracker.retrieveImage(srcImg);
 		//meTracker.track();

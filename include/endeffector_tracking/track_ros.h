@@ -7,8 +7,8 @@
  */
 
 #include <ros/ros.h>
-#include <cv_bridge/cv_bridge.h>
-#include <sensor_msgs/image_encodings.h>
+#include <cv_bridge/cv_bridge.h> 
+#include <sensor_msgs/image_encodings.h> 
 #include <image_transport/image_transport.h>
 
 //OpenCV headers
@@ -75,6 +75,7 @@ private:
 	houghLineBasedTracker hlTracker;
 	mbtEdgeTracker meTracker;
 	kltFbTracker fbTracker;
+	activeModelTracker amTracker;
 	//mbtKltTracker kltTracker;
 	//mbtEdgeKltTracker mekltTracker;
 

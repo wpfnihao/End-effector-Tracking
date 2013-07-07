@@ -177,6 +177,19 @@ ROSBUILD_gensrv_lisp/fast:
 .PHONY : ROSBUILD_gensrv_lisp/fast
 
 #=============================================================================
+# Target rules for targets named activeModelTracker
+
+# Build rule for target.
+activeModelTracker: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 activeModelTracker
+.PHONY : activeModelTracker
+
+# fast build rule for target.
+activeModelTracker/fast:
+	$(MAKE) -f CMakeFiles/activeModelTracker.dir/build.make CMakeFiles/activeModelTracker.dir/build
+.PHONY : activeModelTracker/fast
+
+#=============================================================================
 # Target rules for targets named cadModel
 
 # Build rule for target.
@@ -441,6 +454,21 @@ src/KernelBasedTracking.s:
 .PHONY : src/KernelBasedTracking.s
 
 # target to build an object file
+src/activeModelTracker.o:
+	$(MAKE) -f CMakeFiles/activeModelTracker.dir/build.make CMakeFiles/activeModelTracker.dir/src/activeModelTracker.o
+.PHONY : src/activeModelTracker.o
+
+# target to preprocess a source file
+src/activeModelTracker.i:
+	$(MAKE) -f CMakeFiles/activeModelTracker.dir/build.make CMakeFiles/activeModelTracker.dir/src/activeModelTracker.i
+.PHONY : src/activeModelTracker.i
+
+# target to generate assembly for a file
+src/activeModelTracker.s:
+	$(MAKE) -f CMakeFiles/activeModelTracker.dir/build.make CMakeFiles/activeModelTracker.dir/src/activeModelTracker.s
+.PHONY : src/activeModelTracker.s
+
+# target to build an object file
 src/cadModel.o:
 	$(MAKE) -f CMakeFiles/cadModel.dir/build.make CMakeFiles/cadModel.dir/src/cadModel.o
 .PHONY : src/cadModel.o
@@ -557,6 +585,7 @@ help:
 	@echo "... ROSBUILD_genmsg_lisp"
 	@echo "... ROSBUILD_gensrv_cpp"
 	@echo "... ROSBUILD_gensrv_lisp"
+	@echo "... activeModelTracker"
 	@echo "... cadModel"
 	@echo "... clean-test-results"
 	@echo "... edit_cache"
@@ -583,6 +612,9 @@ help:
 	@echo "... src/KernelBasedTracking.o"
 	@echo "... src/KernelBasedTracking.i"
 	@echo "... src/KernelBasedTracking.s"
+	@echo "... src/activeModelTracker.o"
+	@echo "... src/activeModelTracker.i"
+	@echo "... src/activeModelTracker.s"
 	@echo "... src/cadModel.o"
 	@echo "... src/cadModel.i"
 	@echo "... src/cadModel.s"
