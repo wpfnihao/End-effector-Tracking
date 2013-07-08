@@ -1,0 +1,6 @@
+<map id="G" name="G">
+<area shape="rect" id="node3" href="$activeModelTracker_8cpp.html" title="The active model based tracker. The shape prior is obtained from the 3d CAD model." alt="" coords="5,83,187,112"/>
+<area shape="rect" id="node5" href="$track__ros_8h.html" title="This class wraps all the tracker and ROS, so all the trackers can be implemented without notice that ..." alt="" coords="211,83,464,112"/>
+<area shape="rect" id="node7" href="$track__node_8cpp.html" title="The program entry of the endeffector_tracking system." alt="" coords="195,160,328,189"/>
+<area shape="rect" id="node9" href="$track__ros_8cpp.html" title="The main tracking class." alt="" coords="352,160,475,189"/>
+</map>

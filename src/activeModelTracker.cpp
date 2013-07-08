@@ -10,10 +10,13 @@
 // user defined
 #include "endeffector_tracking/activeModelTracker.h"
 
+#include "opencv2/highgui/highgui.hpp"
+
 void
 activeModelTracker::track(void)
 {
-	for (int i = 0; i < 5; i++)
+	sobelGradient(curImg, gradient);
+	for (int i = 0; i < 10; i++)
 	{
 		deformSilhouette(cMo);
 	}
@@ -66,8 +69,6 @@ activeModelTracker::deformSilhouette(vpHomogeneousMatrix& cMo_)
 			bool isHorizontal;
 			double step = lineSlope(p1, p2, isHorizontal);
 
-			cv::Mat gradient;
-			sobelGradient(curImg, gradient);
 			int detectionRange = 5;
 			deformLine(step, isHorizontal, controlPoints[i], gradient, rows, cols, detectionRange);
 		}
@@ -82,26 +83,28 @@ activeModelTracker::deformSilhouette(vpHomogeneousMatrix& cMo_)
 		{
 			for (size_t j = 0; j < controlPoints[i].size(); j++)
 			{
+				// debug only
+				// tracked features
+				// TODO: this will plot all the deformation step of the tracker
+				cv::circle(processedImg, cv::Point(controlPoints[i][j].get_x(), controlPoints[i][j].get_y()), 3, cv::Scalar(0, 0, 255));
+
 				double x, y;
 				vpPixelMeterConversion::convertPoint(cam, controlPoints[i][j].get_x(), controlPoints[i][j].get_y(), x, y);
 				controlPoints[i][j].set_x(x);
 				controlPoints[i][j].set_y(y);
 				pose.addFeaturePoint(controlPoints[i][j]);
-				// debug only
-				// tracked features
-				cv::circle(processedImg, cv::Point(x, y), 3, cv::Scalar(0, 0, 255));
 			}
 		}
 	}	
-	pose.setLambda(0.6);
-	try
-	{
-		pose.computePose(cMo_);
-	}
-	catch(...) // catch all kinds of Exceptions
-	{
-		std::cout<<"Exception raised in computing pose"<<std::endl;
-	}
+	//pose.setLambda(0.6);
+	//try
+	//{
+	//	pose.computePose(cMo_);
+	//}
+	//catch(...) // catch all kinds of Exceptions
+	//{
+	//	std::cout<<"Exception raised in computing pose"<<std::endl;
+	//}
 }
 
 void 
@@ -173,6 +176,8 @@ activeModelTracker::lineSlope( cv::Point prePnt, cv::Point nxtPnt, bool& isHoriz
 	}
 	else
 	{
+		return ((double)(prePnt.y - nxtPnt.y)) / (prePnt.x - nxtPnt.x);
+		/*
 		if ((prePnt.x - nxtPnt.x) * (prePnt.y - nxtPnt.y) > 0)
 		{
 			return (double)abs(prePnt.y - nxtPnt.y) / abs(prePnt.x - nxtPnt.x);
@@ -181,6 +186,7 @@ activeModelTracker::lineSlope( cv::Point prePnt, cv::Point nxtPnt, bool& isHoriz
 		{
 			return -(double)abs(prePnt.y - nxtPnt.y) / abs(prePnt.x - nxtPnt.x);
 		}
+		*/
 	}
 }
 
@@ -200,19 +206,22 @@ activeModelTracker::deformLine(double step, bool isHorizontal, std::vector<vpPoi
 		for(int j = -detectionRange; j <= detectionRange; j++)
 		{
 			// the normal of the line
+			// two bugs are fixed here
 			if (isHorizontal)
 			{
 				cx = x + j;
+				cy = y;
 			}
 			else if (abs(step) < 1)
 			{
 				cy = y + j;
-				cx = x + step * j;
+				cx = x - step * j;
 			}
 			else
 			{
 				cx = x + j;
-				cy = y + step * j;
+				// a bug fixed here
+				cy = y - 1 / step * j;
 			}
 
 			// check whether the pixel is in the image 
@@ -239,6 +248,9 @@ activeModelTracker::sobelGradient(const cv::Mat& curImg, cv::Mat& gradient)
 	cv::Sobel(curImg, sobel_y, CV_32F, 0, 1, 3);
 	cv::convertScaleAbs(sobel_y, sobel_y);
 	cv::addWeighted(sobel_x, 0.5, sobel_y, 0.5, 0, gradient);
+	// debug only
+	cv::imshow("sobel", gradient);
+	cv::waitKey(30);
 }
 
 void 

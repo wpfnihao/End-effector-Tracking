@@ -108,139 +108,140 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00034"></a>00034 <span class="preprocessor">#include &lt;iostream&gt;</span>
 <a name="l00035"></a>00035 <span class="preprocessor">#include &lt;cmath&gt;</span>
 <a name="l00036"></a>00036 
-<a name="l00037"></a><a class="code" href="classhoughLineBasedTracker.html">00037</a> <span class="keyword">class </span><a class="code" href="classhoughLineBasedTracker.html">houghLineBasedTracker</a>
-<a name="l00038"></a>00038 {
-<a name="l00039"></a>00039 <span class="comment">// enum, typedef, struct, class ...</span>
-<a name="l00040"></a>00040 <span class="keyword">public</span>:
-<a name="l00041"></a>00041         
-<a name="l00045"></a><a class="code" href="classhoughLineBasedTracker.html#ac5e746870094fed71d26ed75d4a099e5">00045</a>         <span class="keyword">typedef</span> std::vector&lt;cv::Point3f&gt; <a class="code" href="classhoughLineBasedTracker.html#ac5e746870094fed71d26ed75d4a099e5" title="lines to describe the model in the object frame">modelLine</a>;
-<a name="l00046"></a>00046 
-<a name="l00052"></a><a class="code" href="structhoughLineBasedTracker_1_1detectedLine__.html">00052</a>         <span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code" href="structhoughLineBasedTracker_1_1detectedLine__.html" title="line detected by hough transform with a corresponding line in the object model. both straight line an...">detectedLine_</a>
-<a name="l00053"></a>00053         {
-<a name="l00054"></a>00054                 vpLine vl;                      <span class="comment">// straight Line</span>
-<a name="l00055"></a>00055                 vpPoint p1, p2;         <span class="comment">// line segment</span>
-<a name="l00056"></a>00056                 <span class="keywordtype">int</span> lineID;             <span class="comment">// ID of the line in the cad model of the target object</span>
-<a name="l00057"></a>00057                 <span class="keywordtype">int</span> detectID;           <span class="comment">// detected line ID</span>
-<a name="l00058"></a>00058         } <a class="code" href="classhoughLineBasedTracker.html#a5f50eb8aa0cd3b60d159ef42227f9b48" title="line detected by hough transform with a corresponding line in the object model. both straight line an...">detectedLine</a>;
-<a name="l00059"></a>00059 
-<a name="l00060"></a>00060 <span class="comment">//member variable</span>
-<a name="l00061"></a>00061 <span class="keyword">private</span>:
-<a name="l00062"></a>00062 
-<a name="l00067"></a>00067         cv::KalmanFilter KF;
-<a name="l00068"></a>00068 
-<a name="l00069"></a>00069         <span class="comment">/* current state */</span>
-<a name="l00070"></a>00070 
-<a name="l00074"></a>00074         std::vector&lt;cv::Vec4f&gt; lines;
-<a name="l00075"></a>00075 
+<a name="l00037"></a>00037 <span class="comment">//TODO: this class should be reimplemented by inherit from the cadModel class</span>
+<a name="l00038"></a><a class="code" href="classhoughLineBasedTracker.html">00038</a> <span class="keyword">class </span><a class="code" href="classhoughLineBasedTracker.html">houghLineBasedTracker</a>
+<a name="l00039"></a>00039 {
+<a name="l00040"></a>00040 <span class="comment">// enum, typedef, struct, class ...</span>
+<a name="l00041"></a>00041 <span class="keyword">public</span>:
+<a name="l00042"></a>00042         
+<a name="l00046"></a><a class="code" href="classhoughLineBasedTracker.html#ac5e746870094fed71d26ed75d4a099e5">00046</a>         <span class="keyword">typedef</span> std::vector&lt;cv::Point3f&gt; <a class="code" href="classhoughLineBasedTracker.html#ac5e746870094fed71d26ed75d4a099e5" title="lines to describe the model in the object frame">modelLine</a>;
+<a name="l00047"></a>00047 
+<a name="l00053"></a><a class="code" href="structhoughLineBasedTracker_1_1detectedLine__.html">00053</a>         <span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code" href="structhoughLineBasedTracker_1_1detectedLine__.html" title="line detected by hough transform with a corresponding line in the object model. both straight line an...">detectedLine_</a>
+<a name="l00054"></a>00054         {
+<a name="l00055"></a>00055                 vpLine vl;                      <span class="comment">// straight Line</span>
+<a name="l00056"></a>00056                 vpPoint p1, p2;         <span class="comment">// line segment</span>
+<a name="l00057"></a>00057                 <span class="keywordtype">int</span> lineID;             <span class="comment">// ID of the line in the cad model of the target object</span>
+<a name="l00058"></a>00058                 <span class="keywordtype">int</span> detectID;           <span class="comment">// detected line ID</span>
+<a name="l00059"></a>00059         } <a class="code" href="classhoughLineBasedTracker.html#a5f50eb8aa0cd3b60d159ef42227f9b48" title="line detected by hough transform with a corresponding line in the object model. both straight line an...">detectedLine</a>;
+<a name="l00060"></a>00060 
+<a name="l00061"></a>00061 <span class="comment">//member variable</span>
+<a name="l00062"></a>00062 <span class="keyword">private</span>:
+<a name="l00063"></a>00063 
+<a name="l00068"></a>00068         cv::KalmanFilter KF;
+<a name="l00069"></a>00069 
+<a name="l00070"></a>00070         <span class="comment">/* current state */</span>
+<a name="l00071"></a>00071 
+<a name="l00075"></a>00075         std::vector&lt;cv::Vec4f&gt; lines;
 <a name="l00076"></a>00076 
-<a name="l00077"></a>00077         <span class="comment">// pose here is either generated manually or measured by the connected hough lines</span>
-<a name="l00078"></a>00078 
-<a name="l00082"></a>00082         vpHomogeneousMatrix cMo;
-<a name="l00087"></a>00087         vpPoseVector poseVector;
-<a name="l00088"></a>00088 
-<a name="l00095"></a>00095         <span class="keywordtype">int</span> window[4];
-<a name="l00096"></a>00096 
-<a name="l00101"></a>00101         cv::Mat curImg;
-<a name="l00102"></a>00102         cv::Mat processedImg;
-<a name="l00103"></a>00103 
-<a name="l00104"></a>00104         <span class="comment">/* End of current state */</span>
-<a name="l00105"></a>00105         
-<a name="l00106"></a>00106         vpCameraParameters cam;
-<a name="l00107"></a>00107 
-<a name="l00108"></a>00108         <span class="comment">/* Global state */</span>
-<a name="l00114"></a>00114         <span class="keywordtype">int</span> rows, cols;
-<a name="l00115"></a>00115         
-<a name="l00120"></a>00120         <span class="keywordtype">bool</span> isLost;
-<a name="l00121"></a>00121 
-<a name="l00122"></a>00122         <span class="comment">// the cube</span>
-<a name="l00126"></a>00126 <span class="comment"></span>        std::vector&lt;cv::Point3f&gt; corners;
-<a name="l00127"></a>00127 
-<a name="l00131"></a>00131         std::vector&lt;modelLine&gt; model;
-<a name="l00132"></a>00132 
-<a name="l00139"></a>00139         vpMbtPolygon pyg[6];
-<a name="l00140"></a>00140         <span class="comment">/* End of global state */</span>
-<a name="l00141"></a>00141 
+<a name="l00077"></a>00077 
+<a name="l00078"></a>00078         <span class="comment">// pose here is either generated manually or measured by the connected hough lines</span>
+<a name="l00079"></a>00079 
+<a name="l00083"></a>00083         vpHomogeneousMatrix cMo;
+<a name="l00088"></a>00088         vpPoseVector poseVector;
+<a name="l00089"></a>00089 
+<a name="l00096"></a>00096         <span class="keywordtype">int</span> window[4];
+<a name="l00097"></a>00097 
+<a name="l00102"></a>00102         cv::Mat curImg;
+<a name="l00103"></a>00103         cv::Mat processedImg;
+<a name="l00104"></a>00104 
+<a name="l00105"></a>00105         <span class="comment">/* End of current state */</span>
+<a name="l00106"></a>00106         
+<a name="l00107"></a>00107         vpCameraParameters cam;
+<a name="l00108"></a>00108 
+<a name="l00109"></a>00109         <span class="comment">/* Global state */</span>
+<a name="l00115"></a>00115         <span class="keywordtype">int</span> rows, cols;
+<a name="l00116"></a>00116         
+<a name="l00121"></a>00121         <span class="keywordtype">bool</span> isLost;
+<a name="l00122"></a>00122 
+<a name="l00123"></a>00123         <span class="comment">// the cube</span>
+<a name="l00127"></a>00127 <span class="comment"></span>        std::vector&lt;cv::Point3f&gt; corners;
+<a name="l00128"></a>00128 
+<a name="l00132"></a>00132         std::vector&lt;modelLine&gt; model;
+<a name="l00133"></a>00133 
+<a name="l00140"></a>00140         vpMbtPolygon pyg[6];
+<a name="l00141"></a>00141         <span class="comment">/* End of global state */</span>
 <a name="l00142"></a>00142 
 <a name="l00143"></a>00143 
 <a name="l00144"></a>00144 
-<a name="l00145"></a>00145         <span class="comment">/* predicted state */</span>
-<a name="l00149"></a>00149         vpHomogeneousMatrix p_cMo;
-<a name="l00150"></a>00150 
-<a name="l00154"></a>00154         vpPoseVector p_Pose;
-<a name="l00155"></a>00155         <span class="comment">/* End of predicted state */</span>
-<a name="l00156"></a>00156 
+<a name="l00145"></a>00145 
+<a name="l00146"></a>00146         <span class="comment">/* predicted state */</span>
+<a name="l00150"></a>00150         vpHomogeneousMatrix p_cMo;
+<a name="l00151"></a>00151 
+<a name="l00155"></a>00155         vpPoseVector p_Pose;
+<a name="l00156"></a>00156         <span class="comment">/* End of predicted state */</span>
 <a name="l00157"></a>00157 
 <a name="l00158"></a>00158 
 <a name="l00159"></a>00159 
-<a name="l00160"></a>00160         <span class="comment">/* projected model */</span>
-<a name="l00164"></a>00164         std::vector&lt;cv::Vec4f&gt; prjModel;
-<a name="l00165"></a>00165 
-<a name="l00169"></a>00169         std::vector&lt;cv::Point2f&gt; prjCorners;
-<a name="l00170"></a>00170 
-<a name="l00174"></a>00174         <span class="keywordtype">bool</span> isVisible[12];
-<a name="l00175"></a>00175 
-<a name="l00179"></a>00179         std::vector&lt;detectedLine&gt; detectedModel;
-<a name="l00180"></a>00180 
-<a name="l00185"></a>00185         std::vector&lt;vpPoint&gt; detectedCorners;
-<a name="l00186"></a>00186         <span class="comment">/* End of predicted model */</span>
-<a name="l00187"></a>00187 
-<a name="l00188"></a>00188 <span class="comment">// member functions</span>
-<a name="l00189"></a>00189 <span class="keyword">public</span>:
-<a name="l00193"></a>00193         <a class="code" href="classhoughLineBasedTracker.html#a8486c3de3d20d8ca17d5afa5d13c27dc" title="constructor">houghLineBasedTracker</a>();
-<a name="l00194"></a>00194                         
-<a name="l00204"></a>00204         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#a7a9281df256344be5c9afab200aae2e1" title="brief project the model based on the obtained cMo and init the Kalman filter.">initialize</a>(<span class="keyword">const</span> vpCameraParameters&amp; cam_, <span class="keyword">const</span> vpHomogeneousMatrix&amp; cMo_, <span class="keyword">const</span> vpPoseVector&amp; pose, <span class="keywordtype">int</span> rows_, <span class="keywordtype">int</span> cols_);
-<a name="l00205"></a>00205 
-<a name="l00214"></a>00214         <span class="keywordtype">bool</span> <a class="code" href="classhoughLineBasedTracker.html#afb860ab5cf96382106661db117e929ea" title="publish the tracked rst to the upper level">pubRst</a>(cv::Mat&amp; img, cv::Rect&amp; box);
-<a name="l00215"></a>00215 
-<a name="l00221"></a>00221         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#aefcf18fa7251a151e4fd72355886bd4c" title="retrieve Image from the up level class">retrieveImage</a>(<span class="keyword">const</span> cv::Mat&amp; img);
-<a name="l00222"></a>00222 
-<a name="l00228"></a>00228         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#a4a61b01d41927fe3db6019484bd02a7b" title="use hough transform to detect lines in a given window">houghLineDetection</a>(<span class="keyword">const</span> <span class="keywordtype">int</span>* win);
-<a name="l00229"></a>00229 
-<a name="l00233"></a>00233         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#a6dd7025c8965e34b9bf15601c3783195" title="tracking is done here">track</a>(<span class="keywordtype">void</span>);
-<a name="l00234"></a>00234 
-<a name="l00240"></a>00240         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#a4d3b25defc69d5ec0a7341d0939c19b4" title="I still don&#39;t know how to read the model from the wrl or cad or cao file However, it is sufficient to...">initModel</a>(std::vector&lt;cv::Point3f&gt;&amp; initP);
-<a name="l00241"></a>00241         
-<a name="l00242"></a>00242 
-<a name="l00248"></a>00248         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#ab2eb9a610b1f7eac11444be87c951710" title="project the model into the image using the provided pose (usually the predicted one or the measured o...">projectModel</a>(<span class="keyword">const</span> vpHomogeneousMatrix&amp; cMo_);
-<a name="l00249"></a>00249 
-<a name="l00253"></a>00253         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#a91d371404d9164b79a76c3a74a51b2f4" title="initialize the Kalman filter, such as the measurement matrix etc.">initKalman</a>(<span class="keywordtype">void</span>);
-<a name="l00254"></a>00254 
-<a name="l00258"></a>00258         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#ab69775ffac23095590728097872f2bc7" title="link the detected line with the visible line">makeConnection</a>(<span class="keywordtype">void</span>);
-<a name="l00259"></a>00259 
-<a name="l00263"></a>00263         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#a53f0e0b7c4640fca24d1795c0a73256f" title="measure pose from the connected features">measurePose</a>(<span class="keywordtype">void</span>);
-<a name="l00264"></a>00264 
-<a name="l00265"></a>00265 <span class="comment">// utility functions</span>
-<a name="l00266"></a>00266 <span class="keyword">protected</span>:
-<a name="l00277"></a>00277         <span class="keywordtype">double</span> <a class="code" href="classhoughLineBasedTracker.html#add007cef95a4327a9ab419e244fdce27" title="calculate the &quot;distance&quot; between two lines">compareStraightLine</a>(<span class="keyword">const</span> vpLine&amp; l1, <span class="keyword">const</span> vpLine&amp; l2, <span class="keyword">const</span> cv::Vec4f&amp; ml1, <span class="keyword">const</span> cv::Vec4f&amp; dl2);
-<a name="l00278"></a>00278 
-<a name="l00288"></a>00288         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#a85f03d15859e655e0e5806af176e353d" title="give three points in a panel, get the equation of the panel">getPanelEquFromThreePt</a>(<span class="keyword">const</span> std::vector&lt;cv::Point3f&gt;&amp; pt, 
-<a name="l00289"></a>00289                         <span class="keywordtype">double</span>&amp; a, <span class="keywordtype">double</span>&amp; b, <span class="keywordtype">double</span>&amp; c, <span class="keywordtype">double</span>&amp; d);
-<a name="l00290"></a>00290 
-<a name="l00297"></a>00297         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#acbda1d791078dc58527bfe4d7693908c" title="transform the line segment into straight line">transLineType</a>(<span class="keyword">const</span> cv::Vec4f&amp; line_, vpLine&amp; sl);
-<a name="l00298"></a>00298 
-<a name="l00302"></a>00302         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#ae5e79ae2fc221b2b591d90f2c334f7c3" title="generate a window for hough transform">genTrackingWindow</a>(<span class="keywordtype">void</span>);
-<a name="l00303"></a>00303 
-<a name="l00309"></a>00309         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#a7ead438c8cf14248b24e538c33a76a0a" title="find visible lines using the vpMbtPolygon class">findVisibleLines</a>(<span class="keyword">const</span> vpHomogeneousMatrix&amp; cMo_);
-<a name="l00310"></a>00310 
-<a name="l00318"></a>00318         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#acf7ed7709862ddf301a445a1791d83ab" title="find two faces that generate the line">line2face</a>(<span class="keyword">const</span> <span class="keywordtype">int</span> lineID, <span class="keywordtype">int</span>&amp; f1, <span class="keywordtype">int</span>&amp; f2);
-<a name="l00319"></a>00319 
-<a name="l00327"></a>00327         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#a387be1e232a912c018c18eec30f6531d" title="get the end points IDs from the line ID">line2Pts</a>(<span class="keyword">const</span> <span class="keywordtype">int</span> lineID, <span class="keywordtype">int</span>&amp; p1, <span class="keywordtype">int</span>&amp; p2); 
-<a name="l00328"></a>00328 
-<a name="l00342"></a>00342         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#a63375bf97cd00db97b8b9a638adda72b" title="get the line equation in 3D coordinate system form the line ID">getLineEquFromID</a>(<span class="keywordtype">int</span> ID, <span class="keywordtype">double</span>&amp; a1,<span class="keywordtype">double</span>&amp; b1,<span class="keywordtype">double</span>&amp; c1,<span class="keywordtype">double</span>&amp; d1,<span class="keywordtype">double</span>&amp; a2,<span class="keywordtype">double</span>&amp; b2,<span class="keywordtype">double</span>&amp; c2,<span class="keywordtype">double</span>&amp; d2);
-<a name="l00343"></a>00343 
-<a name="l00353"></a>00353         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#a0fc0f63e61bbb1de64adee807e7fc2e6" title="get the line equation in 2D coordinate system with two given points ax + by + c = 0...">getPrjLineEqu</a>(<span class="keyword">const</span> cv::Vec4f&amp; line_, <span class="keywordtype">double</span>&amp; a, <span class="keywordtype">double</span>&amp; b, <span class="keywordtype">double</span>&amp; c);
-<a name="l00354"></a>00354 
-<a name="l00363"></a>00363         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#a04878ce14fe321139d76c61dbece76ba" title="the cross point of two straight lines">getPtFromStraightLine</a>(<span class="keywordtype">int</span> l1, <span class="keywordtype">int</span> l2, <span class="keywordtype">double</span>&amp; x, <span class="keywordtype">double</span>&amp; y);
-<a name="l00364"></a>00364 
-<a name="l00378"></a>00378         <span class="keywordtype">bool</span> <a class="code" href="classhoughLineBasedTracker.html#a527cf1cd6b454a3b5b1796402c50fb68" title="check the order of endpoints of a given segment just to make sure the line segment is in front of the...">checkPtsConnection</a>(<span class="keywordtype">double</span> x1, <span class="keywordtype">double</span> y1, <span class="keywordtype">double</span> x2, <span class="keywordtype">double</span> y2, <span class="keyword">const</span> cv::Point3f&amp; w1, <span class="keyword">const</span> cv::Point3f&amp; w2);
-<a name="l00379"></a>00379 
-<a name="l00390"></a>00390         <span class="keyword">inline</span> <span class="keywordtype">double</span> <a class="code" href="classhoughLineBasedTracker.html#a58c8e279a8bafdf1a838a0b37e67fb0a" title="distance between two points">ptsDist</a>(<span class="keywordtype">double</span> x1, <span class="keywordtype">double</span> y1, <span class="keywordtype">double</span> x2, <span class="keywordtype">double</span> y2);
-<a name="l00391"></a>00391 
-<a name="l00400"></a>00400         <span class="keyword">inline</span> <span class="keywordtype">double</span> <a class="code" href="classhoughLineBasedTracker.html#ac2c71b09acea78ed37cb369747e8c528" title="distance between two poseVector">poseDist</a>(<span class="keyword">const</span> vpPoseVector&amp; p1, <span class="keyword">const</span> vpPoseVector&amp; p2);
-<a name="l00401"></a>00401 
-<a name="l00410"></a>00410         <span class="keywordtype">bool</span> <a class="code" href="classhoughLineBasedTracker.html#a2a0c6bda6c4b63260746b67845524be4" title="check whether the pose estimated is flipped">isFlipped</a>(<span class="keyword">const</span> vpPoseVector&amp; p1, <span class="keyword">const</span> vpPoseVector&amp; p2);
-<a name="l00411"></a>00411 
-<a name="l00412"></a>00412 };
+<a name="l00160"></a>00160 
+<a name="l00161"></a>00161         <span class="comment">/* projected model */</span>
+<a name="l00165"></a>00165         std::vector&lt;cv::Vec4f&gt; prjModel;
+<a name="l00166"></a>00166 
+<a name="l00170"></a>00170         std::vector&lt;cv::Point2f&gt; prjCorners;
+<a name="l00171"></a>00171 
+<a name="l00175"></a>00175         <span class="keywordtype">bool</span> isVisible[12];
+<a name="l00176"></a>00176 
+<a name="l00180"></a>00180         std::vector&lt;detectedLine&gt; detectedModel;
+<a name="l00181"></a>00181 
+<a name="l00186"></a>00186         std::vector&lt;vpPoint&gt; detectedCorners;
+<a name="l00187"></a>00187         <span class="comment">/* End of predicted model */</span>
+<a name="l00188"></a>00188 
+<a name="l00189"></a>00189 <span class="comment">// member functions</span>
+<a name="l00190"></a>00190 <span class="keyword">public</span>:
+<a name="l00194"></a>00194         <a class="code" href="classhoughLineBasedTracker.html#a8486c3de3d20d8ca17d5afa5d13c27dc" title="constructor">houghLineBasedTracker</a>();
+<a name="l00195"></a>00195                         
+<a name="l00205"></a>00205         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#a7a9281df256344be5c9afab200aae2e1" title="brief project the model based on the obtained cMo and init the Kalman filter.">initialize</a>(<span class="keyword">const</span> vpCameraParameters&amp; cam_, <span class="keyword">const</span> vpHomogeneousMatrix&amp; cMo_, <span class="keyword">const</span> vpPoseVector&amp; pose, <span class="keywordtype">int</span> rows_, <span class="keywordtype">int</span> cols_);
+<a name="l00206"></a>00206 
+<a name="l00215"></a>00215         <span class="keywordtype">bool</span> <a class="code" href="classhoughLineBasedTracker.html#afb860ab5cf96382106661db117e929ea" title="publish the tracked rst to the upper level">pubRst</a>(cv::Mat&amp; img, cv::Rect&amp; box);
+<a name="l00216"></a>00216 
+<a name="l00222"></a>00222         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#aefcf18fa7251a151e4fd72355886bd4c" title="retrieve Image from the up level class">retrieveImage</a>(<span class="keyword">const</span> cv::Mat&amp; img);
+<a name="l00223"></a>00223 
+<a name="l00229"></a>00229         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#a4a61b01d41927fe3db6019484bd02a7b" title="use hough transform to detect lines in a given window">houghLineDetection</a>(<span class="keyword">const</span> <span class="keywordtype">int</span>* win);
+<a name="l00230"></a>00230 
+<a name="l00234"></a>00234         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#a6dd7025c8965e34b9bf15601c3783195" title="tracking is done here">track</a>(<span class="keywordtype">void</span>);
+<a name="l00235"></a>00235 
+<a name="l00241"></a>00241         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#a4d3b25defc69d5ec0a7341d0939c19b4" title="I still don&#39;t know how to read the model from the wrl or cad or cao file However, it is sufficient to...">initModel</a>(std::vector&lt;cv::Point3f&gt;&amp; initP);
+<a name="l00242"></a>00242         
+<a name="l00243"></a>00243 
+<a name="l00249"></a>00249         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#ab2eb9a610b1f7eac11444be87c951710" title="project the model into the image using the provided pose (usually the predicted one or the measured o...">projectModel</a>(<span class="keyword">const</span> vpHomogeneousMatrix&amp; cMo_);
+<a name="l00250"></a>00250 
+<a name="l00254"></a>00254         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#a91d371404d9164b79a76c3a74a51b2f4" title="initialize the Kalman filter, such as the measurement matrix etc.">initKalman</a>(<span class="keywordtype">void</span>);
+<a name="l00255"></a>00255 
+<a name="l00259"></a>00259         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#ab69775ffac23095590728097872f2bc7" title="link the detected line with the visible line">makeConnection</a>(<span class="keywordtype">void</span>);
+<a name="l00260"></a>00260 
+<a name="l00264"></a>00264         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#a53f0e0b7c4640fca24d1795c0a73256f" title="measure pose from the connected features">measurePose</a>(<span class="keywordtype">void</span>);
+<a name="l00265"></a>00265 
+<a name="l00266"></a>00266 <span class="comment">// utility functions</span>
+<a name="l00267"></a>00267 <span class="keyword">protected</span>:
+<a name="l00278"></a>00278         <span class="keywordtype">double</span> <a class="code" href="classhoughLineBasedTracker.html#add007cef95a4327a9ab419e244fdce27" title="calculate the &quot;distance&quot; between two lines">compareStraightLine</a>(<span class="keyword">const</span> vpLine&amp; l1, <span class="keyword">const</span> vpLine&amp; l2, <span class="keyword">const</span> cv::Vec4f&amp; ml1, <span class="keyword">const</span> cv::Vec4f&amp; dl2);
+<a name="l00279"></a>00279 
+<a name="l00289"></a>00289         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#a85f03d15859e655e0e5806af176e353d" title="give three points in a panel, get the equation of the panel">getPanelEquFromThreePt</a>(<span class="keyword">const</span> std::vector&lt;cv::Point3f&gt;&amp; pt, 
+<a name="l00290"></a>00290                         <span class="keywordtype">double</span>&amp; a, <span class="keywordtype">double</span>&amp; b, <span class="keywordtype">double</span>&amp; c, <span class="keywordtype">double</span>&amp; d);
+<a name="l00291"></a>00291 
+<a name="l00298"></a>00298         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#acbda1d791078dc58527bfe4d7693908c" title="transform the line segment into straight line">transLineType</a>(<span class="keyword">const</span> cv::Vec4f&amp; line_, vpLine&amp; sl);
+<a name="l00299"></a>00299 
+<a name="l00303"></a>00303         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#ae5e79ae2fc221b2b591d90f2c334f7c3" title="generate a window for hough transform">genTrackingWindow</a>(<span class="keywordtype">void</span>);
+<a name="l00304"></a>00304 
+<a name="l00310"></a>00310         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#a7ead438c8cf14248b24e538c33a76a0a" title="find visible lines using the vpMbtPolygon class">findVisibleLines</a>(<span class="keyword">const</span> vpHomogeneousMatrix&amp; cMo_);
+<a name="l00311"></a>00311 
+<a name="l00319"></a>00319         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#acf7ed7709862ddf301a445a1791d83ab" title="find two faces that generate the line">line2face</a>(<span class="keyword">const</span> <span class="keywordtype">int</span> lineID, <span class="keywordtype">int</span>&amp; f1, <span class="keywordtype">int</span>&amp; f2);
+<a name="l00320"></a>00320 
+<a name="l00328"></a>00328         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#a387be1e232a912c018c18eec30f6531d" title="get the end points IDs from the line ID">line2Pts</a>(<span class="keyword">const</span> <span class="keywordtype">int</span> lineID, <span class="keywordtype">int</span>&amp; p1, <span class="keywordtype">int</span>&amp; p2); 
+<a name="l00329"></a>00329 
+<a name="l00343"></a>00343         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#a63375bf97cd00db97b8b9a638adda72b" title="get the line equation in 3D coordinate system form the line ID">getLineEquFromID</a>(<span class="keywordtype">int</span> ID, <span class="keywordtype">double</span>&amp; a1,<span class="keywordtype">double</span>&amp; b1,<span class="keywordtype">double</span>&amp; c1,<span class="keywordtype">double</span>&amp; d1,<span class="keywordtype">double</span>&amp; a2,<span class="keywordtype">double</span>&amp; b2,<span class="keywordtype">double</span>&amp; c2,<span class="keywordtype">double</span>&amp; d2);
+<a name="l00344"></a>00344 
+<a name="l00354"></a>00354         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#a0fc0f63e61bbb1de64adee807e7fc2e6" title="get the line equation in 2D coordinate system with two given points ax + by + c = 0...">getPrjLineEqu</a>(<span class="keyword">const</span> cv::Vec4f&amp; line_, <span class="keywordtype">double</span>&amp; a, <span class="keywordtype">double</span>&amp; b, <span class="keywordtype">double</span>&amp; c);
+<a name="l00355"></a>00355 
+<a name="l00364"></a>00364         <span class="keywordtype">void</span> <a class="code" href="classhoughLineBasedTracker.html#a04878ce14fe321139d76c61dbece76ba" title="the cross point of two straight lines">getPtFromStraightLine</a>(<span class="keywordtype">int</span> l1, <span class="keywordtype">int</span> l2, <span class="keywordtype">double</span>&amp; x, <span class="keywordtype">double</span>&amp; y);
+<a name="l00365"></a>00365 
+<a name="l00379"></a>00379         <span class="keywordtype">bool</span> <a class="code" href="classhoughLineBasedTracker.html#a527cf1cd6b454a3b5b1796402c50fb68" title="check the order of endpoints of a given segment just to make sure the line segment is in front of the...">checkPtsConnection</a>(<span class="keywordtype">double</span> x1, <span class="keywordtype">double</span> y1, <span class="keywordtype">double</span> x2, <span class="keywordtype">double</span> y2, <span class="keyword">const</span> cv::Point3f&amp; w1, <span class="keyword">const</span> cv::Point3f&amp; w2);
+<a name="l00380"></a>00380 
+<a name="l00391"></a>00391         <span class="keyword">inline</span> <span class="keywordtype">double</span> <a class="code" href="classhoughLineBasedTracker.html#a58c8e279a8bafdf1a838a0b37e67fb0a" title="distance between two points">ptsDist</a>(<span class="keywordtype">double</span> x1, <span class="keywordtype">double</span> y1, <span class="keywordtype">double</span> x2, <span class="keywordtype">double</span> y2);
+<a name="l00392"></a>00392 
+<a name="l00401"></a>00401         <span class="keyword">inline</span> <span class="keywordtype">double</span> <a class="code" href="classhoughLineBasedTracker.html#ac2c71b09acea78ed37cb369747e8c528" title="distance between two poseVector">poseDist</a>(<span class="keyword">const</span> vpPoseVector&amp; p1, <span class="keyword">const</span> vpPoseVector&amp; p2);
+<a name="l00402"></a>00402 
+<a name="l00411"></a>00411         <span class="keywordtype">bool</span> <a class="code" href="classhoughLineBasedTracker.html#a2a0c6bda6c4b63260746b67845524be4" title="check whether the pose estimated is flipped">isFlipped</a>(<span class="keyword">const</span> vpPoseVector&amp; p1, <span class="keyword">const</span> vpPoseVector&amp; p2);
+<a name="l00412"></a>00412 
+<a name="l00413"></a>00413 };
 </pre></div></div><!-- contents -->
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
@@ -259,7 +260,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jul 5 2013 21:04:51 for End-effector Tracking by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 8 2013 14:17:33 for End-effector Tracking by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.7.6.1
 </small></address>

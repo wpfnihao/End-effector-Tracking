@@ -1,9 +1,11 @@
 <map id="G" name="G">
-<area shape="rect" id="node35" href="$KernelBasedTracking_8h_source.html" title="endeffector_tracking/KernelBasedTracking.h" alt="" coords="757,83,1035,112"/>
-<area shape="rect" id="node44" href="$CamShiftTracking_8h_source.html" title="endeffector_tracking/CamShiftTracking.h" alt="" coords="75,83,333,112"/>
-<area shape="rect" id="node49" href="$medianFlowTracking_8h_source.html" title="endeffector_tracking/medianFlowTracking.h" alt="" coords="408,83,683,112"/>
-<area shape="rect" id="node57" href="$houghLineBasedTracker_8h.html" title="the head file of the houghLineBasedTracker." alt="" coords="1617,83,1911,112"/>
-<area shape="rect" id="node74" href="$mbtEdgeTracker_8h.html" title="The mbtEdgeTracker class wrap the vpMbEdgeTracker in the visp package to incorporate with endeffector..." alt="" coords="2681,83,2932,112"/>
-<area shape="rect" id="node89" href="$kltFbTracker_8h.html" title="the head file of the kltFbTracker." alt="" coords="1160,83,1387,112"/>
-<area shape="rect" id="node80" href="$baseTracker_8h.html" title="the virtual base class of all the model based tracker This class provides the common interface of all..." alt="" coords="2329,160,2556,189"/>
+<area shape="rect" id="node35" href="$KernelBasedTracking_8h_source.html" title="endeffector_tracking/KernelBasedTracking.h" alt="" coords="37,83,315,112"/>
+<area shape="rect" id="node44" href="$CamShiftTracking_8h_source.html" title="endeffector_tracking/CamShiftTracking.h" alt="" coords="637,83,896,112"/>
+<area shape="rect" id="node49" href="$medianFlowTracking_8h_source.html" title="endeffector_tracking/medianFlowTracking.h" alt="" coords="339,83,613,112"/>
+<area shape="rect" id="node57" href="$houghLineBasedTracker_8h.html" title="the head file of the houghLineBasedTracker." alt="" coords="1275,83,1568,112"/>
+<area shape="rect" id="node74" href="$mbtEdgeTracker_8h.html" title="The mbtEdgeTracker class wrap the vpMbEdgeTracker in the visp package to incorporate with endeffector..." alt="" coords="3524,83,3775,112"/>
+<area shape="rect" id="node89" href="$kltFbTracker_8h.html" title="the head file of the kltFbTracker." alt="" coords="1976,83,2203,112"/>
+<area shape="rect" id="node115" href="$activeModelTracker_8h.html" title="The active model based tracker. The shape prior is obtained from the 3d CAD model." alt="" coords="2716,83,2985,112"/>
+<area shape="rect" id="node80" href="$baseTracker_8h.html" title="the virtual base class of all the model based tracker This class provides the common interface of all..." alt="" coords="2868,160,3095,189"/>
+<area shape="rect" id="node106" href="$cadModel_8h.html" title="This is the cadModel class maintaining the cad model." alt="" coords="2380,160,2591,189"/>
 </map>

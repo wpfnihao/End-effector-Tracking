@@ -102,6 +102,7 @@ class activeModelTracker: public cadModel
 		vpCameraParameters cam;
 
 		cv::Mat curImg, processedImg;
+		cv::Mat gradient;
 
 		/**
 		 * @brief map<lineID, controlPoints>

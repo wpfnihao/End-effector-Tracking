@@ -1,6 +1,26 @@
 \hypertarget{classkltFbTracker}{\section{klt\-Fb\-Tracker \-Class \-Reference}
 \label{classkltFbTracker}\index{klt\-Fb\-Tracker@{klt\-Fb\-Tracker}}
 }
+
+
+\-Inheritance diagram for klt\-Fb\-Tracker\-:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=150pt]{classkltFbTracker__inherit__graph}
+\end{center}
+\end{figure}
+
+
+\-Collaboration diagram for klt\-Fb\-Tracker\-:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=150pt]{classkltFbTracker__coll__graph}
+\end{center}
+\end{figure}
 \subsection*{\-Public \-Member \-Functions}
 \begin{DoxyCompactItemize}
 \item 
@@ -19,13 +39,9 @@ void \hyperlink{classkltFbTracker_a4bcd62be59529e0bafd606f8bff6c414}{retrieve\-I
 \hypertarget{classkltFbTracker_a3257d85e4d7c1b3e29d765551fbe7507}{void \hyperlink{classkltFbTracker_a3257d85e4d7c1b3e29d765551fbe7507}{refine\-Pose} (void)}\label{classkltFbTracker_a3257d85e4d7c1b3e29d765551fbe7507}
 
 \begin{DoxyCompactList}\small\item\em use the proposed error estimate method to refine the tracked pose \end{DoxyCompactList}\item 
-void \hyperlink{classkltFbTracker_aa830b7fcfceaa9bfccb77c7eab879ff8}{init\-Model} (std\-::vector$<$ cv\-::\-Point3f $>$ \&init\-P)
-\begin{DoxyCompactList}\small\item\em \-I still don't know how to read the model from the wrl or cad or cao file \-However, it is sufficient to get the cube from the init file if in the future, more complex model is tracked, \-I should reimplement this function the 8 corners of the cube is initialized. the 6 faces of the cube is initialized. this function will be called before initialize. \end{DoxyCompactList}\item 
 \hypertarget{classkltFbTracker_abb7ffa568c30b0f5760fa567abe69505}{void {\bfseries init} (cv\-::\-Mat \&img)}\label{classkltFbTracker_abb7ffa568c30b0f5760fa567abe69505}
 
 \item 
-void \hyperlink{classkltFbTracker_af63e4b7bfd2dabdf681a345a08a6a6ce}{project\-Model} (const vp\-Homogeneous\-Matrix \&c\-Mo\-\_\-)
-\begin{DoxyCompactList}\small\item\em project the model into the image using the provided pose (usually the predicted one or the measured one) \end{DoxyCompactList}\item 
 void \hyperlink{classkltFbTracker_adcddd61877b534e1c03099e18ce61468}{measure\-Pose} (std\-::vector$<$ vp\-Point $>$ \&stable\-Features3d, std\-::vector$<$ cv\-::\-Point2f $>$ \&stable\-Features2d, vp\-Homogeneous\-Matrix \&pose\-Matrix)
 \begin{DoxyCompactList}\small\item\em measure pose from the connected features \end{DoxyCompactList}\item 
 \hypertarget{classkltFbTracker_a69db4ec71868931e9903ef2011d6608b}{void {\bfseries get\-Pose} (vp\-Homogeneous\-Matrix \&c\-Mo\-\_\-)}\label{classkltFbTracker_a69db4ec71868931e9903ef2011d6608b}
@@ -37,8 +53,6 @@ void \hyperlink{classkltFbTracker_adcddd61877b534e1c03099e18ce61468}{measure\-Po
 \subsection*{\-Protected \-Member \-Functions}
 \begin{DoxyCompactItemize}
 \item 
-double \hyperlink{classkltFbTracker_afea81d8ad4d23b8162d4bcf8d0ccab37}{pts\-Dist} (double x1, double y1, double x2, double y2)
-\begin{DoxyCompactList}\small\item\em distance between two points \end{DoxyCompactList}\item 
 double \hyperlink{classkltFbTracker_aa87fc08d64e0e4f60ef2b7ce73cb25e8}{pose\-Dist} (const vp\-Pose\-Vector \&p1, const vp\-Pose\-Vector \&p2)
 \begin{DoxyCompactList}\small\item\em distance between two pose\-Vector \end{DoxyCompactList}\item 
 bool \hyperlink{classkltFbTracker_a323a5591070b2b96caf99588f8a1222e}{is\-Flipped} (const vp\-Pose\-Vector \&p1, const vp\-Pose\-Vector \&p2)
@@ -51,10 +65,7 @@ void \hyperlink{classkltFbTracker_a900ed23e50fd2ecc58ff29b83ac25764}{find\-Stabl
 \begin{DoxyCompactList}\small\item\em find the stably tracked features from the forward backward tracker \end{DoxyCompactList}\item 
 \hypertarget{classkltFbTracker_a9d4f973d649ffead5fa36f67ec316f93}{void \hyperlink{classkltFbTracker_a9d4f973d649ffead5fa36f67ec316f93}{plot\-Rst} (void)}\label{classkltFbTracker_a9d4f973d649ffead5fa36f67ec316f93}
 
-\begin{DoxyCompactList}\small\item\em draw the tracked features and object for visual inspection \end{DoxyCompactList}\item 
-\hypertarget{classkltFbTracker_a2639bdec1cbb1df3549c83c3b9749d7c}{void {\bfseries line2\-Pts} (const int line\-I\-D, int \&p1, int \&p2)}\label{classkltFbTracker_a2639bdec1cbb1df3549c83c3b9749d7c}
-
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em draw the tracked features and object for visual inspection \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \subsection{\-Member \-Function \-Documentation}
@@ -166,22 +177,6 @@ project the model based on the obtained c\-Mo and init the \-Kalman filter.
 {\em cols\-\_\-} & cols of image \\
 \hline
 \end{DoxyParams}
-\hypertarget{classkltFbTracker_aa830b7fcfceaa9bfccb77c7eab879ff8}{\index{klt\-Fb\-Tracker@{klt\-Fb\-Tracker}!init\-Model@{init\-Model}}
-\index{init\-Model@{init\-Model}!kltFbTracker@{klt\-Fb\-Tracker}}
-\subsubsection[{init\-Model}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf klt\-Fb\-Tracker\-::init\-Model} (
-\begin{DoxyParamCaption}
-\item[{std\-::vector$<$ cv\-::\-Point3f $>$ \&}]{init\-P}
-\end{DoxyParamCaption}
-)}}\label{classkltFbTracker_aa830b7fcfceaa9bfccb77c7eab879ff8}
-
-
-\-I still don't know how to read the model from the wrl or cad or cao file \-However, it is sufficient to get the cube from the init file if in the future, more complex model is tracked, \-I should reimplement this function the 8 corners of the cube is initialized. the 6 faces of the cube is initialized. this function will be called before initialize. 
-
-
-\begin{DoxyParams}{\-Parameters}
-{\em init\-P} & \-:the initial points from the $\ast$.init file \\
-\hline
-\end{DoxyParams}
 \hypertarget{classkltFbTracker_a323a5591070b2b96caf99588f8a1222e}{\index{klt\-Fb\-Tracker@{klt\-Fb\-Tracker}!is\-Flipped@{is\-Flipped}}
 \index{is\-Flipped@{is\-Flipped}!kltFbTracker@{klt\-Fb\-Tracker}}
 \subsubsection[{is\-Flipped}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf klt\-Fb\-Tracker\-::is\-Flipped} (
@@ -241,50 +236,6 @@ distance between two pose\-Vector
 {\em p1} & \\
 \hline
 {\em p2} & \\
-\hline
-\end{DoxyParams}
-\begin{DoxyReturn}{\-Returns}
-
-\end{DoxyReturn}
-\hypertarget{classkltFbTracker_af63e4b7bfd2dabdf681a345a08a6a6ce}{\index{klt\-Fb\-Tracker@{klt\-Fb\-Tracker}!project\-Model@{project\-Model}}
-\index{project\-Model@{project\-Model}!kltFbTracker@{klt\-Fb\-Tracker}}
-\subsubsection[{project\-Model}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf klt\-Fb\-Tracker\-::project\-Model} (
-\begin{DoxyParamCaption}
-\item[{const vp\-Homogeneous\-Matrix \&}]{c\-Mo\-\_\-}
-\end{DoxyParamCaption}
-)}}\label{classkltFbTracker_af63e4b7bfd2dabdf681a345a08a6a6ce}
-
-
-project the model into the image using the provided pose (usually the predicted one or the measured one) 
-
-
-\begin{DoxyParams}{\-Parameters}
-{\em c\-Mo\-\_\-} & \\
-\hline
-\end{DoxyParams}
-\hypertarget{classkltFbTracker_afea81d8ad4d23b8162d4bcf8d0ccab37}{\index{klt\-Fb\-Tracker@{klt\-Fb\-Tracker}!pts\-Dist@{pts\-Dist}}
-\index{pts\-Dist@{pts\-Dist}!kltFbTracker@{klt\-Fb\-Tracker}}
-\subsubsection[{pts\-Dist}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf klt\-Fb\-Tracker\-::pts\-Dist} (
-\begin{DoxyParamCaption}
-\item[{double}]{x1, }
-\item[{double}]{y1, }
-\item[{double}]{x2, }
-\item[{double}]{y2}
-\end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily  \mbox{[}inline, protected\mbox{]}}}}\label{classkltFbTracker_afea81d8ad4d23b8162d4bcf8d0ccab37}
-
-
-distance between two points 
-
-
-\begin{DoxyParams}{\-Parameters}
-{\em x1} & \\
-\hline
-{\em y1} & \\
-\hline
-{\em x2} & \\
-\hline
-{\em y2} & \\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{\-Returns}

@@ -1,0 +1,182 @@
+\hypertarget{classcadModel}{\section{cad\-Model \-Class \-Reference}
+\label{classcadModel}\index{cad\-Model@{cad\-Model}}
+}
+
+
+\-Inheritance diagram for cad\-Model\-:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=270pt]{classcadModel__inherit__graph}
+\end{center}
+\end{figure}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classcadModel_ae3d972106caa18f05da2296f38cd13ef}{void \hyperlink{classcadModel_ae3d972106caa18f05da2296f38cd13ef}{get\-Init\-Points} (const std\-::string \&init\-\_\-file)}\label{classcadModel_ae3d972106caa18f05da2296f38cd13ef}
+
+\begin{DoxyCompactList}\small\item\em \-Init the model from the $\ast$.init file, only used for the cube tracking init\-Click in the \-Vi\-S\-P software is referred for the \-I\-O operations used here fstream is used here. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{\-Protected \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{classcadModel_a7e453663fe4537bd63e61756ff8c83a5}{project\-Model} (const vp\-Homogeneous\-Matrix \&c\-Mo\-\_\-, const vp\-Camera\-Parameters \&cam)
+\begin{DoxyCompactList}\small\item\em project the model into the image using the provided pose (usually the predicted one or the measured one) \end{DoxyCompactList}\item 
+void \hyperlink{classcadModel_a973bb41637e70201c993643924d1b196}{init\-Model} (void)
+\begin{DoxyCompactList}\small\item\em \-I still don't know how to read the model from the wrl or cad or cao file \-However, it is sufficient to get the cube from the init file if in the future, more complex model is tracked, \-I should reimplement this function the 8 corners of the cube is initialized. the 6 faces of the cube is initialized. this function will be called before initialize. \end{DoxyCompactList}\item 
+void \hyperlink{classcadModel_a7722bb4d6e81af14e5a9a445e267c9e2}{line2\-Pts} (const int line\-I\-D, int \&p1, int \&p2)
+\begin{DoxyCompactList}\small\item\em get the end points \-I\-Ds from the line \-I\-D \end{DoxyCompactList}\item 
+void \hyperlink{classcadModel_acde0cfd7b7d6e41c7092ca98a9293aa0}{line2face} (const int line\-I\-D, int \&f1, int \&f2)
+\begin{DoxyCompactList}\small\item\em find two faces that generate the line \end{DoxyCompactList}\item 
+void \hyperlink{classcadModel_ad7646d304fde140292bb2453ffdb1aab}{find\-Visible\-Lines} (const vp\-Homogeneous\-Matrix \&c\-Mo\-\_\-)
+\begin{DoxyCompactList}\small\item\em find visible lines using the vp\-Mbt\-Polygon class \end{DoxyCompactList}\item 
+double \hyperlink{classcadModel_a6c2041e2fe2632256581676514e737b8}{pts\-Dist} (double x1, double y1, double x2, double y2)
+\begin{DoxyCompactList}\small\item\em distance between two points \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{\-Protected \-Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classcadModel_ac7ac8e5a375d41ac95656c8a2438b90d}{std\-::vector$<$ cv\-::\-Point3f $>$ \hyperlink{classcadModel_ac7ac8e5a375d41ac95656c8a2438b90d}{init\-P}}\label{classcadModel_ac7ac8e5a375d41ac95656c8a2438b90d}
+
+\begin{DoxyCompactList}\small\item\em initial points defined in the .init file \end{DoxyCompactList}\item 
+\hypertarget{classcadModel_acf0b2add55902c0907a078c25fadfe29}{std\-::vector$<$ cv\-::\-Point3f $>$ \hyperlink{classcadModel_acf0b2add55902c0907a078c25fadfe29}{corners}}\label{classcadModel_acf0b2add55902c0907a078c25fadfe29}
+
+\begin{DoxyCompactList}\small\item\em cube corners \end{DoxyCompactList}\item 
+\hypertarget{classcadModel_a7d30fddd86ee74149d068d8c6d0e48ba}{vp\-Mbt\-Polygon \hyperlink{classcadModel_a7d30fddd86ee74149d068d8c6d0e48ba}{pyg} \mbox{[}6\mbox{]}}\label{classcadModel_a7d30fddd86ee74149d068d8c6d0e48ba}
+
+\begin{DoxyCompactList}\small\item\em the polygon form description of the cube \-V\-E\-R\-Y \-I\-M\-P\-O\-R\-T\-A\-N\-T\-: new operator used in vp\-Mbt\-Polygon class and operator=() is \-N\-O\-T redefined in the class, which means the vp\-Mbt\-Polygon instants should be instantiated in the constructor of this class, if not, the data will \-N\-O\-T be properly copied during push\-\_\-back and the whole program will crash. vp\-Mbt\-Polygon pyg1, pyg2, pyg3, pyg4, pyg5, pyg6; \end{DoxyCompactList}\item 
+\hypertarget{classcadModel_a7f45063fc6ec2c0a888180667c995c6d}{std\-::vector$<$ cv\-::\-Point2f $>$ \hyperlink{classcadModel_a7f45063fc6ec2c0a888180667c995c6d}{prj\-Corners}}\label{classcadModel_a7f45063fc6ec2c0a888180667c995c6d}
+
+\begin{DoxyCompactList}\small\item\em projected corners \end{DoxyCompactList}\item 
+\hypertarget{classcadModel_a6891929e69df8b901c2d6a188e83e281}{bool \hyperlink{classcadModel_a6891929e69df8b901c2d6a188e83e281}{is\-Visible} \mbox{[}12\mbox{]}}\label{classcadModel_a6891929e69df8b901c2d6a188e83e281}
+
+\begin{DoxyCompactList}\small\item\em the visibility of lines \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classcadModel_ad7646d304fde140292bb2453ffdb1aab}{\index{cad\-Model@{cad\-Model}!find\-Visible\-Lines@{find\-Visible\-Lines}}
+\index{find\-Visible\-Lines@{find\-Visible\-Lines}!cadModel@{cad\-Model}}
+\subsubsection[{find\-Visible\-Lines}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf cad\-Model\-::find\-Visible\-Lines} (
+\begin{DoxyParamCaption}
+\item[{const vp\-Homogeneous\-Matrix \&}]{c\-Mo\-\_\-}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classcadModel_ad7646d304fde140292bb2453ffdb1aab}
+
+
+find visible lines using the vp\-Mbt\-Polygon class 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em c\-Mo\-\_\-} & \\
+\hline
+\end{DoxyParams}
+\hypertarget{classcadModel_a973bb41637e70201c993643924d1b196}{\index{cad\-Model@{cad\-Model}!init\-Model@{init\-Model}}
+\index{init\-Model@{init\-Model}!cadModel@{cad\-Model}}
+\subsubsection[{init\-Model}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf cad\-Model\-::init\-Model} (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classcadModel_a973bb41637e70201c993643924d1b196}
+
+
+\-I still don't know how to read the model from the wrl or cad or cao file \-However, it is sufficient to get the cube from the init file if in the future, more complex model is tracked, \-I should reimplement this function the 8 corners of the cube is initialized. the 6 faces of the cube is initialized. this function will be called before initialize. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em init\-P} & \-:the initial points from the $\ast$.init file \\
+\hline
+\end{DoxyParams}
+\hypertarget{classcadModel_acde0cfd7b7d6e41c7092ca98a9293aa0}{\index{cad\-Model@{cad\-Model}!line2face@{line2face}}
+\index{line2face@{line2face}!cadModel@{cad\-Model}}
+\subsubsection[{line2face}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf cad\-Model\-::line2face} (
+\begin{DoxyParamCaption}
+\item[{const int}]{line\-I\-D, }
+\item[{int \&}]{f1, }
+\item[{int \&}]{f2}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classcadModel_acde0cfd7b7d6e41c7092ca98a9293aa0}
+
+
+find two faces that generate the line 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em line\-I\-D} & \\
+\hline
+{\em f1} & \\
+\hline
+{\em f2} & \\
+\hline
+\end{DoxyParams}
+\hypertarget{classcadModel_a7722bb4d6e81af14e5a9a445e267c9e2}{\index{cad\-Model@{cad\-Model}!line2\-Pts@{line2\-Pts}}
+\index{line2\-Pts@{line2\-Pts}!cadModel@{cad\-Model}}
+\subsubsection[{line2\-Pts}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf cad\-Model\-::line2\-Pts} (
+\begin{DoxyParamCaption}
+\item[{const int}]{line\-I\-D, }
+\item[{int \&}]{p1, }
+\item[{int \&}]{p2}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classcadModel_a7722bb4d6e81af14e5a9a445e267c9e2}
+
+
+get the end points \-I\-Ds from the line \-I\-D 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em line\-I\-D} & \\
+\hline
+{\em p1} & \\
+\hline
+{\em p2} & \\
+\hline
+\end{DoxyParams}
+\hypertarget{classcadModel_a7e453663fe4537bd63e61756ff8c83a5}{\index{cad\-Model@{cad\-Model}!project\-Model@{project\-Model}}
+\index{project\-Model@{project\-Model}!cadModel@{cad\-Model}}
+\subsubsection[{project\-Model}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf cad\-Model\-::project\-Model} (
+\begin{DoxyParamCaption}
+\item[{const vp\-Homogeneous\-Matrix \&}]{c\-Mo\-\_\-, }
+\item[{const vp\-Camera\-Parameters \&}]{cam}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classcadModel_a7e453663fe4537bd63e61756ff8c83a5}
+
+
+project the model into the image using the provided pose (usually the predicted one or the measured one) 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em c\-Mo\-\_\-} & \\
+\hline
+\end{DoxyParams}
+\hypertarget{classcadModel_a6c2041e2fe2632256581676514e737b8}{\index{cad\-Model@{cad\-Model}!pts\-Dist@{pts\-Dist}}
+\index{pts\-Dist@{pts\-Dist}!cadModel@{cad\-Model}}
+\subsubsection[{pts\-Dist}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf cad\-Model\-::pts\-Dist} (
+\begin{DoxyParamCaption}
+\item[{double}]{x1, }
+\item[{double}]{y1, }
+\item[{double}]{x2, }
+\item[{double}]{y2}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline, protected\mbox{]}}}}\label{classcadModel_a6c2041e2fe2632256581676514e737b8}
+
+
+distance between two points 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em x1} & \\
+\hline
+{\em y1} & \\
+\hline
+{\em x2} & \\
+\hline
+{\em y2} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+
+\end{DoxyReturn}
+
+
+\-The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+include/endeffector\-\_\-tracking/\hyperlink{cadModel_8h}{cad\-Model.\-h}\item 
+src/\hyperlink{cadModel_8cpp}{cad\-Model.\-cpp}\end{DoxyCompactItemize}

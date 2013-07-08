@@ -1,0 +1,146 @@
+\hypertarget{classactiveModelTracker}{\section{active\-Model\-Tracker \-Class \-Reference}
+\label{classactiveModelTracker}\index{active\-Model\-Tracker@{active\-Model\-Tracker}}
+}
+
+
+\-Inheritance diagram for active\-Model\-Tracker\-:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=182pt]{classactiveModelTracker__inherit__graph}
+\end{center}
+\end{figure}
+
+
+\-Collaboration diagram for active\-Model\-Tracker\-:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=182pt]{classactiveModelTracker__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{classactiveModelTracker_a1fbe7c429519357f167e2a6daba9c1b2}{initialize} (const vp\-Camera\-Parameters \&cam\-\_\-, const vp\-Homogeneous\-Matrix \&c\-Mo\-\_\-, int rows\-\_\-, int cols\-\_\-)
+\begin{DoxyCompactList}\small\item\em call \hyperlink{classcadModel_ae3d972106caa18f05da2296f38cd13ef}{get\-Init\-Points()} first before calling this function \end{DoxyCompactList}\item 
+\hypertarget{classactiveModelTracker_a9bb0ecb86cdbd766e4283e0f36003a98}{void {\bfseries pub\-Rst} (cv\-::\-Mat \&img)}\label{classactiveModelTracker_a9bb0ecb86cdbd766e4283e0f36003a98}
+
+\item 
+void \hyperlink{classactiveModelTracker_a3c76176c8d5e3c8975700190096e078a}{retrieve\-Image} (const cv\-::\-Mat \&img)
+\begin{DoxyCompactList}\small\item\em retrieve the next frame from the webcam for tracking \end{DoxyCompactList}\item 
+\hypertarget{classactiveModelTracker_a3b5bb03a296c77053bf3b3cf46b919ef}{void \hyperlink{classactiveModelTracker_a3b5bb03a296c77053bf3b3cf46b919ef}{track} (void)}\label{classactiveModelTracker_a3b5bb03a296c77053bf3b3cf46b919ef}
+
+\begin{DoxyCompactList}\small\item\em the implementation of the active silhouette model \end{DoxyCompactList}\item 
+void \hyperlink{classactiveModelTracker_abb6139d33e79dbea945d01456917c44d}{get\-Pose} (vp\-Homogeneous\-Matrix \&c\-Mo\-\_\-)
+\begin{DoxyCompactList}\small\item\em get the pose from the upper level class, which usually provided by other trackers \end{DoxyCompactList}\item 
+void \hyperlink{classactiveModelTracker_a815de9481b9aab09c9c42fa9fed6d1a4}{pub\-Pose} (vp\-Homogeneous\-Matrix \&c\-Mo\-\_\-)
+\begin{DoxyCompactList}\small\item\em publish the pose calculated by this tracker, which can be used by other trackers to refine the result \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{\-Protected \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classactiveModelTracker_a69fe3d2a1c6283db47f6e65fc6ae625c}{void {\bfseries deform\-Silhouette} (vp\-Homogeneous\-Matrix \&c\-Mo\-\_\-)}\label{classactiveModelTracker_a69fe3d2a1c6283db47f6e65fc6ae625c}
+
+\item 
+\hypertarget{classactiveModelTracker_ada7393cf2fd78afc3dd2fb1c47e9428c}{void {\bfseries plot\-Rst} (void)}\label{classactiveModelTracker_ada7393cf2fd78afc3dd2fb1c47e9428c}
+
+\item 
+\hypertarget{classactiveModelTracker_ad6d058bec3f4a6563e634e6d6797668a}{void {\bfseries gen\-Control\-Points} (std\-::vector$<$ vp\-Point $>$ \&control\-Points\-\_\-)}\label{classactiveModelTracker_ad6d058bec3f4a6563e634e6d6797668a}
+
+\item 
+\hypertarget{classactiveModelTracker_a7dc04c3b2dd78c065e4de65ae53e4b0a}{double {\bfseries line\-Slope} (cv\-::\-Point pre\-Pnt, cv\-::\-Point nxt\-Pnt, bool \&is\-Horizontal)}\label{classactiveModelTracker_a7dc04c3b2dd78c065e4de65ae53e4b0a}
+
+\item 
+\hypertarget{classactiveModelTracker_a2f382eed6b3cf78be37775d33c4248e4}{void {\bfseries deform\-Line} (double step, bool is\-Horizontal, std\-::vector$<$ vp\-Point $>$ \&control\-Points\-\_\-, const cv\-::\-Mat \&gradient, int rows, int cols, int detection\-Range)}\label{classactiveModelTracker_a2f382eed6b3cf78be37775d33c4248e4}
+
+\item 
+\hypertarget{classactiveModelTracker_a81a958f0293c1ae7a37245e1d47997bd}{void {\bfseries sobel\-Gradient} (const cv\-::\-Mat \&cur\-Img, cv\-::\-Mat \&gradient)}\label{classactiveModelTracker_a81a958f0293c1ae7a37245e1d47997bd}
+
+\item 
+\hypertarget{classactiveModelTracker_a6911edd69d7bab2a6e25487fc663fd3f}{void {\bfseries check\-Index} (int \&cx, int \&cy, const int \&rows, const int \&cols)}\label{classactiveModelTracker_a6911edd69d7bab2a6e25487fc663fd3f}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classactiveModelTracker_abb6139d33e79dbea945d01456917c44d}{\index{active\-Model\-Tracker@{active\-Model\-Tracker}!get\-Pose@{get\-Pose}}
+\index{get\-Pose@{get\-Pose}!activeModelTracker@{active\-Model\-Tracker}}
+\subsubsection[{get\-Pose}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf active\-Model\-Tracker\-::get\-Pose} (
+\begin{DoxyParamCaption}
+\item[{vp\-Homogeneous\-Matrix \&}]{c\-Mo\-\_\-}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classactiveModelTracker_abb6139d33e79dbea945d01456917c44d}
+
+
+get the pose from the upper level class, which usually provided by other trackers 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em c\-Mo\-\_\-} & the pose \\
+\hline
+\end{DoxyParams}
+\hypertarget{classactiveModelTracker_a1fbe7c429519357f167e2a6daba9c1b2}{\index{active\-Model\-Tracker@{active\-Model\-Tracker}!initialize@{initialize}}
+\index{initialize@{initialize}!activeModelTracker@{active\-Model\-Tracker}}
+\subsubsection[{initialize}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf active\-Model\-Tracker\-::initialize} (
+\begin{DoxyParamCaption}
+\item[{const vp\-Camera\-Parameters \&}]{cam\-\_\-, }
+\item[{const vp\-Homogeneous\-Matrix \&}]{c\-Mo\-\_\-, }
+\item[{int}]{rows\-\_\-, }
+\item[{int}]{cols\-\_\-}
+\end{DoxyParamCaption}
+)}}\label{classactiveModelTracker_a1fbe7c429519357f167e2a6daba9c1b2}
+
+
+call \hyperlink{classcadModel_ae3d972106caa18f05da2296f38cd13ef}{get\-Init\-Points()} first before calling this function 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em cam\-\_\-} & \\
+\hline
+{\em c\-Mo\-\_\-} & \\
+\hline
+{\em rows\-\_\-} & \\
+\hline
+{\em cols\-\_\-} & \\
+\hline
+\end{DoxyParams}
+\hypertarget{classactiveModelTracker_a815de9481b9aab09c9c42fa9fed6d1a4}{\index{active\-Model\-Tracker@{active\-Model\-Tracker}!pub\-Pose@{pub\-Pose}}
+\index{pub\-Pose@{pub\-Pose}!activeModelTracker@{active\-Model\-Tracker}}
+\subsubsection[{pub\-Pose}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf active\-Model\-Tracker\-::pub\-Pose} (
+\begin{DoxyParamCaption}
+\item[{vp\-Homogeneous\-Matrix \&}]{c\-Mo\-\_\-}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classactiveModelTracker_a815de9481b9aab09c9c42fa9fed6d1a4}
+
+
+publish the pose calculated by this tracker, which can be used by other trackers to refine the result 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em c\-Mo\-\_\-} & the pose \\
+\hline
+\end{DoxyParams}
+\hypertarget{classactiveModelTracker_a3c76176c8d5e3c8975700190096e078a}{\index{active\-Model\-Tracker@{active\-Model\-Tracker}!retrieve\-Image@{retrieve\-Image}}
+\index{retrieve\-Image@{retrieve\-Image}!activeModelTracker@{active\-Model\-Tracker}}
+\subsubsection[{retrieve\-Image}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf active\-Model\-Tracker\-::retrieve\-Image} (
+\begin{DoxyParamCaption}
+\item[{const cv\-::\-Mat \&}]{img}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classactiveModelTracker_a3c76176c8d5e3c8975700190096e078a}
+
+
+retrieve the next frame from the webcam for tracking 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em img} & \\
+\hline
+\end{DoxyParams}
+
+
+\-The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+include/endeffector\-\_\-tracking/\hyperlink{activeModelTracker_8h}{active\-Model\-Tracker.\-h}\item 
+src/\hyperlink{activeModelTracker_8cpp}{active\-Model\-Tracker.\-cpp}\end{DoxyCompactItemize}
