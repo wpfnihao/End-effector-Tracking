@@ -243,9 +243,11 @@ void
 activeModelTracker::sobelGradient(const cv::Mat& curImg, cv::Mat& gradient)
 {
 	cv::Mat sobel_x, sobel_y;
-	cv::Sobel(curImg, sobel_x, CV_32F, 1, 0, 3);
+	cv::Mat blurImg;
+	cv::GaussianBlur(curImg, blurImg, cv::Size(5, 5), 3, 3);
+	cv::Sobel(blurImg, sobel_x, CV_32F, 1, 0, 3);
 	cv::convertScaleAbs(sobel_x, sobel_x);
-	cv::Sobel(curImg, sobel_y, CV_32F, 0, 1, 3);
+	cv::Sobel(blurImg, sobel_y, CV_32F, 0, 1, 3);
 	cv::convertScaleAbs(sobel_y, sobel_y);
 	cv::addWeighted(sobel_x, 0.5, sobel_y, 0.5, 0, gradient);
 	// debug only
