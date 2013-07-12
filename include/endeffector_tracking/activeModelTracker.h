@@ -86,10 +86,10 @@ class activeModelTracker: public cadModel
 
 		inline void checkIndex(int& cx, int& cy, const int& rows, const int& cols)
 		{
-			cx = cx < 0 ? 0 : cx;
-			cx = cx >= cols ? (cols - 1) : cx;
-			cy = cy < 0 ? 0 : cy;
-			cy = cy >= rows ? (rows - 1) : cy;
+			cx = (cx < 0) ? 0 : cx;
+			cx = (cx >= cols) ? (cols - 1) : cx;
+			cy = (cy < 0) ? 0 : cy;
+			cy = (cy >= rows) ? (rows - 1) : cy;
 		}	
 	private:
 		/**
