@@ -36,8 +36,9 @@
 
 // user defined 
 #include "endeffector_tracking/cadModel.h"
+#include "endeffector_tracking/cvBaseTracker.h"
 
-class kltFbTracker: public cadModel
+class kltFbTracker: public cadModel, public cvBaseTracker
 {
 // enum, typedef, struct, class ...
 public:
@@ -49,11 +50,6 @@ private:
 
 	// pose here is either generated manually or measured by the connected hough lines
 
-	/**
-	 * @brief  	the current pose
-	 */
-	vpHomogeneousMatrix cMo;
-	vpHomogeneousMatrix p_cMo;
 
 	/**
 	 * @brief  the pose vector corresponding to the pose matrix
@@ -69,13 +65,7 @@ private:
 	 */
 	int window[4];
 
-	/**
-	 * @brief current cvImg maintained by the class
-	 * 			TODO: the maintaining of the img
-	 */
-	cv::Mat curImg, preImg;
 	std::vector<cv::Mat> pPyramid, cPyramid;
-	cv::Mat processedImg;
 
 	std::vector<vpPoint> stableFeatures3d;
 	std::vector<cv::Point2f> stableFeatures2d;
@@ -87,7 +77,6 @@ private:
 
 	/* End of current state */
 	
-	vpCameraParameters cam;
 
 	/* Global state */
 
@@ -134,19 +123,19 @@ public:
 	 *
 	 * @return whether the tracker is lost target
 	 */
-	bool pubRst(cv::Mat& img, cv::Rect& box);
+	virtual bool pubRst(cv::Mat& img, cv::Rect& box);
 
 	/**
 	 * @brief 		retrieve Image from the up level class
 	 *
 	 * @param img 	the input image
 	 */
-	void retrieveImage(const cv::Mat& img);
+	virtual void retrieveImage(const cv::Mat& img);
 
 	/**
 	 * @brief  tracking is done here
 	 */
-	void track(void);
+	virtual void track(void);
 
 	/**
 	 * @brief use the proposed error estimate method to refine the tracked pose
@@ -164,14 +153,6 @@ public:
 	 */
 	void measurePose(std::vector<vpPoint>& stableFeatures3d, std::vector<cv::Point2f>& stableFeatures2d, vpHomogeneousMatrix& poseMatrix);
 
-	inline void getPose(vpHomogeneousMatrix& cMo_)
-	{
-		this->p_cMo = cMo_;
-	}
-	inline void pubPose(vpHomogeneousMatrix& cMo_)
-	{
-		cMo_ = this->cMo;
-	}
 // utility functions
 protected:
 

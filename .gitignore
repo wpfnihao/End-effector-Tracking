@@ -32,3 +32,6 @@ tags
 
 #swapfile
 *.swp
+
+#tmp
+*.pos
