@@ -9,3 +9,28 @@
  */
 
 #include "endeffector_tracking/nonparametricTextureLearningTracker.h"
+
+void
+textureTracker::init()
+{
+	//model
+	//pose
+	//texture
+}
+
+void 
+textureTracker::retrieveImage(const cv::Mat& img)
+{}
+
+void 
+textureTracker::track(void)
+{
+	// edge map for edge detection
+	// texture based track 
+	// edge based tracker
+	// merge
+}
+
+bool 
+textureTracker::pubRst(cv::Mat& img, cv::Rect& box)
+{}

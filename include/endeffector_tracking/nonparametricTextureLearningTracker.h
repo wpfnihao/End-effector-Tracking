@@ -8,6 +8,16 @@
  * @date 2013-07-14
  */
 
+#include "endeffector_tracking/cvBaseTracker.h"
+#include "endeffector_tracking/cadModel.h"
+
 class textureTracker: public cadModel, public cvBaseTracker
 {
+	public:
+		void init();
+		virtual void retrieveImage(const cv::Mat& img);
+		virtual void track(void);
+		virtual bool pubRst(cv::Mat& img, cv::Rect& box);
+	private:
+	protected:
 }
