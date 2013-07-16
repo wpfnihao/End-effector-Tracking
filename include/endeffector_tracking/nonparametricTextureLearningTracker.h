@@ -20,4 +20,4 @@ class textureTracker: public cadModel, public cvBaseTracker
 		virtual bool pubRst(cv::Mat& img, cv::Rect& box);
 	private:
 	protected:
-}
+};

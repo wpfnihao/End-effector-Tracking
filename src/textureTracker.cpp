@@ -19,34 +19,46 @@ textureTracker::initCoor(void)
 }
 
 void 
-textureTracker::retrievePatch(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraParameters& cam_, std::map<int, std::vector<cv::Mat> >& curPatch_)
+textureTracker::retrievePatch(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraParameters& cam_, bool isInit)
 {
-	curPatch_.clear();
+	if (!isInit)
+		curPatch.clear();
+
 	this->cMo = cMo_;
 	for (int i = 0; i < 6; i++)
 	{
 		if (pyg[i].isVisible(cMo_))
 		{
-			cv::Mat patch(numOfPtsPerFace, numOfPtsPerFace, CV_8UC1);
-			for (int j = 0; j < numOfPtsPerFace; j++)
-				for (int k = 0; k < numOfPtsPerFace; k++)
-				{
-					vpPoint P = patchCoor[i][j * numOfPtsPerFace + k];
-					P.changeFrame(cMo_);
-					P.project();
-					double u, v;
-					vpMeterPixelConversion::convertPoint(cam, P.get_x(), P.get_y(), u, v);
-					patch.at<unsigned char>(j, k) = img.at<unsigned char>(v, u);
-				}
-			curPatch_[i].push_back(patch);
+			std::vector<unsigned char> patch;
+			for (size_t j = 0; j < patchCoor[i].size(); j++)
+			{
+				vpPoint P = patchCoor[i][j];
+				P.changeFrame(cMo_);
+				P.project();
+				double u, v;
+				vpMeterPixelConversion::convertPoint(cam, P.get_x(), P.get_y(), u, v);
+				patch.push_back(img.at<unsigned char>(v, u));
+			}
+			if (isInit)
+				patches[i].push_back(patch);
+			else
+				curPatch[i] = patch;
 		}
 	}
 }
 
 void
-textureTracker::track(void)
+textureTracker::track(const cv::Mat& img)
 {
+	this->curImg = img;
 	// optimized the pose based on the match of patches
+	/*TODO:some conditions here*/
+	while (1)
+	{
+		retrievePatch(curImg, cMo, cam, false);
+		optimizePose(curImg);
+	}
+
 }
 
 void 
@@ -77,6 +89,125 @@ textureTracker::initCoorOnFace(std::vector<vpPoint>& features, vpMbtPolygon& pyg
 void
 textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraParameters& cam_)
 {
+	this->cam = cam_;
+	this->cMo = cMo_;
 	// init the patch database
-	retrievePatch(img, cMo_, cam_, patches);
+	retrievePatch(img, cMo, cam, true);
+}
+
+void 
+textureTracker::optimizePose(const cv::Mat& img)
+{
+	// TODO: some code optimization can be done here
+	std::vector<cv::Mat> gTheta;
+	for (int i = 0; i < 6; i++)
+	{
+		if (pyg[i].isVisible(cMo) && patches[i].size() != 0)
+		{
+			for (size_t j = 0; j < patchCoor[i].size(); j++)
+			{
+				int intensity = curPatch[i][j];
+				vpPoint p = patchCoor[i][j]; 
+				p.changeFrame(cMo);
+				p.project();
+				double x, y;
+				vpMeterPixelConversion::convertPoint(cam, p.get_x(), p.get_y(), x, y);
+
+				double m = meanShift(intensity, i, j);
+				cv::Mat g = gradientImage(img, x, y);
+				// FIXME: why directly use patchCoor[i][j] will cause an compile error
+				cv::Mat j = jacobianImage(p);
+
+				gTheta.push_back(scaleMat(g.mul(j), m));
+			}
+		}
+	}
+	cv::Mat meanTheta = meanMat(gTheta);
+	vpPoseVector pv;
+	pv.buildFrom(cMo);
+
+	double step;
+	for (int i = 0; i < 6; i++)
+		pv[i] = pv[i] - step * meanTheta.at<float>(1, i);
+
+	cMo.buildFrom(pv);
+}
+
+double
+textureTracker::meanShift(int intensity, int faceID, int index)
+{
+	double up = 0;
+	double down = 0;
+	for (size_t i = 0; i < patches.size(); i++)
+	{
+		double xi = patches[faceID][i][index];
+		//TODO: delta can be tuned
+		double delta = 5;
+		double density = kernelDensity(intensity, xi, delta);
+		up += xi * density;
+		down += density;
+	}
+	return (up / down - intensity);
+}
+
+inline cv::Mat
+textureTracker::gradientImage(const cv::Mat& img,int x, int y)
+{
+	cv::Mat g(1, 2, CV_32FC1);
+	g.at<float>(1, 1) = img.at<unsigned char>(y, x + 1) - img.at<unsigned char>(y, x);
+	g.at<float>(1, 2) = img.at<unsigned char>(y + 1, x) - img.at<unsigned char>(y, x);
+	return g;
+}
+
+inline cv::Mat
+textureTracker::jacobianImage(vpPoint p)
+{
+	float fx = cam.get_px();
+	float fy = cam.get_py();
+	cv::Mat J(2, 6, CV_32FC1);
+
+	J.at<float>(0, 1) = -fx * 1 / p.get_Z();
+	J.at<float>(0, 2) = fx * 0;
+	J.at<float>(0, 3) = fx * p.get_x() / p.get_Z();
+	J.at<float>(0, 4) = fx * p.get_x() * p.get_y();
+	J.at<float>(0, 5) = -fx * (1 + p.get_x() * p.get_x());
+	J.at<float>(0, 6) = fx * p.get_y();
+
+	J.at<float>(1, 1) = fy * 0;
+	J.at<float>(1, 2) = -fy * 1 / p.get_Z();
+	J.at<float>(1, 3) = fy * p.get_y() / p.get_Z();
+	J.at<float>(1, 4) = fy * (1 + p.get_y() * p.get_y());
+	J.at<float>(1, 5) = -fy * p.get_x() * p.get_y();
+	J.at<float>(1, 6) = -fy * p.get_x();
+
+	return J;
+}
+
+cv::Mat
+textureTracker::meanMat(std::vector<cv::Mat>& m)
+{
+	cv::Mat mMat = cv::Mat::zeros(m[0].rows, m[0].cols, CV_32FC1);
+	for (size_t i = 0; i < m.size(); i++)
+	{
+		cv::add(mMat, m[i], mMat);
+	}
+
+	scaleMat(mMat, 1 / m.size());
+	return mMat;
+}
+
+inline cv::Mat
+textureTracker::scaleMat(cv::Mat m, double scale)
+{
+	for (int i = 0; i < m.rows; i++)
+		for (int j = 0; j < m.cols; j++)
+			m.at<float>(i, j) *= scale;
+
+	return m;
+}
+
+inline double
+textureTracker::kernelDensity(double x, double xi, double delta)
+{
+	return (x - xi) * exp(-(x - xi) * (x - xi) / delta / delta);
 }
