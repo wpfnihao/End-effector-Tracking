@@ -43,6 +43,7 @@
 #include "endeffector_tracking/mbtEdgeTracker.h"
 #include "endeffector_tracking/kltFbTracker.h"
 #include "endeffector_tracking/activeModelTracker.h"
+#include "endeffector_tracking/nonparametricTextureLearningTracker.h"
 //#include "endeffector_tracking/mbtKltTracker.h"
 //#include "endeffector_tracking/mbtEdgeKltTracker.h"
 
@@ -76,6 +77,7 @@ private:
 	mbtEdgeTracker meTracker;
 	kltFbTracker fbTracker;
 	activeModelTracker amTracker;
+	nonparametricTextureLearningTracker nptTracker;
 	//mbtKltTracker kltTracker;
 	//mbtEdgeKltTracker mekltTracker;
 

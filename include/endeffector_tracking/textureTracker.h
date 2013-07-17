@@ -8,6 +8,8 @@
 
 #include "endeffector_tracking/cadModel.h"
 
+// TODO: add an call example here
+
 class textureTracker: public cadModel
 {
 	public:
@@ -16,28 +18,55 @@ class textureTracker: public cadModel
 		 */
 		void init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraParameters& cam_);
 
-		/**
-		 * @brief init the patch coordinates
-		 */
-		void initCoor(void);
-
 
 		/**
 		 * @brief based on the patches database and the current patches update the pose
 		 */
 		void track(const cv::Mat& img);
 
-		/**
-		 * @brief measure the fitness of the current patches and the database
-		 */
-		void measureFit(void);
 
 		/**
 		 * @brief based on the fitness of the patches and the contours to decide whether to update the patch database
 		 */
-		void updatePatches(void);
+		void updatePatches(vpHomogeneousMatrix& cMo_);
 
+		/**
+		 * @brief get the pose from the upper level class, which usually provided by other trackers
+		 *
+		 * @param cMo_ the pose
+		 */
+		inline void getPose(vpHomogeneousMatrix& cMo_)
+		{
+			this->cMo = cMo_;
+		}
+
+		/**
+		 * @brief publish the pose calculated by this tracker, which can be used by other trackers to refine the result
+		 *
+		 * @param cMo_ the pose
+		 */
+		inline void pubPose(vpHomogeneousMatrix& cMo_)
+		{
+			cMo_ = this->cMo;
+		}
 	protected:
+		/**
+		 * @brief measure the fitness of the current patches and the database
+		 */
+		bool measureFit(void);
+
+		/**
+		 * @brief init the patch coordinates
+		 */
+		void initCoor(void);
+
+		/**
+		 * @brief called by the initCoor function
+		 *
+		 * @param features
+		 * @param pyg
+		 * @param numOfPtsPerFace
+		 */
 		void initCoorOnFace(std::vector<vpPoint>& features, vpMbtPolygon& pyg, int numOfPtsPerFace);
 
 		/**
@@ -46,7 +75,7 @@ class textureTracker: public cadModel
 		 * @param img
 		 * @param cMo_
 		 */
-		void retrievePatch(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraParameters& cam_, bool isInit = false);
+		void retrievePatch(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraParameters& cam_, bool isDatabase = false);
 
 		/**
 		 * @brief optimize pose based on the nonparametric texture fitness

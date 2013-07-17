@@ -10,14 +10,39 @@
 
 #include "endeffector_tracking/cvBaseTracker.h"
 #include "endeffector_tracking/cadModel.h"
+#include "endeffector_tracking/textureTracker.h"
 
-class textureTracker: public cadModel, public cvBaseTracker
+class nonparametricTextureLearningTracker: public cadModel, public cvBaseTracker
 {
 	public:
-		void init();
-		virtual void retrieveImage(const cv::Mat& img);
+		/**
+		 * @brief initialize the tracker during the initialization steps
+		 */
+		void init(const cv::Mat& img, vpHomogeneousMatrix cMo_, vpCameraParameters cam_, std::string init_file);
+
+		/**
+		 * @brief retrieve a frame of image for tracking
+		 *
+		 * @param img
+		 */
+		virtual inline void retrieveImage(const cv::Mat& img)
+		{
+			cv::cvtColor(img, curImg, CV_RGB2GRAY);
+			this->processedImg = img.clone();
+		}
+
 		virtual void track(void);
+
 		virtual bool pubRst(cv::Mat& img, cv::Rect& box);
+
 	private:
+		/**
+		 * @brief the texture tracker, the texture based tracking procedure is done here.
+		 */
+		textureTracker texTracker;
+
+		cv::Mat gradient;
+
 	protected:
+		void sobelGradient(const cv::Mat& curImg, cv::Mat& gradient);
 };
