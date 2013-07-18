@@ -52,8 +52,12 @@ class textureTracker: public cadModel
 	protected:
 		/**
 		 * @brief measure the fitness of the current patches and the database
+		 *
+		 * @param isUpdate
+		 *
+		 * @return 
 		 */
-		bool measureFit(void);
+		bool measureFit(bool isUpdate);
 
 		/**
 		 * @brief init the patch coordinates
@@ -145,15 +149,26 @@ class textureTracker: public cadModel
 		 */
 		inline double kernelDensity(double x, double xi, double delta);
 
+		/**
+		 * @brief find the difference between current pixel and the patches database
+		 *
+		 * @param intensity
+		 * @param faceID
+		 * @param index
+		 *
+		 * @return 
+		 */
+		inline float pixelDiff(int intensity, int faceID, int index);
 	private:
 		/**
 		 * @brief current frame
 		 */
 		cv::Mat curImg;
 
-		vpHomogeneousMatrix cMo;
+		vpHomogeneousMatrix cMo, p_cMo;
 		vpCameraParameters cam;
 
+		double gStep, minStep, maxStep;
 		/**
 		 * @brief numOfPtsPerFace = numOfPtsPerFace * numOfPtsPerFace;
 		 */
@@ -164,6 +179,11 @@ class textureTracker: public cadModel
 		 * the default value is 10.
 		 */
 		int numOfPatch;
+
+		/**
+		 * @brief difference between the curPatch and the patches database
+		 */
+		float curdiff;
 
 		/**
 		 * @brief int face IDs

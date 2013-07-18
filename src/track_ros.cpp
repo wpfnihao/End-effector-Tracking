@@ -110,7 +110,7 @@ CEndeffectorTracking::trackCallback(const sensor_msgs::ImageConstPtr& srcImg)
 		//fbTracker.retrieveImage(curImg);
 		//fbTracker.initialize(this->cam, cMo, poseVector, rows, cols);
 		nptTracker.retrieveImage(curImg);
-		nptTracker.init(curImg, cMo, cam, init_file);
+		nptTracker.init(cMo, cam, init_file);
 
 		//amTracker.retrieveImage(curImg);
 		//amTracker.initialize(cam, cMo, rows, cols);

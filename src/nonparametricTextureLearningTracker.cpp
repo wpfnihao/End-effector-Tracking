@@ -11,11 +11,10 @@
 #include "endeffector_tracking/nonparametricTextureLearningTracker.h"
 
 void
-nonparametricTextureLearningTracker::init(const cv::Mat& img, vpHomogeneousMatrix cMo_, vpCameraParameters cam_, std::string init_file)
+nonparametricTextureLearningTracker::init(vpHomogeneousMatrix cMo_, vpCameraParameters cam_, std::string init_file)
 {
 	this->cMo = cMo_;
 	this->cam = cam_;
-	this->curImg = img;
 	//model
 	initModel();
 	//pose
@@ -28,7 +27,7 @@ void
 nonparametricTextureLearningTracker::track(void)
 {
 	// edge map for edge detection
-	sobelGradient(curImg, gradient);
+	//sobelGradient(curImg, gradient);
 
 	// texture based track 
 	texTracker.track(curImg);	

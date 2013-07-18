@@ -18,7 +18,7 @@ class nonparametricTextureLearningTracker: public cadModel, public cvBaseTracker
 		/**
 		 * @brief initialize the tracker during the initialization steps
 		 */
-		void init(const cv::Mat& img, vpHomogeneousMatrix cMo_, vpCameraParameters cam_, std::string init_file);
+		void init(vpHomogeneousMatrix cMo_, vpCameraParameters cam_, std::string init_file);
 
 		/**
 		 * @brief retrieve a frame of image for tracking

@@ -24,7 +24,7 @@ textureTracker::retrievePatch(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpC
 	if (!isDatabase)
 		curPatch.clear();
 
-	this->cMo = cMo_;
+	//this->cMo = cMo_;
 	for (int i = 0; i < 6; i++)
 	{
 		if (pyg[i].isVisible(cMo_))
@@ -48,10 +48,16 @@ textureTracker::retrievePatch(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpC
 				if (patches[i].size() > (size_t)numOfPatch)
 					patches[i].erase(patches[i].begin());
 				patches[i].push_back(patch);
+				// DEBUG
+				//std::cout<<"patch[0] = "<<(int)patch[0]<<std::endl;
+				//std::cout<<"patches[i][0][0] = "<<(int)patches[i][0][0]<<std::endl;
 			}
 			else
 			{
 				curPatch[i] = patch;
+				// DEBUG
+				//std::cout<<"patch[0] = "<<(int)patch[0]<<std::endl;
+				//std::cout<<"curPatch[i][0] = "<<(int)curPatch[i][0]<<std::endl;
 			}
 		}
 	}
@@ -62,13 +68,15 @@ textureTracker::track(const cv::Mat& img)
 {
 	this->curImg = img;
 	// optimized the pose based on the match of patches
-	/*TODO:some conditions here*/
 	int itr = 0;
-	while (itr < 10)
+	curdiff = 255;
+	// TODO: tune the diff threshold
+	while (itr < 10 && curdiff > 5)
 	{
 		// track
-		retrievePatch(curImg, cMo, cam, false);
+		retrievePatch(curImg, cMo, cam);
 		optimizePose(curImg);
+		measureFit(false);
 
 		// criterion update
 		itr++;
@@ -107,6 +115,10 @@ textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraPara
 
 	numOfPatch = 10;
 	numOfPtsPerFace = 30;
+	curdiff = 255;
+	gStep = 5e-9;
+	minStep = 5e-9;
+	maxStep = 5e-9;
 
 	initModel();
 	initCoor();
@@ -148,16 +160,16 @@ textureTracker::optimizePose(const cv::Mat& img)
 	vpPoseVector pv;
 	pv.buildFrom(cMo);
 
-	// TODO: tune the step parameter here
-	double step = 5e-9;
 	for (int i = 0; i < 6; i++)
 	{
 		std::cout<<" orig["<<i<<"] = "<<pv[i]<<std::endl; 
-		pv[i] = pv[i] - step * meanTheta.at<float>(0, i);
+		pv[i] = pv[i] - gStep * meanTheta.at<float>(0, i);
 		// DEBUG
-		std::cout<<" diff["<<i<<"] = "<<step * meanTheta.at<float>(0, i)<<std::endl;
+		std::cout<<" diff["<<i<<"] = "<<gStep * meanTheta.at<float>(0, i)<<std::endl;
+		std::cout<<" chng["<<i<<"] = "<<pv[i]<<std::endl; 
 	}
 
+	p_cMo = cMo;
 	cMo.buildFrom(pv);
 }
 
@@ -245,10 +257,55 @@ textureTracker::kernelDensity(double x, double xi, double delta)
 	return exp(-(x - xi) * (x - xi) / delta / delta);
 }
 
+
+// TODO: if tmpdiff > th, reset the pose, change the step width
+// this may need to update several other functions
+// also need to maintain the curdiff param
 bool 
-textureTracker::measureFit(void)
+textureTracker::measureFit(bool isUpdate)
 {
-	return true;
+	float tmpdiff = 0;
+	int count = 0;
+	float th = 5;
+	retrievePatch(curImg, cMo, cam);	
+	
+	for (int i = 0; i < 6; i++)
+	{
+		// some visible face under current pose might don't have corresponding database
+		if (pyg[i].isVisible(cMo) && patches[i].size() != 0)
+		{
+			for (size_t j = 0; j < curPatch[i].size(); j++)
+			{
+				tmpdiff += pixelDiff(curPatch[i][j], i, j);
+				count++;	
+			}			
+		}
+	}
+	tmpdiff /= (float)count;
+	
+
+	if (isUpdate)
+	{
+		if (tmpdiff < curdiff)
+			curdiff = tmpdiff;
+
+		return tmpdiff < th;
+	}
+	else
+	{
+		if (tmpdiff < curdiff)
+		{
+			curdiff = tmpdiff;
+			gStep = gStep * 2.0 > maxStep ? maxStep : gStep * 2.0;
+			return true;
+		}
+		else
+		{
+			cMo = p_cMo;
+			gStep = gStep / 2.0 < minStep ? minStep : gStep / 2.0;
+			return false;
+		}
+	}
 }
 
 void 
@@ -257,9 +314,22 @@ textureTracker::updatePatches(vpHomogeneousMatrix& cMo_)
 	// based on the merged info update the pose
 	getPose(cMo_);
 
-	if (measureFit())
+	if (measureFit(true))
 	{
 		// update here
 		retrievePatch(curImg, cMo, cam, true);
 	}
+}
+
+inline float
+textureTracker::pixelDiff(int intensity, int faceID, int index)
+{
+	float minVal = 255;
+	for (size_t i = 0; i < patches[faceID].size(); i++)
+	{
+		float cur = abs(intensity - patches[faceID][i][index]);
+		if (cur < minVal)
+			minVal = cur;
+	}
+	return minVal;
 }
