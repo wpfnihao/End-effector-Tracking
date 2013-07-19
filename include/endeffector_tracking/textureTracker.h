@@ -22,8 +22,7 @@ class textureTracker: public cadModel
 		/**
 		 * @brief based on the patches database and the current patches update the pose
 		 */
-		void track(const cv::Mat& img);
-
+		void track(const cv::Mat& img, const cv::Mat& grad);
 
 		/**
 		 * @brief based on the fitness of the patches and the contours to decide whether to update the patch database
@@ -98,7 +97,9 @@ class textureTracker: public cadModel
 		 * @return 
 		 */
 		double meanShift(int intensity, int faceID, int index);
-		
+
+		cv::Mat meanShift2(int intensity, int grad, int faceID, int index);
+
 		/**
 		 * @brief image gradient at the pixel (x, y)
 		 *
@@ -109,6 +110,8 @@ class textureTracker: public cadModel
 		 * @return 
 		 */
 		inline cv::Mat gradientImage(const cv::Mat& img,int x, int y);
+
+		inline cv::Mat gradientImage2(const cv::Mat& img, const cv::Mat& gradient, int x, int y);
 
 		/**
 		 * @brief image Jacobian links the pose vector and the pixel location
@@ -159,11 +162,21 @@ class textureTracker: public cadModel
 		 * @return 
 		 */
 		inline float pixelDiff(int intensity, int faceID, int index);
+
+		/**
+		 * @brief test whether the pixel using the index is located at the edge
+		 *
+		 * @param index
+		 *
+		 * @return 
+		 */
+		inline bool isEdge(int index);
 	private:
 		/**
 		 * @brief current frame
 		 */
 		cv::Mat curImg;
+		cv::Mat gradient;
 
 		vpHomogeneousMatrix cMo, p_cMo;
 		vpCameraParameters cam;

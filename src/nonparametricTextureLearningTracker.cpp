@@ -27,10 +27,10 @@ void
 nonparametricTextureLearningTracker::track(void)
 {
 	// edge map for edge detection
-	//sobelGradient(curImg, gradient);
+	sobelGradient(curImg, gradient);
 
 	// texture based track 
-	texTracker.track(curImg);	
+	texTracker.track(curImg, gradient);	
 	texTracker.pubPose(cMo);
 
 	// edge based tracker

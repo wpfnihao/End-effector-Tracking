@@ -64,13 +64,15 @@ textureTracker::retrievePatch(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpC
 }
 
 void
-textureTracker::track(const cv::Mat& img)
+textureTracker::track(const cv::Mat& img, const cv::Mat& grad)
 {
 	this->curImg = img;
+	this->gradient = grad;
 	// optimized the pose based on the match of patches
 	int itr = 0;
 	curdiff = 255;
 	// TODO: tune the diff threshold
+	// additional criterion based on the similarity between two itrs
 	while (itr < 10 && curdiff > 5)
 	{
 		// track
@@ -144,15 +146,24 @@ textureTracker::optimizePose(const cv::Mat& img)
 				p.project();
 				double x, y;
 				vpMeterPixelConversion::convertPoint(cam, p.get_x(), p.get_y(), x, y);
+				int grad = gradient.at<unsigned char>(y, x);
 
-				double m = meanShift(intensity, i, j);
-				cv::Mat g = gradientImage(img, x, y);
-				// FIXME: why directly use patchCoor[i][j] will cause an compile error
-				cv::Mat j = jacobianImage(p);
-				cv::Mat mgj = m * g * j;
-				//cv::gemm(g, j, m, cv::Mat(), 0, mgj);
-
-				gTheta.push_back(mgj);
+				cv::Mat J = jacobianImage(p);
+				if (isEdge(j))
+				{
+					cv::Mat M = meanShift2(intensity, grad, i, j);
+					cv::Mat G = gradientImage2(img, gradient, x, y);
+					cv::Mat MGJ = M * G * J;
+					gTheta.push_back(MGJ);
+				}
+				else
+				{
+					double M = meanShift(intensity, i, j);
+					cv::Mat G = gradientImage(img, x, y);
+					// FIXME: why directly use patchCoor[i][j] will cause an compile error
+					cv::Mat MGJ = M * G * J;
+					gTheta.push_back(MGJ);
+				}
 			}
 		}
 	}
@@ -193,12 +204,53 @@ textureTracker::meanShift(int intensity, int faceID, int index)
 		return -intensity;
 }
 
+cv::Mat
+textureTracker::meanShift2(int intensity, int grad, int faceID, int index)
+{
+	cv::Mat m(1, 2, CV_32FC1);
+
+	double up = 0;
+	double down = 0;
+	for (size_t i = 0; i < patches[faceID].size(); i++)
+	{
+		double xi = patches[faceID][i][index];
+		//TODO: delta can be tuned
+		double delta = 10;
+		double density = kernelDensity(intensity, xi, delta);
+		up += xi * density;
+		down += density;
+	}
+	if (down > 1e-100)
+		m.at<float>(0, 0) = up / down - intensity;
+	else
+		m.at<float>(0, 0) = -intensity;
+
+	// TODO: how to find the mean shift of the gradient
+	m.at<float>(0, 1) = m.at<float>(0, 0);
+
+	return m;
+}
+
 inline cv::Mat
-textureTracker::gradientImage(const cv::Mat& img,int x, int y)
+textureTracker::gradientImage(const cv::Mat& img, int x, int y)
 {
 	cv::Mat g(1, 2, CV_32FC1);
-	g.at<float>(0, 0) = img.at<unsigned char>(y, x + 1) - img.at<unsigned char>(y, x);
-	g.at<float>(0, 1) = img.at<unsigned char>(y + 1, x) - img.at<unsigned char>(y, x);
+	g.at<float>(0, 0) = (float)img.at<unsigned char>(y, x + 1) - (float)img.at<unsigned char>(y, x);
+	g.at<float>(0, 1) = (float)img.at<unsigned char>(y + 1, x) - (float)img.at<unsigned char>(y, x);
+
+	return g;
+}
+
+// TODO: the matrix type of the gradient image
+inline cv::Mat
+textureTracker::gradientImage2(const cv::Mat& img, const cv::Mat& gradient, int x, int y)
+{
+	cv::Mat g(2, 2, CV_32FC1);
+	g.at<float>(0, 0) = (float)img.at<unsigned char>(y, x + 1) - (float)img.at<unsigned char>(y, x);
+	g.at<float>(0, 1) = (float)img.at<unsigned char>(y + 1, x) - (float)img.at<unsigned char>(y, x);
+	g.at<float>(1, 0) = (float)gradient.at<unsigned char>(y, x + 1) - (float)gradient.at<unsigned char>(y, x);
+	g.at<float>(1, 1) = (float)gradient.at<unsigned char>(y + 1, x) - (float)gradient.at<unsigned char>(y, x);
+
 	return g;
 }
 
@@ -332,4 +384,20 @@ textureTracker::pixelDiff(int intensity, int faceID, int index)
 			minVal = cur;
 	}
 	return minVal;
+}
+
+inline bool
+textureTracker::isEdge(int index)
+{
+	int i = index / numOfPtsPerFace;
+	int j = index % numOfPtsPerFace;
+	if (i == 0 || i == numOfPtsPerFace - 1)
+		return true;
+	else
+	{
+		if (j == 0 || j == numOfPtsPerFace - 1)
+			return true;
+		else
+			return false;
+	}
 }
