@@ -132,7 +132,7 @@ textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraPara
 void 
 textureTracker::optimizePose(const cv::Mat& img)
 {
-	// TODO: some code optimization can be done here
+	// TODO: some code optimization can be done here to improve the performance
 	std::vector<cv::Mat> gTheta;
 	for (int i = 0; i < 6; i++)
 	{
@@ -174,7 +174,13 @@ textureTracker::optimizePose(const cv::Mat& img)
 	for (int i = 0; i < 6; i++)
 	{
 		std::cout<<" orig["<<i<<"] = "<<pv[i]<<std::endl; 
-		pv[i] = pv[i] - gStep * meanTheta.at<float>(0, i);
+		if (i < 3)
+			pv[i] = pv[i] - 3 * gStep * meanTheta.at<float>(0, i);
+		else
+		{
+			// TODO: is the param here ok?
+			pv[i] = pv[i] - 3 * gStep * meanTheta.at<float>(0, i);
+		}
 		// DEBUG
 		std::cout<<" diff["<<i<<"] = "<<gStep * meanTheta.at<float>(0, i)<<std::endl;
 		std::cout<<" chng["<<i<<"] = "<<pv[i]<<std::endl; 
@@ -226,7 +232,7 @@ textureTracker::meanShift2(int intensity, int grad, int faceID, int index)
 		m.at<float>(0, 0) = -intensity;
 
 	// TODO: how to find the mean shift of the gradient
-	m.at<float>(0, 1) = m.at<float>(0, 0);
+	m.at<float>(0, 1) = (255 - grad) / 25;
 
 	return m;
 }
@@ -262,13 +268,13 @@ textureTracker::jacobianImage(vpPoint p)
 	cv::Mat J(2, 6, CV_32FC1);
 
 	J.at<float>(0, 0) = -fx * 1 / p.get_Z();
-	J.at<float>(0, 1) = fx * 0;
+	J.at<float>(0, 1) = 0;
 	J.at<float>(0, 2) = fx * p.get_x() / p.get_Z();
 	J.at<float>(0, 3) = fx * p.get_x() * p.get_y();
 	J.at<float>(0, 4) = -fx * (1 + p.get_x() * p.get_x());
 	J.at<float>(0, 5) = fx * p.get_y();
 
-	J.at<float>(1, 0) = fy * 0;
+	J.at<float>(1, 0) = 0;
 	J.at<float>(1, 1) = -fy * 1 / p.get_Z();
 	J.at<float>(1, 2) = fy * p.get_y() / p.get_Z();
 	J.at<float>(1, 3) = fy * (1 + p.get_y() * p.get_y());
@@ -341,6 +347,8 @@ textureTracker::measureFit(bool isUpdate)
 		if (tmpdiff < curdiff)
 			curdiff = tmpdiff;
 
+		//TODO: DEBUG
+		return false;
 		return tmpdiff < th;
 	}
 	else
