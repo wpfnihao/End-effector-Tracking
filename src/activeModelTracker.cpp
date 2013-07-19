@@ -96,15 +96,15 @@ activeModelTracker::deformSilhouette(vpHomogeneousMatrix& cMo_)
 			}
 		}
 	}	
-	//pose.setLambda(0.6);
-	//try
-	//{
-	//	pose.computePose(cMo_);
-	//}
-	//catch(...) // catch all kinds of Exceptions
-	//{
-	//	std::cout<<"Exception raised in computing pose"<<std::endl;
-	//}
+	pose.setLambda(0.6);
+	try
+	{
+		pose.computePose(cMo_);
+	}
+	catch(...) // catch all kinds of Exceptions
+	{
+		std::cout<<"Exception raised in computing pose"<<std::endl;
+	}
 }
 
 void 
@@ -202,7 +202,7 @@ activeModelTracker::deformLine(double step, bool isHorizontal, std::vector<vpPoi
 			cy = y;
 		int tmpx = x, 
 			tmpy = y;
-		float maxGradient = gradient.at<float>(cy, cx);
+		unsigned char maxGradient = gradient.at<unsigned char>(cy, cx);
 		for(int j = -detectionRange; j <= detectionRange; j++)
 		{
 			// the normal of the line
@@ -227,9 +227,9 @@ activeModelTracker::deformLine(double step, bool isHorizontal, std::vector<vpPoi
 			// check whether the pixel is in the image 
 			checkIndex(cx, cy, rows, cols);
 
-			if (gradient.at<float>(cy, cx) > maxGradient)
+			if (gradient.at<unsigned char>(cy, cx) > maxGradient)
 			{
-				maxGradient = gradient.at<float>(cy, cx);
+				maxGradient = gradient.at<unsigned char>(cy, cx);
 				tmpx = cx;
 				tmpy = cy;
 			}
