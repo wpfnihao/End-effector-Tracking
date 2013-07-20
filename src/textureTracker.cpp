@@ -116,7 +116,8 @@ textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraPara
 	this->cMo = cMo_;
 
 	numOfPatch = 10;
-	numOfPtsPerFace = 30;
+	// TODO: for fast computing, it should be 30
+	numOfPtsPerFace = 7;
 	curdiff = 255;
 	gStep = 5e-9;
 	minStep = 5e-9;
@@ -133,14 +134,27 @@ void
 textureTracker::optimizePose(const cv::Mat& img)
 {
 	// TODO: some code optimization can be done here to improve the performance
-	std::vector<cv::Mat> gTheta;
+
+	// TODO: first don't consider the gradient maximum, add this later
+	int col = 0;
+	for (int i = 0; i < 6; i++)
+	{
+		if (pyg[i].isVisible(cMo) && patches[i].size() != 0)
+		{
+			col += patchCoor[i].size();
+		}
+	}
+	cv::Mat Jacobian(col, 6, CV_32FC1);
+	cv::Mat curFeature(col, 1, CV_32FC1);
+	cv::Mat tarFeature(col, 1, CV_32FC1);
+
+	int count = 0;
 	for (int i = 0; i < 6; i++)
 	{
 		if (pyg[i].isVisible(cMo) && patches[i].size() != 0)
 		{
 			for (size_t j = 0; j < patchCoor[i].size(); j++)
 			{
-				int intensity = curPatch[i][j];
 				vpPoint p = patchCoor[i][j]; 
 				p.changeFrame(cMo);
 				p.project();
@@ -149,40 +163,39 @@ textureTracker::optimizePose(const cv::Mat& img)
 				int grad = gradient.at<unsigned char>(y, x);
 
 				cv::Mat J = jacobianImage(p);
-				if (isEdge(j))
-				{
-					cv::Mat M = meanShift2(intensity, grad, i, j);
-					cv::Mat G = gradientImage2(img, gradient, x, y);
-					cv::Mat MGJ = M * G * J;
-					gTheta.push_back(MGJ);
-				}
-				else
-				{
-					double M = meanShift(intensity, i, j);
-					cv::Mat G = gradientImage(img, x, y);
-					// FIXME: why directly use patchCoor[i][j] will cause an compile error
-					cv::Mat MGJ = M * G * J;
-					gTheta.push_back(MGJ);
-				}
+
+				cv::Mat G = gradientImage(img, x, y);
+				// FIXME: why directly use patchCoor[i][j] will cause an compile error
+				// FIXME: what's the type of GJ? The same with G , J or anything else?
+				cv::Mat GJ = G * J;
+				stackJacobian(Jacobian, GJ, count);
+				curFeature.at<float>(count, 0) = curPatch[i][j];
+				tarFeature.at<float>(count, 0) = meanShiftMax(curPatch[i][j], i, j);
+
+				count++;
 			}
 		}
 	}
-	cv::Mat meanTheta = meanMat(gTheta);
+
+	cv::Mat L = (Jacobian.t() * Jacobian).inv() * Jacobian.t();
+	cv::Mat e = tarFeature - curFeature;
+	float lambda = 0.6;
+
+	cv::Mat v = - lambda * L * e;
+
+
+
+
 	vpPoseVector pv;
 	pv.buildFrom(cMo);
 
 	for (int i = 0; i < 6; i++)
 	{
 		std::cout<<" orig["<<i<<"] = "<<pv[i]<<std::endl; 
-		if (i < 3)
-			pv[i] = pv[i] - 3 * gStep * meanTheta.at<float>(0, i);
-		else
-		{
-			// TODO: is the param here ok?
-			pv[i] = pv[i] - 3 * gStep * meanTheta.at<float>(0, i);
-		}
+		// TODO: is the param here ok?
+		pv[i] = pv[i] - v.at<float>(i, 0);
 		// DEBUG
-		std::cout<<" diff["<<i<<"] = "<<gStep * meanTheta.at<float>(0, i)<<std::endl;
+		std::cout<<" diff["<<i<<"] = "<<v.at<float>(i, 0)<<std::endl;
 		std::cout<<" chng["<<i<<"] = "<<pv[i]<<std::endl; 
 	}
 
@@ -205,9 +218,25 @@ textureTracker::meanShift(int intensity, int faceID, int index)
 		down += density;
 	}
 	if (down > 1e-100)
-		return (up / down - intensity);
+		return (up / down);
 	else
-		return -intensity;
+		return intensity;
+}
+
+double 
+textureTracker::meanShiftMax(int intensity, int faceID, int index)
+{
+	double cur, pre;
+	cur = intensity;
+	pre = INT_MAX;
+	int count = 0;
+	while (abs(cur - pre) > 1 || count < 10)
+	{
+		pre = cur;
+		cur = meanShift(cur, faceID, index);
+	}
+
+	return cur;
 }
 
 cv::Mat
@@ -408,4 +437,11 @@ textureTracker::isEdge(int index)
 		else
 			return false;
 	}
+}
+
+inline void
+textureTracker::stackJacobian(cv::Mat& Jacobian, cv::Mat& GJ, int count)
+{
+	for (int i = 0; i < 6; i++)
+		Jacobian.at<float>(count, i) = GJ.at<float>(0, i);
 }

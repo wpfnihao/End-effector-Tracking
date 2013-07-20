@@ -98,6 +98,8 @@ class textureTracker: public cadModel
 		 */
 		double meanShift(int intensity, int faceID, int index);
 
+		double meanShiftMax(int intensity, int faceID, int index);
+
 		cv::Mat meanShift2(int intensity, int grad, int faceID, int index);
 
 		/**
@@ -121,6 +123,8 @@ class textureTracker: public cadModel
 		 * @return 
 		 */
 		inline cv::Mat jacobianImage(vpPoint p);
+
+		inline void stackJacobian(cv::Mat& Jacobian, cv::Mat& GJ, int count);
 
 		/**
 		 * @brief mean value of a vector of matrixs
