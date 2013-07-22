@@ -116,7 +116,7 @@ textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraPara
 	this->cMo = cMo_;
 
 	numOfPatch = 10;
-	numOfPtsPerFace = 30;
+	numOfPtsPerFace = 10;
 	curdiff = 255;
 	gStep = 5e-9;
 	minStep = 5e-9;
@@ -168,26 +168,33 @@ textureTracker::optimizePose(const cv::Mat& img)
 		}
 	}
 	cv::Mat meanTheta = meanMat(gTheta);
-	vpPoseVector pv;
-	pv.buildFrom(cMo);
-
+	vpColVector vpV(6);
 	for (int i = 0; i < 6; i++)
-	{
-		std::cout<<" orig["<<i<<"] = "<<pv[i]<<std::endl; 
-		if (i < 3)
-			pv[i] = pv[i] - 3 * gStep * meanTheta.at<float>(0, i);
-		else
-		{
-			// TODO: is the param here ok?
-			pv[i] = pv[i] - 3 * gStep * meanTheta.at<float>(0, i);
-		}
-		// DEBUG
-		std::cout<<" diff["<<i<<"] = "<<gStep * meanTheta.at<float>(0, i)<<std::endl;
-		std::cout<<" chng["<<i<<"] = "<<pv[i]<<std::endl; 
-	}
-
+		vpV[i] = 5e-9 * meanTheta.at<float>(0, i);
 	p_cMo = cMo;
-	cMo.buildFrom(pv);
+	cMo = vpExponentialMap::direct(vpV).inverse()*cMo;
+
+
+	//vpPoseVector pv;
+	//pv.buildFrom(cMo);
+
+	//for (int i = 0; i < 6; i++)
+	//{
+	//	std::cout<<" orig["<<i<<"] = "<<pv[i]<<std::endl; 
+	//	if (i < 3)
+	//		pv[i] = pv[i] - 3 * gStep * meanTheta.at<float>(0, i);
+	//	else
+	//	{
+	//		// TODO: is the param here ok?
+	//		pv[i] = pv[i] - 3 * gStep * meanTheta.at<float>(0, i);
+	//	}
+	//	// DEBUG
+	//	std::cout<<" diff["<<i<<"] = "<<gStep * meanTheta.at<float>(0, i)<<std::endl;
+	//	std::cout<<" chng["<<i<<"] = "<<pv[i]<<std::endl; 
+	//}
+
+	//p_cMo = cMo;
+	//cMo.buildFrom(pv);
 }
 
 double
@@ -361,7 +368,7 @@ textureTracker::measureFit(bool isUpdate)
 		}
 		else
 		{
-			cMo = p_cMo;
+			//cMo = p_cMo;
 			gStep = gStep / 2.0 < minStep ? minStep : gStep / 2.0;
 			return false;
 		}
