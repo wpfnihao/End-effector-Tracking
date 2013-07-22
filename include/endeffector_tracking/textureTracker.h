@@ -186,6 +186,8 @@ class textureTracker: public cadModel
 		vpCameraParameters cam;
 
 		double gStep, minStep, maxStep;
+
+		int numOfHist;
 		/**
 		 * @brief numOfPtsPerFace = numOfPtsPerFace * numOfPtsPerFace;
 		 */
@@ -208,10 +210,14 @@ class textureTracker: public cadModel
 		 */
 		std::map<int, std::vector<std::vector<unsigned char> > > patches;
 
+		std::map<int, std::vector<cv::Mat> > hists;
+
 		/**
 		 * @brief current patches need to be optimized
 		 */
 		std::map<int, std::vector<unsigned char> > curPatch;
+
+		std::map<int, cv::Mat> curHist;
 
 		/**
 		 * @brief int face IDs

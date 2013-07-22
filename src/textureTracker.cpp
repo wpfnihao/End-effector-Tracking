@@ -22,7 +22,11 @@ void
 textureTracker::retrievePatch(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraParameters& cam_, bool isDatabase)
 {
 	if (!isDatabase)
+	{
 		curPatch.clear();
+		for (int i = 0; i < 6; i++)
+			curHist[i] = cv::Mat::zeros(1, numOfHist, CV_32FC1);
+	}
 
 	//this->cMo = cMo_;
 	for (int i = 0; i < 6; i++)
@@ -30,6 +34,7 @@ textureTracker::retrievePatch(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpC
 		if (pyg[i].isVisible(cMo_))
 		{
 			// process
+			cv::Mat hist = cv::Mat::zeros(1, numOfHist, CV_32FC1);
 			std::vector<unsigned char> patch;
 			for (size_t j = 0; j < patchCoor[i].size(); j++)
 			{
@@ -38,7 +43,9 @@ textureTracker::retrievePatch(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpC
 				P.project();
 				double u, v;
 				vpMeterPixelConversion::convertPoint(cam_, P.get_x(), P.get_y(), u, v);
-				patch.push_back(img.at<unsigned char>(v, u));
+				unsigned char intensity = img.at<unsigned char>(v, u);
+				patch.push_back(intensity);
+				addToHist(hist, intensity);
 			}
 
 			// update
@@ -48,6 +55,10 @@ textureTracker::retrievePatch(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpC
 				patches[i].push_back(patch);
 				while (patches[i].size() > (size_t)numOfPatch)
 					patches[i].erase(patches[i].begin());
+
+				hists[i].push_back(hist);
+				while (hists[i].size() > (size_t)numOfPatch)
+					hists[i].erase(hists[i].begin());
 				// DEBUG
 				//std::cout<<"patch[0] = "<<(int)patch[0]<<std::endl;
 				//std::cout<<"patches[i][0][0] = "<<(int)patches[i][0][0]<<std::endl;
@@ -55,6 +66,7 @@ textureTracker::retrievePatch(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpC
 			else
 			{
 				curPatch[i] = patch;
+				curHist[i]  = hist;
 				// DEBUG
 				//std::cout<<"patch[0] = "<<(int)patch[0]<<std::endl;
 				//std::cout<<"curPatch[i][0] = "<<(int)curPatch[i][0]<<std::endl;
@@ -117,6 +129,7 @@ textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraPara
 	this->cam = cam_;
 	this->cMo = cMo_;
 
+	numOfHist = 32;
 	numOfPatch = 10;
 	// TODO: for fast computing, it should be 30
 	numOfPtsPerFace = 10;
@@ -458,4 +471,26 @@ textureTracker::stackJacobian(cv::Mat& Jacobian, cv::Mat& GJ, int count)
 {
 	for (int i = 0; i < 6; i++)
 		Jacobian.at<float>(count, i) = GJ.at<float>(0, i);
+}
+
+inline void
+textureTracker::addToHist(cv::Mat& hist, int intensity)
+{
+	// TODO: requires more attention
+	int binWidth = 256 / numOfHist;
+	int locate = intensity / numOfHist;
+	int shift = binWidth / 2;
+	int cl = locate * binWidth - shift;
+	int cc = cl + binWidth;
+	int cr = cc + binWidth;
+	if (locate == numOfHist - 1)
+	{
+		hist[locate - 1] += 
+		hist[locate] 	 += 
+	}
+	else
+	{
+		hist[locate + 1] += 
+		hist[locate] 	 += 
+	}
 }
