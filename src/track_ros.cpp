@@ -89,70 +89,18 @@ CEndeffectorTracking::trackCallback(const sensor_msgs::ImageConstPtr& srcImg)
 			rows = grayImg.rows;
 			cols = grayImg.cols;
 			
-			//fbTracker.getInitPoints(init_file);
-			//fbTracker.init(curImg);
 			nptTracker.getInitPoints(init_file);
-			//nptTracker.init(curImg);
-
-			//meTracker.retrieveImage(srcImg);
-			//meTracker.initialize(config_file, model_name, init_file);
-			//amTracker.getInitPoints(init_file);
-			//amTracker.initialize(cam, cMo, rows, cols);
-			//kltTracker.retrieveImage(srcImg);
-			//kltTracker.initialize(config_file, model_name, init_file);
-			//mekltTracker.retrieveImage(srcImg);
-			//mekltTracker.initialize(config_file, model_name, init_file);
 		}
 
 		initializeTracker(srcImg);
-		//hlTracker.retrieveImage(curImg);
-		//hlTracker.initialize(this->cam, cMo, poseVector, rows, cols);
-		//fbTracker.retrieveImage(curImg);
-		//fbTracker.initialize(this->cam, cMo, poseVector, rows, cols);
 		nptTracker.retrieveImage(curImg);
 		nptTracker.init(cMo, cam, init_file);
-
-		//amTracker.retrieveImage(curImg);
-		//amTracker.initialize(cam, cMo, rows, cols);
-		//csTracker.retrieveImage(curImg);
-		//kbTracker.retrieveImage(curImg);
-		//genTrackingWindow();
-		//kbTracker.initTarget(window);
-		//csTracker.initTarget(window);
-		//mfTracker.init(window, curImg);
 
 		//finish the initialization step and start to track
 		status = CEndeffectorTracking::TRACKING;
 	}	
 	else if (status == CEndeffectorTracking::TRACKING)
 	{
-		//kbTracker.retrieveImage(curImg);
-		//kbTracker.track();
-		//csTracker.retrieveImage(curImg);
-		//csTracker.track();
-		//mfTracker.retrieveImage(curImg);
-		//mfTracker.track();
-		//this->kbtWindow = kbTracker.getWindow();
-		//this->kbtWindow = mfTracker.getWindow();
-		// temporarily used to draw object tracked by kbTracker
-		//processedImg = curImg.clone();
-		//cv::rectangle(processedImg, kbtWindow, cv::Scalar(0), 2);		
-
-
-		//hlTracker.retrieveImage(curImg);
-		//hlTracker.track();
-		//if(hlTracker.pubRst(this->processedImg, this->TrackerWindow))
-		//	status = CEndeffectorTracking::LOST;
-		//fbTracker.getPose(cMo);
-		//fbTracker.retrieveImage(curImg);
-		//for (int i = 0; i < 1; i++)
-		//{
-		//fbTracker.track();
-		////fbTracker.refinePose();
-		//}
-		//fbTracker.pubPose(cMo);
-		//if(fbTracker.pubRst(this->processedImg, this->TrackerWindow))
-		//	status = CEndeffectorTracking::LOST;
 
 		nptTracker.getPose(cMo);
 		nptTracker.retrieveImage(curImg);
@@ -160,23 +108,6 @@ CEndeffectorTracking::trackCallback(const sensor_msgs::ImageConstPtr& srcImg)
 		nptTracker.pubPose(cMo);
 		nptTracker.pubRst(this->processedImg, this->TrackerWindow);
 		
-		//amTracker.getPose(cMo);
-		//amTracker.retrieveImage(curImg);
-		//amTracker.track();
-		//amTracker.pubPose(cMo);
-		//amTracker.pubRst(this->processedImg);
-		//meTracker.getPose(cMo);
-		//meTracker.retrieveImage(srcImg);
-		//meTracker.track();
-		//meTracker.pubPose(cMo);
-		//kltTracker.retrieveImage(srcImg);
-		//kltTracker.track();
-		//mekltTracker.retrieveImage(srcImg);
-		//mekltTracker.track();
-		// sensor_msgs::Image msg;	
-		// meTracker.pubRst(msg, TrackerWindow);
-		// imgPub.publish(msg);
-
 		pubRst(srcImg);
 	}
 }

@@ -45,9 +45,9 @@ textureTracker::retrievePatch(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpC
 			if (isDatabase)
 			{
 				// TODO: some STL related performance improvement might be possible here
-				if (patches[i].size() > (size_t)numOfPatch)
-					patches[i].erase(patches[i].begin());
 				patches[i].push_back(patch);
+				while (patches[i].size() > (size_t)numOfPatch)
+					patches[i].erase(patches[i].begin());
 				// DEBUG
 				//std::cout<<"patch[0] = "<<(int)patch[0]<<std::endl;
 				//std::cout<<"patches[i][0][0] = "<<(int)patches[i][0][0]<<std::endl;
@@ -73,10 +73,12 @@ textureTracker::track(const cv::Mat& img, const cv::Mat& grad)
 	curdiff = 255;
 	// TODO: tune the diff threshold
 	// additional criterion based on the similarity between two itrs
-	while (itr < 10 && curdiff > 5)
+	while (itr < 10 && curdiff > 2)
 	{
 		// track
 		retrievePatch(curImg, cMo, cam);
+		if (itr == 0)
+			measureFit(false);
 		optimizePose(curImg);
 		measureFit(false);
 
@@ -117,7 +119,7 @@ textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraPara
 
 	numOfPatch = 10;
 	// TODO: for fast computing, it should be 30
-	numOfPtsPerFace = 7;
+	numOfPtsPerFace = 20;
 	curdiff = 255;
 	gStep = 5e-9;
 	minStep = 5e-9;
@@ -155,7 +157,7 @@ textureTracker::optimizePose(const cv::Mat& img)
 		{
 			for (size_t j = 0; j < patchCoor[i].size(); j++)
 			{
-				vpPoint p = patchCoor[i][j]; 
+				vpPoint& p = patchCoor[i][j]; 
 				p.changeFrame(cMo);
 				p.project();
 				double x, y;
@@ -179,28 +181,36 @@ textureTracker::optimizePose(const cv::Mat& img)
 
 	cv::Mat L = (Jacobian.t() * Jacobian).inv() * Jacobian.t();
 	cv::Mat e = tarFeature - curFeature;
-	float lambda = 0.6;
+	float lambda = 0.2;
 
 	cv::Mat v = - lambda * L * e;
-
-
-
-
-	vpPoseVector pv;
-	pv.buildFrom(cMo);
-
-	for (int i = 0; i < 6; i++)
-	{
-		std::cout<<" orig["<<i<<"] = "<<pv[i]<<std::endl; 
-		// TODO: is the param here ok?
-		pv[i] = pv[i] - v.at<float>(i, 0);
-		// DEBUG
-		std::cout<<" diff["<<i<<"] = "<<v.at<float>(i, 0)<<std::endl;
-		std::cout<<" chng["<<i<<"] = "<<pv[i]<<std::endl; 
-	}
-
+	vpColVector vpV(6);
+	vpV[0] = v.at<float>(0, 0);
+	vpV[1] = v.at<float>(0, 1);
+	vpV[2] = v.at<float>(0, 2);
+	vpV[3] = v.at<float>(0, 3);
+	vpV[4] = v.at<float>(0, 4);
+	vpV[5] = v.at<float>(0, 5);
 	p_cMo = cMo;
-	cMo.buildFrom(pv);
+	cMo = vpExponentialMap::direct(vpV).inverse()*cMo;
+
+
+
+//	vpPoseVector pv;
+//	pv.buildFrom(cMo);
+//
+//	for (int i = 0; i < 6; i++)
+//	{
+//		std::cout<<" orig["<<i<<"] = "<<pv[i]<<std::endl; 
+//		// TODO: is the param here ok?
+//		pv[i] = pv[i] - v.at<float>(i, 0);
+//		// DEBUG
+//		std::cout<<" diff["<<i<<"] = "<<v.at<float>(i, 0)<<std::endl;
+//		std::cout<<" chng["<<i<<"] = "<<pv[i]<<std::endl; 
+//	}
+//
+//	p_cMo = cMo;
+//	cMo.buildFrom(pv);
 }
 
 double
@@ -230,10 +240,11 @@ textureTracker::meanShiftMax(int intensity, int faceID, int index)
 	cur = intensity;
 	pre = INT_MAX;
 	int count = 0;
-	while (abs(cur - pre) > 1 || count < 10)
+	while (abs(cur - pre) > 1 && count < 10)
 	{
 		pre = cur;
 		cur = meanShift(cur, faceID, index);
+		count++;
 	}
 
 	return cur;
@@ -296,19 +307,23 @@ textureTracker::jacobianImage(vpPoint p)
 	float fy = cam.get_py();
 	cv::Mat J(2, 6, CV_32FC1);
 
-	J.at<float>(0, 0) = -fx * 1 / p.get_Z();
+	float Z = p.get_Z() / p.get_W();
+	float x = p.get_x();
+	float y = p.get_y();
+
+	J.at<float>(0, 0) = -fx * 1 / Z;
 	J.at<float>(0, 1) = 0;
-	J.at<float>(0, 2) = fx * p.get_x() / p.get_Z();
-	J.at<float>(0, 3) = fx * p.get_x() * p.get_y();
-	J.at<float>(0, 4) = -fx * (1 + p.get_x() * p.get_x());
-	J.at<float>(0, 5) = fx * p.get_y();
+	J.at<float>(0, 2) = fx * x / Z;
+	J.at<float>(0, 3) = fx * x * y;
+	J.at<float>(0, 4) = -fx * (1 + x * x);
+	J.at<float>(0, 5) = fx * y;
 
 	J.at<float>(1, 0) = 0;
-	J.at<float>(1, 1) = -fy * 1 / p.get_Z();
-	J.at<float>(1, 2) = fy * p.get_y() / p.get_Z();
-	J.at<float>(1, 3) = fy * (1 + p.get_y() * p.get_y());
-	J.at<float>(1, 4) = -fy * p.get_x() * p.get_y();
-	J.at<float>(1, 5) = -fy * p.get_x();
+	J.at<float>(1, 1) = -fy * 1 / Z;
+	J.at<float>(1, 2) = fy * y / Z;
+	J.at<float>(1, 3) = fy * (1 + y * y);
+	J.at<float>(1, 4) = -fy * x * y;
+	J.at<float>(1, 5) = -fy * x;
 
 	return J;
 }
@@ -353,7 +368,7 @@ textureTracker::measureFit(bool isUpdate)
 {
 	float tmpdiff = 0;
 	int count = 0;
-	float th = 5;
+	float th = 2;
 	retrievePatch(curImg, cMo, cam);	
 	
 	for (int i = 0; i < 6; i++)
@@ -390,7 +405,7 @@ textureTracker::measureFit(bool isUpdate)
 		}
 		else
 		{
-			cMo = p_cMo;
+			//cMo = p_cMo;
 			gStep = gStep / 2.0 < minStep ? minStep : gStep / 2.0;
 			return false;
 		}
