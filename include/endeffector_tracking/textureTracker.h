@@ -124,6 +124,13 @@ class textureTracker: public cadModel
 		 */
 		inline cv::Mat jacobianImage(vpPoint p);
 
+		/**
+		 * @brief stack the GJ into Jacobian matrix
+		 *
+		 * @param Jacobian
+		 * @param GJ
+		 * @param count
+		 */
 		inline void stackJacobian(cv::Mat& Jacobian, cv::Mat& GJ, int count);
 
 		/**
@@ -175,6 +182,14 @@ class textureTracker: public cadModel
 		 * @return 
 		 */
 		inline bool isEdge(int index);
+
+		/**
+		 * @brief add a image pixel into a histogram
+		 *
+		 * @param hist
+		 * @param intensity
+		 */
+		inline void addToHist(cv::Mat& hist, int intensity);
 	private:
 		/**
 		 * @brief current frame
@@ -188,6 +203,9 @@ class textureTracker: public cadModel
 		double gStep, minStep, maxStep;
 
 		int numOfHist;
+		int binWidth;
+		int shift;
+
 		/**
 		 * @brief numOfPtsPerFace = numOfPtsPerFace * numOfPtsPerFace;
 		 */

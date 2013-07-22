@@ -130,6 +130,10 @@ textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraPara
 	this->cMo = cMo_;
 
 	numOfHist = 32;
+
+	binWidth = 256 / numOfHist;
+	shift = binWidth / 2;
+
 	numOfPatch = 10;
 	// TODO: for fast computing, it should be 30
 	numOfPtsPerFace = 10;
@@ -156,7 +160,7 @@ textureTracker::optimizePose(const cv::Mat& img)
 	{
 		if (pyg[i].isVisible(cMo) && patches[i].size() != 0)
 		{
-			col += patchCoor[i].size();
+			col += numOfHist;
 		}
 	}
 	cv::Mat Jacobian(col, 6, CV_32FC1);
@@ -476,21 +480,26 @@ textureTracker::stackJacobian(cv::Mat& Jacobian, cv::Mat& GJ, int count)
 inline void
 textureTracker::addToHist(cv::Mat& hist, int intensity)
 {
-	// TODO: requires more attention
-	int binWidth = 256 / numOfHist;
 	int locate = intensity / numOfHist;
-	int shift = binWidth / 2;
 	int cl = locate * binWidth - shift;
 	int cc = cl + binWidth;
 	int cr = cc + binWidth;
+
+	// TODO: maybe need additional revision
 	if (locate == numOfHist - 1)
 	{
-		hist[locate - 1] += 
-		hist[locate] 	 += 
+		hist.at<float>(0, locate) += 1 - abs(intensity - cc) / (float) binWidth;
+	}
+	else if (locate == 0)
+	{
+		hist.at<float>(0, locate) += 1 - abs(intensity - cc) / (float) binWidth;
 	}
 	else
 	{
-		hist[locate + 1] += 
-		hist[locate] 	 += 
+		hist.at<float>(0, locate) += 1 - abs(intensity - cc) / (float) binWidth;
+		if (intensity < cc)
+			hist.at<float>(0, locate - 1) += 1 - (intensity - cl) / (float) binWidth;
+		else
+			hist.at<float>(0, locate + 1) += 1 - (cr - intensity) / (float) binWidth;
 	}
 }
