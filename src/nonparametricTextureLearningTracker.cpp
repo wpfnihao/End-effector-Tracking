@@ -9,6 +9,8 @@
  */
 
 #include "endeffector_tracking/nonparametricTextureLearningTracker.h"
+//DEBUG only
+#include "opencv2/highgui/highgui.hpp"
 
 void
 nonparametricTextureLearningTracker::init(vpHomogeneousMatrix cMo_, vpCameraParameters cam_, std::string init_file)
@@ -28,8 +30,12 @@ nonparametricTextureLearningTracker::track(void)
 {
 	// edge map for edge detection
 	sobelGradient(curImg, gradient);
+	//DEBUG only
+	cv::imshow("sobel", gradient);
+	cv::waitKey(1);
 
 	// texture based track 
+	texTracker.getPose(cMo);
 	texTracker.track(curImg, gradient);	
 	texTracker.pubPose(cMo);
 

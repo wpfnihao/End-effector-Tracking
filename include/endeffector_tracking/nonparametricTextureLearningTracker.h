@@ -28,6 +28,7 @@ class nonparametricTextureLearningTracker: public cadModel, public cvBaseTracker
 		virtual inline void retrieveImage(const cv::Mat& img)
 		{
 			cv::cvtColor(img, curImg, CV_RGB2GRAY);
+			cv::GaussianBlur(curImg, curImg, cv::Size(5, 5), 3);
 			this->processedImg = img.clone();
 		}
 

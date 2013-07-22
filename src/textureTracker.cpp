@@ -73,12 +73,12 @@ textureTracker::track(const cv::Mat& img, const cv::Mat& grad)
 	curdiff = 255;
 	// TODO: tune the diff threshold
 	// additional criterion based on the similarity between two itrs
-	while (itr < 10 && curdiff > 2)
+	while (itr < 10 && curdiff > 3)
 	{
 		// track
 		retrievePatch(curImg, cMo, cam);
-		if (itr == 0)
-			measureFit(false);
+		//if (itr == 0)
+		//	measureFit(false);
 		optimizePose(curImg);
 		measureFit(false);
 
@@ -119,11 +119,11 @@ textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraPara
 
 	numOfPatch = 10;
 	// TODO: for fast computing, it should be 30
-	numOfPtsPerFace = 20;
+	numOfPtsPerFace = 10;
 	curdiff = 255;
-	gStep = 5e-9;
-	minStep = 5e-9;
-	maxStep = 5e-9;
+	gStep = 0.2;
+	minStep = 0.1;
+	maxStep = 0.6;
 
 	initModel();
 	initCoor();
@@ -181,9 +181,8 @@ textureTracker::optimizePose(const cv::Mat& img)
 
 	cv::Mat L = (Jacobian.t() * Jacobian).inv() * Jacobian.t();
 	cv::Mat e = tarFeature - curFeature;
-	float lambda = 0.2;
 
-	cv::Mat v = - lambda * L * e;
+	cv::Mat v = - gStep * L * e;
 	vpColVector vpV(6);
 	vpV[0] = v.at<float>(0, 0);
 	vpV[1] = v.at<float>(0, 1);
@@ -368,7 +367,7 @@ textureTracker::measureFit(bool isUpdate)
 {
 	float tmpdiff = 0;
 	int count = 0;
-	float th = 2;
+	float th = 3;
 	retrievePatch(curImg, cMo, cam);	
 	
 	for (int i = 0; i < 6; i++)
@@ -405,7 +404,7 @@ textureTracker::measureFit(bool isUpdate)
 		}
 		else
 		{
-			//cMo = p_cMo;
+			cMo = p_cMo;
 			gStep = gStep / 2.0 < minStep ? minStep : gStep / 2.0;
 			return false;
 		}
