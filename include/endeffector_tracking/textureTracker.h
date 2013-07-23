@@ -78,14 +78,14 @@ class textureTracker: public cadModel
 		 * @param img
 		 * @param cMo_
 		 */
-		void retrievePatch(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraParameters& cam_, bool isDatabase = false);
+		void retrievePatch(bool isDatabase = false);
 
 		/**
 		 * @brief optimize pose based on the nonparametric texture fitness
 		 *
 		 * @param img
 		 */
-		void optimizePose(const cv::Mat& img);
+		void optimizePose(void);
 
 		/**
 		 * @brief the gradient of the pixel based on the texture database using the mean shift method 
@@ -190,6 +190,12 @@ class textureTracker: public cadModel
 		 * @param intensity
 		 */
 		inline void addToHist(cv::Mat& hist, int intensity);
+
+		void stackBin(cv::Mat& deriveBin, int intensity, int count, int faceCount);
+
+		void findTarFeature(cv::Mat& tarFeature, int faceCount, int faceID);
+
+		void stackCurFeature(cv::Mat& curFeature, int faceCount, int faceID);
 	private:
 		/**
 		 * @brief current frame

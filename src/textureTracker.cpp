@@ -19,31 +19,30 @@ textureTracker::initCoor(void)
 }
 
 void 
-textureTracker::retrievePatch(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraParameters& cam_, bool isDatabase)
+textureTracker::retrievePatch(bool isDatabase)
 {
 	if (!isDatabase)
 	{
 		curPatch.clear();
-		for (int i = 0; i < 6; i++)
-			curHist[i] = cv::Mat::zeros(1, numOfHist, CV_32FC1);
+		curHist.clear();
 	}
 
 	//this->cMo = cMo_;
 	for (int i = 0; i < 6; i++)
 	{
-		if (pyg[i].isVisible(cMo_))
+		if (pyg[i].isVisible(cMo))
 		{
 			// process
 			cv::Mat hist = cv::Mat::zeros(1, numOfHist, CV_32FC1);
 			std::vector<unsigned char> patch;
 			for (size_t j = 0; j < patchCoor[i].size(); j++)
 			{
-				vpPoint P = patchCoor[i][j];
-				P.changeFrame(cMo_);
+				vpPoint& P = patchCoor[i][j];
+				P.changeFrame(cMo);
 				P.project();
 				double u, v;
-				vpMeterPixelConversion::convertPoint(cam_, P.get_x(), P.get_y(), u, v);
-				unsigned char intensity = img.at<unsigned char>(v, u);
+				vpMeterPixelConversion::convertPoint(cam, P.get_x(), P.get_y(), u, v);
+				unsigned char intensity = curImg.at<unsigned char>(v, u);
 				patch.push_back(intensity);
 				addToHist(hist, intensity);
 			}
@@ -59,17 +58,11 @@ textureTracker::retrievePatch(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpC
 				hists[i].push_back(hist);
 				while (hists[i].size() > (size_t)numOfPatch)
 					hists[i].erase(hists[i].begin());
-				// DEBUG
-				//std::cout<<"patch[0] = "<<(int)patch[0]<<std::endl;
-				//std::cout<<"patches[i][0][0] = "<<(int)patches[i][0][0]<<std::endl;
 			}
 			else
 			{
 				curPatch[i] = patch;
 				curHist[i]  = hist;
-				// DEBUG
-				//std::cout<<"patch[0] = "<<(int)patch[0]<<std::endl;
-				//std::cout<<"curPatch[i][0] = "<<(int)curPatch[i][0]<<std::endl;
 			}
 		}
 	}
@@ -85,13 +78,13 @@ textureTracker::track(const cv::Mat& img, const cv::Mat& grad)
 	curdiff = 255;
 	// TODO: tune the diff threshold
 	// additional criterion based on the similarity between two itrs
-	while (itr < 10 && curdiff > 3)
+	while (itr < 20 && curdiff > 3)
 	{
 		// track
-		retrievePatch(curImg, cMo, cam);
+		retrievePatch();
 		//if (itr == 0)
 		//	measureFit(false);
-		optimizePose(curImg);
+		optimizePose();
 		measureFit(false);
 
 		// criterion update
@@ -128,6 +121,7 @@ textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraPara
 {
 	this->cam = cam_;
 	this->cMo = cMo_;
+	this->curImg = img;
 
 	numOfHist = 32;
 
@@ -136,9 +130,10 @@ textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraPara
 
 	numOfPatch = 10;
 	// TODO: for fast computing, it should be 30
-	numOfPtsPerFace = 10;
+	numOfPtsPerFace = 20;
 	curdiff = 255;
-	gStep = 0.2;
+	//gStep = 0.2;
+	gStep = 0.6;
 	minStep = 0.1;
 	maxStep = 0.6;
 
@@ -146,28 +141,33 @@ textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraPara
 	initCoor();
 
 	// init the patch database
-	retrievePatch(img, cMo, cam, true);
+	retrievePatch(true);
 }
 
 void 
-textureTracker::optimizePose(const cv::Mat& img)
+textureTracker::optimizePose(void)
 {
 	// TODO: some code optimization can be done here to improve the performance
 
 	// TODO: first don't consider the gradient maximum, add this later
 	int col = 0;
+	int numOfPixel = 0;
 	for (int i = 0; i < 6; i++)
 	{
 		if (pyg[i].isVisible(cMo) && patches[i].size() != 0)
 		{
+			numOfPixel += patchCoor[i].size();
 			col += numOfHist;
 		}
 	}
-	cv::Mat Jacobian(col, 6, CV_32FC1);
+	cv::Mat Jacobian(numOfPixel, 6, CV_32FC1);
+	cv::Mat deriveBin = cv::Mat::zeros(col, numOfPixel, CV_32FC1);
+
 	cv::Mat curFeature(col, 1, CV_32FC1);
 	cv::Mat tarFeature(col, 1, CV_32FC1);
 
 	int count = 0;
+	int faceCount = 0;
 	for (int i = 0; i < 6; i++)
 	{
 		if (pyg[i].isVisible(cMo) && patches[i].size() != 0)
@@ -175,31 +175,41 @@ textureTracker::optimizePose(const cv::Mat& img)
 			for (size_t j = 0; j < patchCoor[i].size(); j++)
 			{
 				vpPoint& p = patchCoor[i][j]; 
-				p.changeFrame(cMo);
-				p.project();
+				// NOTE:this is based on the fact that the retrievePatch will do this before
+				//p.changeFrame(cMo);
+				//p.project();
 				double x, y;
 				vpMeterPixelConversion::convertPoint(cam, p.get_x(), p.get_y(), x, y);
-				int grad = gradient.at<unsigned char>(y, x);
+				//int grad = gradient.at<unsigned char>(y, x);
+				int intensity = curPatch[i][j];
 
 				cv::Mat J = jacobianImage(p);
 
-				cv::Mat G = gradientImage(img, x, y);
+				cv::Mat G = gradientImage(curImg, x, y);
 				// FIXME: why directly use patchCoor[i][j] will cause an compile error
 				// FIXME: what's the type of GJ? The same with G , J or anything else?
 				cv::Mat GJ = G * J;
 				stackJacobian(Jacobian, GJ, count);
-				curFeature.at<float>(count, 0) = curPatch[i][j];
-				tarFeature.at<float>(count, 0) = meanShiftMax(curPatch[i][j], i, j);
+
+
+				// TODO: can be pre-computed
+				stackBin(deriveBin, intensity, count, faceCount);
 
 				count++;
 			}
+
+			findTarFeature(tarFeature, faceCount, i);
+			stackCurFeature(curFeature, faceCount, i);
+
+			faceCount++;
 		}
 	}
 
-	cv::Mat L = (Jacobian.t() * Jacobian).inv() * Jacobian.t();
-	cv::Mat e = tarFeature - curFeature;
+	cv::Mat L = deriveBin * Jacobian;
+	cv::Mat Lp = (L.t() * L).inv() * L.t();
+	cv::Mat e = (tarFeature - curFeature);
 
-	cv::Mat v = - gStep * L * e;
+	cv::Mat v = - gStep * Lp * e;
 	vpColVector vpV(6);
 	vpV[0] = v.at<float>(0, 0);
 	vpV[1] = v.at<float>(0, 1);
@@ -382,10 +392,13 @@ textureTracker::kernelDensity(double x, double xi, double delta)
 bool 
 textureTracker::measureFit(bool isUpdate)
 {
+	//DEBUG only
+	return false;
+
 	float tmpdiff = 0;
 	int count = 0;
 	float th = 3;
-	retrievePatch(curImg, cMo, cam);	
+	retrievePatch();	
 	
 	for (int i = 0; i < 6; i++)
 	{
@@ -408,7 +421,7 @@ textureTracker::measureFit(bool isUpdate)
 			curdiff = tmpdiff;
 
 		//TODO: DEBUG
-		return false;
+		//return false;
 		return tmpdiff < th;
 	}
 	else
@@ -437,7 +450,7 @@ textureTracker::updatePatches(vpHomogeneousMatrix& cMo_)
 	if (measureFit(true))
 	{
 		// update here
-		retrievePatch(curImg, cMo, cam, true);
+		retrievePatch(true);
 	}
 }
 
@@ -480,26 +493,71 @@ textureTracker::stackJacobian(cv::Mat& Jacobian, cv::Mat& GJ, int count)
 inline void
 textureTracker::addToHist(cv::Mat& hist, int intensity)
 {
-	int locate = intensity / numOfHist;
-	int cl = locate * binWidth - shift;
-	int cc = cl + binWidth;
-	int cr = cc + binWidth;
+	int locate = intensity / binWidth;
+	int cc = locate * binWidth + shift;
 
-	// TODO: maybe need additional revision
+	float val = abs(intensity - cc) / (float) binWidth;
+
+	// TODO: maybe require additional revision
 	if (locate == numOfHist - 1)
 	{
-		hist.at<float>(0, locate) += 1 - abs(intensity - cc) / (float) binWidth;
+		hist.at<float>(0, locate) += 1 - val;
 	}
 	else if (locate == 0)
 	{
-		hist.at<float>(0, locate) += 1 - abs(intensity - cc) / (float) binWidth;
+		hist.at<float>(0, locate) += 1 - val;
 	}
 	else
 	{
-		hist.at<float>(0, locate) += 1 - abs(intensity - cc) / (float) binWidth;
+		hist.at<float>(0, locate) += 1 - val;
 		if (intensity < cc)
-			hist.at<float>(0, locate - 1) += 1 - (intensity - cl) / (float) binWidth;
+			hist.at<float>(0, locate - 1) += val;
 		else
-			hist.at<float>(0, locate + 1) += 1 - (cr - intensity) / (float) binWidth;
+			hist.at<float>(0, locate + 1) += val;
 	}
+}
+
+// the deriveBin should be initialized as zero matrix
+void
+textureTracker::stackBin(cv::Mat& deriveBin, int intensity, int count, int faceCount)
+{
+	int locate = intensity / binWidth;
+	int cc = locate * binWidth + shift;
+
+	if (intensity < cc)
+		deriveBin.at<float>(faceCount * numOfHist + locate, count) = 1.0 / (float) binWidth;
+	else
+		deriveBin.at<float>(faceCount * numOfHist + locate, count) = -1.0 / (float) binWidth;
+
+	if (locate == 0)
+	{
+		if (intensity == binWidth - 1)
+			deriveBin.at<float>(faceCount * numOfHist + locate + 1, count) = 0.5;
+	}
+	else if (locate == numOfHist - 1)
+	{
+		;
+	}
+	else
+	{
+		if (intensity < cc)
+			deriveBin.at<float>(faceCount * numOfHist + locate - 1, count) = - 1.0 / (float) binWidth;
+		else
+			deriveBin.at<float>(faceCount * numOfHist + locate + 1, count) = 1.0 / (float) binWidth;
+	}
+}
+
+//TODO: add the meanShift steps here
+void
+textureTracker::findTarFeature(cv::Mat& tarFeature, int faceCount, int faceID)
+{
+	for (int i = 0; i < numOfHist; i++)
+		tarFeature.at<float>(faceCount * numOfHist + i, 0) = hists[faceID][0].at<float>(0, i);
+}
+
+void
+textureTracker::stackCurFeature(cv::Mat& curFeature, int faceCount, int faceID)
+{
+	for (int i = 0; i < numOfHist; i++)
+		curFeature.at<float>(faceCount * numOfHist + i, 0) = curHist[faceID].at<float>(0, i);
 }
