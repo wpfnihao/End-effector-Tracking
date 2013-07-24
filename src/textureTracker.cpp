@@ -130,7 +130,7 @@ textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraPara
 
 	numOfPatch = 10;
 	// TODO: for fast computing, it should be 30
-	numOfPtsPerFace = 20;
+	numOfPtsPerFace = 30;
 	curdiff = 255;
 	//gStep = 0.2;
 	gStep = 0.6;
@@ -207,7 +207,7 @@ textureTracker::optimizePose(void)
 
 	cv::Mat L = deriveBin * Jacobian;
 	cv::Mat Lp = (L.t() * L).inv() * L.t();
-	cv::Mat e = (tarFeature - curFeature);
+	cv::Mat e = curFeature - tarFeature;
 
 	cv::Mat v = - gStep * Lp * e;
 	vpColVector vpV(6);
