@@ -18,8 +18,10 @@ textureTracker::initCoor(void)
 	}
 }
 
+// TODO: update procedure is not considered now
+// should be considered in the future
 void 
-textureTracker::retrievePatch(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraParameters& cam_, bool isDatabase)
+textureTracker::retrievePatch(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraParameters& cam_, int scale, bool isDatabase)
 {
 	if (!isDatabase)
 		curPatch.clear();
@@ -38,7 +40,7 @@ textureTracker::retrievePatch(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpC
 				P.project();
 				double u, v;
 				vpMeterPixelConversion::convertPoint(cam_, P.get_x(), P.get_y(), u, v);
-				patch.push_back(img.at<unsigned char>(v, u));
+				patch.push_back(img.at<unsigned char>(v / scale, u / scale));
 			}
 
 			// update
@@ -73,17 +75,23 @@ textureTracker::track(const cv::Mat& img, const cv::Mat& grad)
 	curdiff = 255;
 	// TODO: tune the diff threshold
 	// additional criterion based on the similarity between two itrs
-	while (itr < 10 && curdiff > 3)
+	for (int i = 0; i < scales; i++)
 	{
-		// track
-		retrievePatch(curImg, cMo, cam);
-		//if (itr == 0)
-		//	measureFit(false);
-		optimizePose(curImg);
-		measureFit(false);
+		int scale = pow(2, scales - 1 - i);
+		cv::Mat scaleImg;
+		cv::resize(curImg, scaleImg, cv::Size(curImg.cols / scale, curImg.rows / scale));
+		while (itr < 5 && curdiff > 1)
+		{
+			// track
+			retrievePatch(curImg, cMo, cam, scale);
+			//if (itr == 0)
+			//	measureFit(false);
+			optimizePose(scaleImg, scale);
+			measureFit(false);
 
-		// criterion update
-		itr++;
+			// criterion update
+			itr++;
+		}
 	}
 
 }
@@ -125,15 +133,17 @@ textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraPara
 	minStep = 0.1;
 	maxStep = 0.6;
 
+	scales = 1;
+
 	initModel();
 	initCoor();
 
 	// init the patch database
-	retrievePatch(img, cMo, cam, true);
+	retrievePatch(img, cMo, cam, 1, true);
 }
 
 void 
-textureTracker::optimizePose(const cv::Mat& img)
+textureTracker::optimizePose(const cv::Mat& img, int scale)
 {
 	// TODO: some code optimization can be done here to improve the performance
 
@@ -162,16 +172,17 @@ textureTracker::optimizePose(const cv::Mat& img)
 				p.project();
 				double x, y;
 				vpMeterPixelConversion::convertPoint(cam, p.get_x(), p.get_y(), x, y);
-				int grad = gradient.at<unsigned char>(y, x);
+				//int grad = gradient.at<unsigned char>(y, x);
 
-				cv::Mat J = jacobianImage(p);
+				cv::Mat J = jacobianImage(p, scale);
 
-				cv::Mat G = gradientImage(img, x, y);
+				cv::Mat G = gradientImage(img, x / scale, y / scale);
 				// FIXME: why directly use patchCoor[i][j] will cause an compile error
 				// FIXME: what's the type of GJ? The same with G , J or anything else?
 				cv::Mat GJ = G * J;
 				stackJacobian(Jacobian, GJ, count);
 				curFeature.at<float>(count, 0) = curPatch[i][j];
+				// TODO: the match between target and current is not correct
 				tarFeature.at<float>(count, 0) = meanShiftMax(curPatch[i][j], i, j);
 
 				count++;
@@ -300,10 +311,10 @@ textureTracker::gradientImage2(const cv::Mat& img, const cv::Mat& gradient, int 
 }
 
 inline cv::Mat
-textureTracker::jacobianImage(vpPoint p)
+textureTracker::jacobianImage(vpPoint p, int scale)
 {
-	float fx = cam.get_px();
-	float fy = cam.get_py();
+	float fx = cam.get_px() / scale;
+	float fy = cam.get_py() / scale;
 	cv::Mat J(2, 6, CV_32FC1);
 
 	float Z = p.get_Z() / p.get_W();
@@ -365,10 +376,13 @@ textureTracker::kernelDensity(double x, double xi, double delta)
 bool 
 textureTracker::measureFit(bool isUpdate)
 {
+	// DEBUG only
+	return false;
+
 	float tmpdiff = 0;
 	int count = 0;
-	float th = 3;
-	retrievePatch(curImg, cMo, cam);	
+	float th = 1;
+	retrievePatch(curImg, cMo, cam, 1);	
 	
 	for (int i = 0; i < 6; i++)
 	{
@@ -420,7 +434,7 @@ textureTracker::updatePatches(vpHomogeneousMatrix& cMo_)
 	if (measureFit(true))
 	{
 		// update here
-		retrievePatch(curImg, cMo, cam, true);
+		retrievePatch(curImg, cMo, cam, 1, true);
 	}
 }
 

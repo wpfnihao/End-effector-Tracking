@@ -31,8 +31,8 @@ nonparametricTextureLearningTracker::track(void)
 	// edge map for edge detection
 	sobelGradient(curImg, gradient);
 	//DEBUG only
-	cv::imshow("sobel", gradient);
-	cv::waitKey(1);
+	//cv::imshow("sobel", gradient);
+	//cv::waitKey(1);
 
 	// texture based track 
 	texTracker.getPose(cMo);

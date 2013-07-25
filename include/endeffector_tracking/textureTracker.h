@@ -78,14 +78,14 @@ class textureTracker: public cadModel
 		 * @param img
 		 * @param cMo_
 		 */
-		void retrievePatch(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraParameters& cam_, bool isDatabase = false);
+		void retrievePatch(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraParameters& cam_, int scale, bool isDatabase = false);
 
 		/**
 		 * @brief optimize pose based on the nonparametric texture fitness
 		 *
 		 * @param img
 		 */
-		void optimizePose(const cv::Mat& img);
+		void optimizePose(const cv::Mat& img, int scale);
 
 		/**
 		 * @brief the gradient of the pixel based on the texture database using the mean shift method 
@@ -122,7 +122,7 @@ class textureTracker: public cadModel
 		 *
 		 * @return 
 		 */
-		inline cv::Mat jacobianImage(vpPoint p);
+		inline cv::Mat jacobianImage(vpPoint p, int scale);
 
 		inline void stackJacobian(cv::Mat& Jacobian, cv::Mat& GJ, int count);
 
@@ -180,16 +180,26 @@ class textureTracker: public cadModel
 		 * @brief current frame
 		 */
 		cv::Mat curImg;
+
+		/**
+		 * @brief the gradient map of the curImg, in the CV_8UC1 format
+		 */
 		cv::Mat gradient;
 
 		vpHomogeneousMatrix cMo, p_cMo;
 		vpCameraParameters cam;
 
 		double gStep, minStep, maxStep;
+
 		/**
 		 * @brief numOfPtsPerFace = numOfPtsPerFace * numOfPtsPerFace;
 		 */
 		int numOfPtsPerFace;
+
+		/**
+		 * @brief multi-resolution scales used
+		 */
+		int scales;
 
 		/**
 		 * @brief number of the patches saved for each face.
