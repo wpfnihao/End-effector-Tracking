@@ -136,6 +136,8 @@ textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraPara
 	scales = 1;
 
 	initModel();
+	// for the moving edge tracker
+	initLines();
 	initCoor();
 
 	// init the patch database
@@ -190,17 +192,20 @@ textureTracker::optimizePose(const cv::Mat& img, int scale)
 		}
 	}
 
-	cv::Mat L = (Jacobian.t() * Jacobian).inv() * Jacobian.t();
+	// TODO: several functions here
+	cv::Mat JacobianMe, eMe;
+	MovingEdgeBasedTracker(JacobianMe, eMe);
+	stackMatrix(Jacobian, JacobianMe, Jacobian);
+
 	cv::Mat e = curFeature - tarFeature;
+	stackMatrix(e, eMe, e);
+
+	cv::Mat L = (Jacobian.t() * Jacobian).inv() * Jacobian.t();
 
 	cv::Mat v = - gStep * L * e;
 	vpColVector vpV(6);
-	vpV[0] = v.at<float>(0, 0);
-	vpV[1] = v.at<float>(0, 1);
-	vpV[2] = v.at<float>(0, 2);
-	vpV[3] = v.at<float>(0, 3);
-	vpV[4] = v.at<float>(0, 4);
-	vpV[5] = v.at<float>(0, 5);
+	for (int i = 0; i < 6; i++)
+		vpV[i] = v.at<float>(0, i);
 	p_cMo = cMo;
 	cMo = vpExponentialMap::direct(vpV).inverse()*cMo;
 
@@ -472,4 +477,27 @@ textureTracker::stackJacobian(cv::Mat& Jacobian, cv::Mat& GJ, int count)
 {
 	for (int i = 0; i < 6; i++)
 		Jacobian.at<float>(count, i) = GJ.at<float>(0, i);
+}
+
+void 
+textureTracker::initLines(void)
+{
+	for (int i = 0; i < 12; i++)
+	{
+		int p1, p2;
+		line2Pts(i, p1, p2);
+		vpPoint vp1, vp2;
+		vp1.setWorldCoordinates(corners[p1].x, corners[p1].y, corners[p1].z);
+		vp2.setWorldCoordinates(corners[p2].x, corners[p2].y, corners[p2].z);
+
+		vpMe me;
+		me.setRange(25);
+		me.setThreshold(15000);
+		me.setSampleStep(10);
+		mes.push_back(me);
+
+		lines[i].buildFrom(vp1, vp2);
+		lines[i].setCameraParameters(cam);
+		lines[i].setMovingEdge(&mes[i]);
+	}
 }

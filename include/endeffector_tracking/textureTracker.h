@@ -175,6 +175,8 @@ class textureTracker: public cadModel
 		 * @return 
 		 */
 		inline bool isEdge(int index);
+
+		void initLines(void);
 	private:
 		/**
 		 * @brief current frame
@@ -228,4 +230,8 @@ class textureTracker: public cadModel
 		 * 		  vector<vpPoint> the coordinates of the patches
 		 */
 		std::map<int, std::vector<vpPoint> > patchCoor;
+
+		// the following member variables are used for the moving edge tracker
+		std::vector<vpMbtDistanceLine> lines;
+		std::vector<vpMe> mes;
 };
