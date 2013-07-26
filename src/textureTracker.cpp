@@ -134,7 +134,7 @@ textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraPara
 
 	numOfPatch = 10;
 	// TODO: for fast computing, it should be 30
-	numOfPtsPerFace = 10;
+	numOfPtsPerFace = 5;
 	curdiff = 255;
 	gStep = 0.2;
 	minStep = 0.1;
@@ -202,9 +202,17 @@ textureTracker::optimizePose(const cv::Mat& img, int scale)
 	// TODO: several functions here
 	cv::Mat JacobianMe, eMe;
 	MovingEdgeBasedTracker(JacobianMe, eMe);
-	stackMatrix(Jacobian, JacobianMe, Jacobian);
 
 	cv::Mat e = curFeature - tarFeature;
+
+	// normalize
+	float maxE 	 = *std::max_element(e.begin<float>(), e.end<float>());
+	float maxEMe = *std::max_element(eMe.begin<float>(), eMe.end<float>());
+	float rate = maxE / maxEMe;
+	eMe = rate * eMe;
+	JacobianMe = rate * JacobianMe;
+
+	stackMatrix(Jacobian, JacobianMe, Jacobian);
 	stackMatrix(e, eMe, e);
 
 	cv::Mat L = (Jacobian.t() * Jacobian).inv() * Jacobian.t();
@@ -217,6 +225,17 @@ textureTracker::optimizePose(const cv::Mat& img, int scale)
 	cMo = vpExponentialMap::direct(vpV).inverse()*cMo;
 
 
+	// update the moving edge status
+	findVisibleLines(cMo);
+	for (int i = 0; i < 12; i++)
+	{
+		if (isVisible[i])
+		{
+			lines[i].updateMovingEdge(vpI, cMo); 
+			if (lines[i].nbFeature == 0)
+				lines[i].Reinit = true;
+		}
+	}
 
 //	vpPoseVector pv;
 //	pv.buildFrom(cMo);
@@ -505,6 +524,10 @@ textureTracker::initLines(void)
 		lines[i].setCameraParameters(cam);
 		lines[i].setMovingEdge(&mes[i]);
 		lines[i].initMovingEdge(vpI, cMo);
+
+		lines[i].updateMovingEdge(vpI, cMo); 
+		if (lines[i].nbFeature == 0 && lines[i].isVisible())
+			lines[i].Reinit = true;
 	}
 }
 
@@ -522,8 +545,10 @@ textureTracker::MovingEdgeBasedTracker(cv::Mat& JacobianMe, cv::Mat& eMe)
 		if (isVisible[i])
 		{
 			lines[i].isvisible = true;
-			lines[i].trackMovingEdge(vpI, cMo); 
+			if (lines[i].Reinit)
+				lines[i].reinitMovingEdge(vpI, cMo);
 			lines[i].initInteractionMatrixError();
+			lines[i].trackMovingEdge(vpI, cMo); // pose param cMo is not used in this function
 			lines[i].computeInteractionMatrixError(cMo); 
 			nbFeatures += lines[i].nbFeature;
 		}
@@ -574,7 +599,7 @@ textureTracker::stackMatrix(cv::Mat& src1, cv::Mat& src2, cv::Mat& dst)
 
 	for (int i = 0; i < row2; i++)
 		for (int j = 0; j < col2; j++)
-			rst.at<float>(i + row1, j) = src1.at<float>(i, j);
+			rst.at<float>(i + row1, j) = src2.at<float>(i, j);
 
 	dst = rst;
 }
