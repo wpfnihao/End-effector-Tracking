@@ -6,6 +6,7 @@
  * @date 2013-07-15
  */
 
+#include <visp/vpImageConvert.h>
 #include "endeffector_tracking/cadModel.h"
 
 // TODO: add an call example here
@@ -177,6 +178,17 @@ class textureTracker: public cadModel
 		inline bool isEdge(int index);
 
 		void initLines(void);
+
+		void MovingEdgeBasedTracker(cv::Mat& JacobianMe, cv::Mat& eMe);
+
+		/**
+		 * @brief dst here may be the same as the src1
+		 *
+		 * @param src1
+		 * @param src2
+		 * @param dst
+		 */
+		void stackMatrix(cv::Mat& src1, cv::Mat& src2, cv::Mat& dst);
 	private:
 		/**
 		 * @brief current frame
@@ -232,6 +244,7 @@ class textureTracker: public cadModel
 		std::map<int, std::vector<vpPoint> > patchCoor;
 
 		// the following member variables are used for the moving edge tracker
-		std::vector<vpMbtDistanceLine> lines;
-		std::vector<vpMe> mes;
+		vpMbtDistanceLine lines[12];	
+		vpMe mes[12];
+		vpImage<unsigned char> vpI;
 };

@@ -9,6 +9,7 @@
 
 #include "endeffector_tracking/textureTracker.h"
 
+
 void 
 textureTracker::initCoor(void)
 {
@@ -70,6 +71,9 @@ textureTracker::track(const cv::Mat& img, const cv::Mat& grad)
 {
 	this->curImg = img;
 	this->gradient = grad;
+	// TODO: convert image might cause some performance issues
+	vpImageConvert::convert(curImg, vpI);
+
 	// optimized the pose based on the match of patches
 	int itr = 0;
 	curdiff = 255;
@@ -124,10 +128,13 @@ textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraPara
 {
 	this->cam = cam_;
 	this->cMo = cMo_;
+	this->curImg = img;
+	// TODO: convert image might cause some performance issues
+	vpImageConvert::convert(curImg, vpI);
 
 	numOfPatch = 10;
 	// TODO: for fast computing, it should be 30
-	numOfPtsPerFace = 20;
+	numOfPtsPerFace = 10;
 	curdiff = 255;
 	gStep = 0.2;
 	minStep = 0.1;
@@ -490,14 +497,84 @@ textureTracker::initLines(void)
 		vp1.setWorldCoordinates(corners[p1].x, corners[p1].y, corners[p1].z);
 		vp2.setWorldCoordinates(corners[p2].x, corners[p2].y, corners[p2].z);
 
-		vpMe me;
-		me.setRange(25);
-		me.setThreshold(15000);
-		me.setSampleStep(10);
-		mes.push_back(me);
+		mes[i].setRange(25);
+		mes[i].setThreshold(15000);
+		mes[i].setSampleStep(10);
 
 		lines[i].buildFrom(vp1, vp2);
 		lines[i].setCameraParameters(cam);
 		lines[i].setMovingEdge(&mes[i]);
+		lines[i].initMovingEdge(vpI, cMo);
 	}
+}
+
+void 
+textureTracker::MovingEdgeBasedTracker(cv::Mat& JacobianMe, cv::Mat& eMe)
+{
+	// find the visible lines
+	findVisibleLines(cMo);
+
+	// track the line
+	// size of all the feature points on the visible lines
+	int nbFeatures = 0;
+	for (int i = 0; i < 12; i++)
+	{
+		if (isVisible[i])
+		{
+			lines[i].isvisible = true;
+			lines[i].trackMovingEdge(vpI, cMo); 
+			lines[i].initInteractionMatrixError();
+			lines[i].computeInteractionMatrixError(cMo); 
+			nbFeatures += lines[i].nbFeature;
+		}
+	}
+
+	// create the Jacobian and the error
+	JacobianMe = cv::Mat(nbFeatures, 6, CV_32FC1);
+	eMe = cv::Mat(nbFeatures, 1, CV_32FC1);
+
+	// copy the data
+	// TODO: some performance issues here
+	int count = 0;
+	for (int i = 0; i < 12; i++)
+	{
+		if (isVisible[i])
+		{
+			for (size_t j = 0; j < lines[i].L.getRows(); j++)
+			{
+				for (int k = 0; k < 6; k++)
+					JacobianMe.at<float>(count, k) = lines[i].L[j][k];
+				eMe.at<float>(count, 0) = lines[i].error[j];
+
+				count++;
+			}
+		}
+	}
+}
+
+void 
+textureTracker::stackMatrix(cv::Mat& src1, cv::Mat& src2, cv::Mat& dst)
+{
+	int row1 = src1.rows;
+	int row2 = src2.rows;
+
+	int col1 = src1.cols;
+	int col2 = src2.cols;
+
+	if (col1 != col2)
+	{
+		throw("the dimension of the two matrices does not match");
+		return;
+	}
+
+	cv::Mat rst(row1 + row2, col1, CV_32FC1);
+	for (int i = 0; i < row1; i++)
+		for (int j = 0; j < col1; j++)
+			rst.at<float>(i, j) = src1.at<float>(i, j);
+
+	for (int i = 0; i < row2; i++)
+		for (int j = 0; j < col2; j++)
+			rst.at<float>(i + row1, j) = src1.at<float>(i, j);
+
+	dst = rst;
 }
