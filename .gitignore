@@ -32,3 +32,6 @@ tags
 
 #swapfile
 *.swp
+
+#pos
+config.0.pos
