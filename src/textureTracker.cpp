@@ -134,7 +134,7 @@ textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraPara
 
 	numOfPatch = 10;
 	// TODO: for fast computing, it should be 30
-	numOfPtsPerFace = 5;
+	numOfPtsPerFace = 10;
 	curdiff = 255;
 	gStep = 0.1;
 	minStep = 0.1;
@@ -213,7 +213,7 @@ textureTracker::optimizePose(const cv::Mat& img, int scale)
 	stackMatrix(Jacobian, JacobianMe, Jacobian);
 	stackMatrix(e, eMe, e);
 
-	bool texture = false;
+	bool texture = true;
 	cv::Mat L, v;
 	if (texture)
 	{
