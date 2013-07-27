@@ -9,6 +9,9 @@
 
 #include "endeffector_tracking/textureTracker.h"
 
+#define TYPE_TEXTURE 0
+#define TYPE_HYBRID  1
+#define TYPE_EDGE 	 2
 
 void 
 textureTracker::initCoor(void)
@@ -84,13 +87,13 @@ textureTracker::track(const cv::Mat& img, const cv::Mat& grad)
 		int scale = pow(2, scales - 1 - i);
 		cv::Mat scaleImg;
 		cv::resize(curImg, scaleImg, cv::Size(curImg.cols / scale, curImg.rows / scale));
-		while (itr < 5 && curdiff > 1)
+		while (itr < 10 && curdiff > 1)
 		{
 			// track
 			retrievePatch(curImg, cMo, cam, scale);
 			//if (itr == 0)
 			//	measureFit(false);
-			optimizePose(scaleImg, scale);
+			optimizePose(scaleImg, scale, itr);
 			measureFit(false);
 
 			// criterion update
@@ -136,7 +139,7 @@ textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraPara
 	// TODO: for fast computing, it should be 30
 	numOfPtsPerFace = 10;
 	curdiff = 255;
-	gStep = 0.1;
+	gStep = 0.6;
 	minStep = 0.1;
 	maxStep = 0.6;
 
@@ -152,7 +155,7 @@ textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraPara
 }
 
 void 
-textureTracker::optimizePose(const cv::Mat& img, int scale)
+textureTracker::optimizePose(const cv::Mat& img, int scale, int itr)
 {
 	// TODO: some code optimization can be done here to improve the performance
 
@@ -198,6 +201,8 @@ textureTracker::optimizePose(const cv::Mat& img, int scale)
 		}
 	}
 
+	int texture = TYPE_EDGE;
+
 	cv::Mat JacobianMe, eMe;
 	MovingEdgeBasedTracker(JacobianMe, eMe);
 
@@ -210,21 +215,49 @@ textureTracker::optimizePose(const cv::Mat& img, int scale)
 	eMe = rate * eMe;
 	JacobianMe = rate * JacobianMe;
 
-	stackMatrix(Jacobian, JacobianMe, Jacobian);
-	stackMatrix(e, eMe, e);
-
-	bool texture = true;
-	cv::Mat L, v;
-	if (texture)
+	switch(texture)
 	{
-		L = (Jacobian.t() * Jacobian).inv() * Jacobian.t();
-		v = - gStep * L * e;
+		case TYPE_TEXTURE:
+			break;
+		case TYPE_HYBRID:
+			stackMatrix(Jacobian, JacobianMe, Jacobian);
+			stackMatrix(e, eMe, e);
+			break;
+		case TYPE_EDGE:
+			e = eMe;
+			Jacobian = JacobianMe;
+			break;
+		default:
+			break;
+	}
+
+	/* robust */
+	cv::Mat W = cv::Mat::zeros(e.rows, e.rows, CV_32FC1);
+	if (itr == 0)
+	{
+		for (int i = 0; i < e.rows; i++)
+			W.at<float>(i, i) = 1;
 	}
 	else
 	{
-		L = (JacobianMe.t() * JacobianMe).inv() * JacobianMe.t();
-		v = - gStep * L * eMe;
+		vpRobust robust(e.rows) ;
+		robust.setThreshold(0.0) ;
+		vpColVector w(e.rows);
+		vpColVector res(e.rows);
+		for (int i = 0; i < e.rows; i++)
+			res[i] = e.at<float>(i, 0) * e.at<float>(i, 0);
+
+		robust.setIteration(0);
+		robust.MEstimator(vpRobust::TUKEY, res, w);
+		for (int i = 0; i < e.rows; i++)
+			W.at<float>(i, i) = w[i];
 	}
+	Jacobian = W * Jacobian;
+	/* end of robust */
+
+	cv::Mat L, v;
+	L = (Jacobian.t() * Jacobian).inv() * Jacobian.t();
+	v = - gStep * L * W * e;
 
 
 	vpColVector vpV(6);
@@ -525,9 +558,14 @@ textureTracker::initLines(void)
 		vp1.setWorldCoordinates(corners[p1].x, corners[p1].y, corners[p1].z);
 		vp2.setWorldCoordinates(corners[p2].x, corners[p2].y, corners[p2].z);
 
-		mes[i].setRange(25);
-		mes[i].setThreshold(15000);
-		mes[i].setSampleStep(10);
+		mes[i].setMaskSize(5);
+		mes[i].setMaskNumber(180);
+		mes[i].setRange(8);
+		mes[i].setThreshold(10000);
+		mes[i].setMu1(0.5);
+		mes[i].setMu2(0.5);
+		mes[i].setSampleStep(8);
+		mes[i].setNbTotalSample(250);
 
 		lines[i].buildFrom(vp1, vp2);
 		lines[i].setCameraParameters(cam);

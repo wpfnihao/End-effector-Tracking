@@ -86,7 +86,7 @@ class textureTracker: public cadModel
 		 *
 		 * @param img
 		 */
-		void optimizePose(const cv::Mat& img, int scale);
+		void optimizePose(const cv::Mat& img, int scale, int itr);
 
 		/**
 		 * @brief the gradient of the pixel based on the texture database using the mean shift method 
