@@ -136,7 +136,7 @@ textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraPara
 	// TODO: for fast computing, it should be 30
 	numOfPtsPerFace = 5;
 	curdiff = 255;
-	gStep = 0.2;
+	gStep = 0.1;
 	minStep = 0.1;
 	maxStep = 0.6;
 
@@ -156,7 +156,6 @@ textureTracker::optimizePose(const cv::Mat& img, int scale)
 {
 	// TODO: some code optimization can be done here to improve the performance
 
-	// TODO: first don't consider the gradient maximum, add this later
 	int col = 0;
 	for (int i = 0; i < 6; i++)
 	{
@@ -199,7 +198,6 @@ textureTracker::optimizePose(const cv::Mat& img, int scale)
 		}
 	}
 
-	// TODO: several functions here
 	cv::Mat JacobianMe, eMe;
 	MovingEdgeBasedTracker(JacobianMe, eMe);
 
@@ -215,9 +213,20 @@ textureTracker::optimizePose(const cv::Mat& img, int scale)
 	stackMatrix(Jacobian, JacobianMe, Jacobian);
 	stackMatrix(e, eMe, e);
 
-	cv::Mat L = (Jacobian.t() * Jacobian).inv() * Jacobian.t();
+	bool texture = false;
+	cv::Mat L, v;
+	if (texture)
+	{
+		L = (Jacobian.t() * Jacobian).inv() * Jacobian.t();
+		v = - gStep * L * e;
+	}
+	else
+	{
+		L = (JacobianMe.t() * JacobianMe).inv() * JacobianMe.t();
+		v = - gStep * L * eMe;
+	}
 
-	cv::Mat v = - gStep * L * e;
+
 	vpColVector vpV(6);
 	for (int i = 0; i < 6; i++)
 		vpV[i] = v.at<float>(0, i);
