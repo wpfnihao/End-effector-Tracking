@@ -9,9 +9,6 @@
 
 #include "endeffector_tracking/textureTracker.h"
 
-#define TYPE_TEXTURE 0
-#define TYPE_HYBRID  1
-#define TYPE_EDGE 	 2
 
 void 
 textureTracker::initCoor(void)
@@ -87,14 +84,15 @@ textureTracker::track(const cv::Mat& img, const cv::Mat& grad)
 		int scale = pow(2, scales - 1 - i);
 		cv::Mat scaleImg;
 		cv::resize(curImg, scaleImg, cv::Size(curImg.cols / scale, curImg.rows / scale));
-		while (itr < 10 && curdiff > 1)
+		bool status = true;
+		while (itr < 30 && status)
 		{
 			// track
 			retrievePatch(curImg, cMo, cam, scale);
 			//if (itr == 0)
 			//	measureFit(false);
 			optimizePose(scaleImg, scale, itr);
-			measureFit(false);
+			status = measureFit(false);
 
 			// criterion update
 			itr++;
@@ -201,7 +199,6 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr)
 		}
 	}
 
-	int texture = TYPE_EDGE;
 
 	cv::Mat JacobianMe, eMe;
 	MovingEdgeBasedTracker(JacobianMe, eMe);
@@ -215,15 +212,16 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr)
 	eMe = rate * eMe;
 	JacobianMe = rate * JacobianMe;
 
+	textureTracker::type texture = textureTracker::TYPE_HYBRID;
 	switch(texture)
 	{
-		case TYPE_TEXTURE:
+		case textureTracker::TYPE_TEXTURE:
 			break;
-		case TYPE_HYBRID:
+		case textureTracker::TYPE_HYBRID:
 			stackMatrix(Jacobian, JacobianMe, Jacobian);
 			stackMatrix(e, eMe, e);
 			break;
-		case TYPE_EDGE:
+		case textureTracker::TYPE_EDGE:
 			e = eMe;
 			Jacobian = JacobianMe;
 			break;
@@ -264,7 +262,7 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr)
 	for (int i = 0; i < 6; i++)
 		vpV[i] = v.at<float>(0, i);
 	p_cMo = cMo;
-	cMo = vpExponentialMap::direct(vpV).inverse()*cMo;
+	cMo = vpExponentialMap::direct(vpV).inverse() * cMo;
 
 
 	// update the moving edge status
@@ -279,6 +277,7 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr)
 		}
 	}
 
+	/* backup 
 //	vpPoseVector pv;
 //	pv.buildFrom(cMo);
 //
@@ -294,6 +293,7 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr)
 //
 //	p_cMo = cMo;
 //	cMo.buildFrom(pv);
+   end of backup */
 }
 
 double
@@ -483,17 +483,15 @@ textureTracker::measureFit(bool isUpdate)
 	}
 	else
 	{
-		if (tmpdiff < curdiff)
+		if (abs(tmpdiff - curdiff) < 0.05 || tmpdiff < 1)
 		{
 			curdiff = tmpdiff;
-			gStep = gStep * 2.0 > maxStep ? maxStep : gStep * 2.0;
-			return true;
+			return false;
 		}
 		else
 		{
-			cMo = p_cMo;
-			gStep = gStep / 2.0 < minStep ? minStep : gStep / 2.0;
-			return false;
+			curdiff = tmpdiff;
+			return true;
 		}
 	}
 }

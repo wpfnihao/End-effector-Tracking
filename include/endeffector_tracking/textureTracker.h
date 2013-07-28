@@ -14,6 +14,12 @@
 class textureTracker: public cadModel
 {
 	public:
+		enum type
+		{
+			TYPE_TEXTURE,
+			TYPE_HYBRID,
+			TYPE_EDGE
+		};
 		/**
 		 * @brief initialize the class
 		 */
