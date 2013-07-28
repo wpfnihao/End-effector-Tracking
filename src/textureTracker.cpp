@@ -74,6 +74,19 @@ textureTracker::track(const cv::Mat& img, const cv::Mat& grad)
 	// TODO: convert image might cause some performance issues
 	vpImageConvert::convert(curImg, vpI);
 
+	findVisibleLines(cMo);
+	for (int i = 0; i < 12; i++)
+	{
+		if (isVisible[i])
+		{
+			if (lines[i].meline == NULL)
+				lines[i].initMovingEdge(vpI, cMo);
+			lines[i].trackMovingEdge(vpI, cMo); // pose param cMo is not used in this function
+			lines[i].initInteractionMatrixError();
+			lines[i].computeInteractionMatrixError(cMo); 
+		}
+	}
+
 	// optimized the pose based on the match of patches
 	int itr = 0;
 	curdiff = 255;
@@ -111,6 +124,8 @@ textureTracker::track(const cv::Mat& img, const cv::Mat& grad)
 				lines[i].Reinit = true;
 
 			lines[i].isvisible = true;
+			if (lines[i].meline == NULL)
+				lines[i].initMovingEdge(vpI, cMo);
 			if (lines[i].Reinit)
 				lines[i].reinitMovingEdge(vpI, cMo);
 		}
@@ -635,12 +650,7 @@ textureTracker::MovingEdgeBasedTracker(cv::Mat& JacobianMe, cv::Mat& eMe)
 	for (int i = 0; i < 12; i++)
 	{
 		if (isVisible[i])
-		{
-			lines[i].trackMovingEdge(vpI, cMo); // pose param cMo is not used in this function
-			lines[i].initInteractionMatrixError();
-			lines[i].computeInteractionMatrixError(cMo); 
 			nbFeatures += lines[i].nbFeature;
-		}
 	}
 
 	// create the Jacobian and the error
