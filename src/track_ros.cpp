@@ -89,16 +89,16 @@ CEndeffectorTracking::trackCallback(const sensor_msgs::ImageConstPtr& srcImg)
 			rows = grayImg.rows;
 			cols = grayImg.cols;
 			
-			//fbTracker.getInitPoints(init_file);
-			//fbTracker.init(curImg);
+			fbTracker.getInitPoints(init_file);
+			fbTracker.init(curImg);
 
 			nptTracker.getInitPoints(init_file);
 		}
 
 		initializeTracker(srcImg);
 
-		//fbTracker.retrieveImage(curImg);
-		//fbTracker.initialize(cam, cMo, poseVector, rows, cols);
+		fbTracker.retrieveImage(curImg);
+		fbTracker.initialize(cam, cMo, poseVector, rows, cols);
 
 		nptTracker.retrieveImage(curImg);
 		nptTracker.init(cMo, cam, init_file);
@@ -108,11 +108,11 @@ CEndeffectorTracking::trackCallback(const sensor_msgs::ImageConstPtr& srcImg)
 	}	
 	else if (status == CEndeffectorTracking::TRACKING)
 	{
-		//fbTracker.getPose(cMo);
-		//fbTracker.retrieveImage(curImg);
-		//fbTracker.track();
-		//fbTracker.pubPose(cMo);
-		//fbTracker.pubRst(processedImg, TrackerWindow);
+		fbTracker.getPose(cMo);
+		fbTracker.retrieveImage(curImg);
+		fbTracker.track();
+		fbTracker.pubPose(cMo);
+		fbTracker.pubRst(processedImg, TrackerWindow);
 
 		nptTracker.getPose(cMo);
 		nptTracker.retrieveImage(curImg);

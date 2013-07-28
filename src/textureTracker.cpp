@@ -100,6 +100,22 @@ textureTracker::track(const cv::Mat& img, const cv::Mat& grad)
 		}
 	}
 
+	// update the moving edge status
+	findVisibleLines(cMo);
+	for (int i = 0; i < 12; i++)
+	{
+		if (isVisible[i])
+		{
+			lines[i].updateMovingEdge(vpI, cMo); 
+			if (lines[i].nbFeature == 0)
+				lines[i].Reinit = true;
+
+			lines[i].isvisible = true;
+			if (lines[i].Reinit)
+				lines[i].reinitMovingEdge(vpI, cMo);
+		}
+	}
+
 }
 
 void 
@@ -307,17 +323,6 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr)
 	cMo = vpExponentialMap::direct(vpV).inverse() * cMo;
 
 
-	// update the moving edge status
-	findVisibleLines(cMo);
-	for (int i = 0; i < 12; i++)
-	{
-		if (isVisible[i])
-		{
-			lines[i].updateMovingEdge(vpI, cMo); 
-			if (lines[i].nbFeature == 0)
-				lines[i].Reinit = true;
-		}
-	}
 
 	/* backup 
 //	vpPoseVector pv;
@@ -631,11 +636,8 @@ textureTracker::MovingEdgeBasedTracker(cv::Mat& JacobianMe, cv::Mat& eMe)
 	{
 		if (isVisible[i])
 		{
-			lines[i].isvisible = true;
-			if (lines[i].Reinit)
-				lines[i].reinitMovingEdge(vpI, cMo);
-			lines[i].initInteractionMatrixError();
 			lines[i].trackMovingEdge(vpI, cMo); // pose param cMo is not used in this function
+			lines[i].initInteractionMatrixError();
 			lines[i].computeInteractionMatrixError(cMo); 
 			nbFeatures += lines[i].nbFeature;
 		}
