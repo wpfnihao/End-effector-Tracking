@@ -212,7 +212,7 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr)
 	eMe = rate * eMe;
 	JacobianMe = rate * JacobianMe;
 
-	textureTracker::type texture = textureTracker::TYPE_HYBRID;
+	textureTracker::type texture = textureTracker::TYPE_EDGE;
 	switch(texture)
 	{
 		case textureTracker::TYPE_TEXTURE:
@@ -559,10 +559,10 @@ textureTracker::initLines(void)
 		mes[i].setMaskSize(5);
 		mes[i].setMaskNumber(180);
 		mes[i].setRange(8);
-		mes[i].setThreshold(10000);
+		mes[i].setThreshold(2000);
 		mes[i].setMu1(0.5);
 		mes[i].setMu2(0.5);
-		mes[i].setSampleStep(8);
+		mes[i].setSampleStep(4);
 		mes[i].setNbTotalSample(250);
 
 		lines[i].buildFrom(vp1, vp2);
