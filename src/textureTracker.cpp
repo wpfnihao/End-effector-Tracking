@@ -84,15 +84,16 @@ textureTracker::track(const cv::Mat& img, const cv::Mat& grad)
 		int scale = pow(2, scales - 1 - i);
 		cv::Mat scaleImg;
 		cv::resize(curImg, scaleImg, cv::Size(curImg.cols / scale, curImg.rows / scale));
-		bool status = true;
-		while (itr < 30 && status)
+		//bool status = true;
+		stopFlag = false;
+		while (itr < 10 && !stopFlag/*&& status*/)
 		{
 			// track
 			retrievePatch(curImg, cMo, cam, scale);
 			//if (itr == 0)
 			//	measureFit(false);
 			optimizePose(scaleImg, scale, itr);
-			status = measureFit(false);
+			//status = measureFit(false);
 
 			// criterion update
 			itr++;
@@ -206,14 +207,14 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr)
 	cv::Mat e = curFeature - tarFeature;
 
 	// normalize
-	float maxE 	 = *std::max_element(e.begin<float>(), e.end<float>());
-	float maxEMe = *std::max_element(eMe.begin<float>(), eMe.end<float>());
-	float rate = maxE / maxEMe;
-	eMe = rate * eMe;
-	JacobianMe = rate * JacobianMe;
+	//float maxE 	 = *std::max_element(e.begin<float>(), e.end<float>());
+	//float maxEMe = *std::max_element(eMe.begin<float>(), eMe.end<float>());
+	//float rate = maxE / maxEMe;
+	//eMe = rate * eMe;
+	//JacobianMe = rate * JacobianMe;
 
-	textureTracker::type texture = textureTracker::TYPE_EDGE;
-	switch(texture)
+	textureTracker::type method = textureTracker::TYPE_EDGE;
+	switch(method)
 	{
 		case textureTracker::TYPE_TEXTURE:
 			break;
@@ -231,10 +232,12 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr)
 
 	/* robust */
 	cv::Mat W = cv::Mat::zeros(e.rows, e.rows, CV_32FC1);
+	float curRes;
 	if (itr == 0)
 	{
 		for (int i = 0; i < e.rows; i++)
 			W.at<float>(i, i) = 1;
+		residual = 1e8;
 	}
 	else
 	{
@@ -242,8 +245,47 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr)
 		robust.setThreshold(0.0) ;
 		vpColVector w(e.rows);
 		vpColVector res(e.rows);
-		for (int i = 0; i < e.rows; i++)
-			res[i] = e.at<float>(i, 0) * e.at<float>(i, 0);
+
+		switch(method)
+		{
+			case textureTracker::TYPE_TEXTURE:
+				for (int i = 0; i < e.rows; i++)
+					res[i] = e.at<float>(i, 0) * e.at<float>(i, 0);
+				break;
+			case textureTracker::TYPE_HYBRID:
+				for (int i = 0; i < col; i++)
+					res[i] = e.at<float>(i, 0) * e.at<float>(i, 0);
+				for (int i = col; i < e.rows; i++)
+				{
+					res[(i - col) * 2 + col] = e.at<float>(i, 0) * e.at<float>(i, 0) 
+						+ e.at<float>(i + 1, 0) * e.at<float>(i + 1, 0);
+					res[(i - col) * 2 + col + 1] = res[(i - col) * 2 + col];
+				}
+				break;
+			case textureTracker::TYPE_EDGE:
+				for (int i = 0; i < e.rows / 2; i++)
+				{
+					res[i * 2] = e.at<float>(i, 0) * e.at<float>(i, 0) 
+						+ e.at<float>(i + 1, 0) * e.at<float>(i + 1, 0);
+					res[i * 2 + 1] = res[i * 2];
+				}
+				break;
+			default:
+				break;
+		}
+
+		for (size_t i = 0; i < res.getRows(); i++)
+			curRes += res[i];
+		curRes /= res.getRows();
+		//DEBUG
+		std::cout<<"curRes = "<<curRes<<std::endl;
+		if (/*abs(curRes - residual) < 1e-8 ||*/ curRes < 2e-4)
+		{
+			stopFlag = true;
+			return;
+		}
+		else
+			residual = curRes;
 
 		robust.setIteration(0);
 		robust.MEstimator(vpRobust::TUKEY, res, w);

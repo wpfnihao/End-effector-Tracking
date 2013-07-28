@@ -253,4 +253,7 @@ class textureTracker: public cadModel
 		vpMbtDistanceLine lines[12];	
 		vpMe mes[12];
 		vpImage<unsigned char> vpI;
+
+		float residual;
+		bool stopFlag;
 };
