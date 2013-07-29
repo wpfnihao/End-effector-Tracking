@@ -114,9 +114,9 @@ textureTracker::track(const cv::Mat& img, const cv::Mat& grad)
 	}
 
 	W = cv::Mat::zeros(len, len, CV_32FC1);
-	robust = vpRobust(len) ;
-	w = vpColVector(len);
-	res = vpColVector(len);
+	vpRobust robust(len) ;
+	vpColVector w(len);
+	vpColVector res(len);
 
 	// optimized the pose based on the match of patches
 	int itr = 0;
@@ -136,7 +136,7 @@ textureTracker::track(const cv::Mat& img, const cv::Mat& grad)
 			retrievePatch(curImg, cMo, cam, scale);
 			//if (itr == 0)
 			//	measureFit(false);
-			optimizePose(scaleImg, scale, itr);
+			optimizePose(scaleImg, scale, itr, robust, w, res);
 			//status = measureFit(false);
 
 			// criterion update
@@ -190,7 +190,7 @@ textureTracker::initCoorOnFace(std::vector<vpPoint>& features, vpMbtPolygon& pyg
 void
 textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraParameters& cam_)
 {
-	method = textureTracker::TYPE_EDGE;
+	method = textureTracker::TYPE_HYBRID;
 
 	this->cam = cam_;
 	this->cMo = cMo_;
@@ -218,7 +218,7 @@ textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraPara
 }
 
 void 
-textureTracker::optimizePose(const cv::Mat& img, int scale, int itr)
+textureTracker::optimizePose(const cv::Mat& img, int scale, int itr, vpRobust& robust, vpColVector& w, vpColVector& res)
 {
 	// TODO: some code optimization can be done here to improve the performance
 
@@ -263,11 +263,11 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr)
 	cv::Mat e = curFeature - tarFeature;
 
 	// normalize
-	//float maxE 	 = *std::max_element(e.begin<float>(), e.end<float>());
-	//float maxEMe = *std::max_element(eMe.begin<float>(), eMe.end<float>());
-	//float rate = maxE / maxEMe;
-	//eMe = rate * eMe;
-	//JacobianMe = rate * JacobianMe;
+	float maxE 	 = *std::max_element(e.begin<float>(), e.end<float>());
+	float maxEMe = *std::max_element(eMe.begin<float>(), eMe.end<float>());
+	float rate = maxEMe / maxE;
+	e = rate * e;
+	Jacobian = rate * Jacobian;
 
 	switch(method)
 	{
@@ -292,38 +292,14 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr)
 		for (int i = 0; i < e.rows; i++)
 			W.at<float>(i, i) = 1;
 		residual = 1e8;
+		robust.setIteration(0);
 	}
 	else
 	{
 		robust.setThreshold(0.0) ;
 
-		switch(method)
-		{
-			case textureTracker::TYPE_TEXTURE:
-				for (int i = 0; i < e.rows; i++)
-					res[i] = e.at<float>(i, 0) * e.at<float>(i, 0);
-				break;
-			case textureTracker::TYPE_HYBRID:
-				for (int i = 0; i < col; i++)
-					res[i] = e.at<float>(i, 0) * e.at<float>(i, 0);
-				for (int i = col; i < e.rows; i++)
-				{
-					res[(i - col) * 2 + col] = e.at<float>(i, 0) * e.at<float>(i, 0) 
-						+ e.at<float>(i + 1, 0) * e.at<float>(i + 1, 0);
-					res[(i - col) * 2 + col + 1] = res[(i - col) * 2 + col];
-				}
-				break;
-			case textureTracker::TYPE_EDGE:
-				for (int i = 0; i < e.rows / 2; i++)
-				{
-					res[i * 2] = e.at<float>(i, 0) * e.at<float>(i, 0) 
-						+ e.at<float>(i + 1, 0) * e.at<float>(i + 1, 0);
-					res[i * 2 + 1] = res[i * 2];
-				}
-				break;
-			default:
-				break;
-		}
+		for (int i = 0; i < e.rows; i++)
+			res[i] = e.at<float>(i, 0) * e.at<float>(i, 0);
 
 		for (size_t i = 0; i < res.getRows(); i++)
 			curRes += res[i];
@@ -338,7 +314,8 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr)
 		else
 			residual = curRes;
 
-		robust.setIteration(0);
+		robust.setIteration(itr);
+		robust.setThreshold((2 / cam.get_px()) * (2 / cam.get_py()));
 		robust.MEstimator(vpRobust::TUKEY, res, w);
 		for (int i = 0; i < e.rows; i++)
 			W.at<float>(i, i) = w[i];

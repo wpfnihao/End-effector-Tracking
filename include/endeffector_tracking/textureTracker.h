@@ -22,7 +22,6 @@ class textureTracker: public cadModel
 		};
 
 		textureTracker()
-		:robust(1)
 		{}
 
 		/**
@@ -97,7 +96,7 @@ class textureTracker: public cadModel
 		 *
 		 * @param img
 		 */
-		void optimizePose(const cv::Mat& img, int scale, int itr);
+		void optimizePose(const cv::Mat& img, int scale, int itr, vpRobust& robust, vpColVector& w, vpColVector& res);
 
 		/**
 		 * @brief the gradient of the pixel based on the texture database using the mean shift method 
@@ -263,10 +262,7 @@ class textureTracker: public cadModel
 		bool stopFlag;
 
 		// for robustness
-		vpRobust robust;
 		cv::Mat W;
-		vpColVector w;
-		vpColVector res;
 		int col;
 		int nbFeatures;
 

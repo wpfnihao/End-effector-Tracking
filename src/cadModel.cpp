@@ -189,11 +189,7 @@ cadModel::findVisibleLines(const vpHomogeneousMatrix& cMo_)
 			this->isVisible[i] = true;
 		else
 			this->isVisible[i] = false;
-
-		// tmp 
-		//this->isVisible[i] = true;
 	}
-
 }
 
 void
