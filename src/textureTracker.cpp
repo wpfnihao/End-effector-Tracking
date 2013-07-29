@@ -200,7 +200,7 @@ textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraPara
 
 	numOfPatch = 10;
 	// TODO: for fast computing, it should be 30
-	numOfPtsPerFace = 10;
+	numOfPtsPerFace = 5;
 	curdiff = 255;
 	gStep = 0.6;
 	minStep = 0.1;
@@ -227,9 +227,15 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr, vpRobust& r
 	cv::Mat tarFeature(col, 1, CV_32FC1);
 
 	int count = 0;
+
+	// fix the problem while a face on the model disappear during the optimization of  a single frame
+	vpHomogeneousMatrix itr_cMo;
+	if (itr == 0)
+		itr_cMo = cMo;
+
 	for (int i = 0; i < 6; i++)
 	{
-		if (pyg[i].isVisible(cMo) && patches[i].size() != 0)
+		if (pyg[i].isVisible(itr_cMo) && patches[i].size() != 0)
 		{
 			for (size_t j = 0; j < patchCoor[i].size(); j++)
 			{
@@ -291,7 +297,7 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr, vpRobust& r
 	{
 		for (int i = 0; i < e.rows; i++)
 			W.at<float>(i, i) = 1;
-		for (int i = 0; i < w.getRows(); i++)
+		for (size_t i = 0; i < w.getRows(); i++)
 			w[i] = 1;
 		residual = 1e8;
 		robust.setIteration(0);
@@ -336,8 +342,6 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr, vpRobust& r
 		vpV[i] = v.at<float>(0, i);
 	p_cMo = cMo;
 	cMo = vpExponentialMap::direct(vpV).inverse() * cMo;
-
-
 
 	/* backup 
 //	vpPoseVector pv;
@@ -642,7 +646,7 @@ void
 textureTracker::MovingEdgeBasedTracker(cv::Mat& JacobianMe, cv::Mat& eMe)
 {
 	// find the visible lines
-	findVisibleLines(cMo);
+	//findVisibleLines(cMo);
 
 	// track the line
 	// size of all the feature points on the visible lines
