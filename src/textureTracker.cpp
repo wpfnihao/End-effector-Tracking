@@ -75,6 +75,7 @@ textureTracker::track(const cv::Mat& img, const cv::Mat& grad)
 	vpImageConvert::convert(curImg, vpI);
 
 	findVisibleLines(cMo);
+	nbFeatures = 0;
 	for (int i = 0; i < 12; i++)
 	{
 		if (isVisible[i])
@@ -83,9 +84,39 @@ textureTracker::track(const cv::Mat& img, const cv::Mat& grad)
 				lines[i].initMovingEdge(vpI, cMo);
 			lines[i].trackMovingEdge(vpI, cMo); // pose param cMo is not used in this function
 			lines[i].initInteractionMatrixError();
-			lines[i].computeInteractionMatrixError(cMo); 
+			nbFeatures += lines[i].nbFeature;
 		}
 	}
+
+	col = 0;
+	for (int i = 0; i < 6; i++)
+	{
+		if (pyg[i].isVisible(cMo) && patches[i].size() != 0)
+		{
+			col += patchCoor[i].size();
+		}
+	}
+
+	int len;
+	switch (method)
+	{
+		case textureTracker::TYPE_EDGE:
+			len = nbFeatures;
+			break;
+		case textureTracker::TYPE_TEXTURE:
+			len = col;
+			break;
+		case textureTracker::TYPE_HYBRID:
+			len = nbFeatures + col;
+			break;
+		default:
+			break;
+	}
+
+	W = cv::Mat::zeros(len, len, CV_32FC1);
+	robust = vpRobust(len) ;
+	w = vpColVector(len);
+	res = vpColVector(len);
 
 	// optimized the pose based on the match of patches
 	int itr = 0;
@@ -99,7 +130,7 @@ textureTracker::track(const cv::Mat& img, const cv::Mat& grad)
 		cv::resize(curImg, scaleImg, cv::Size(curImg.cols / scale, curImg.rows / scale));
 		//bool status = true;
 		stopFlag = false;
-		while (itr < 10 && !stopFlag/*&& status*/)
+		while (itr < 10) // && !stopFlag)
 		{
 			// track
 			retrievePatch(curImg, cMo, cam, scale);
@@ -159,6 +190,8 @@ textureTracker::initCoorOnFace(std::vector<vpPoint>& features, vpMbtPolygon& pyg
 void
 textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraParameters& cam_)
 {
+	method = textureTracker::TYPE_EDGE;
+
 	this->cam = cam_;
 	this->cMo = cMo_;
 	this->curImg = img;
@@ -189,14 +222,6 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr)
 {
 	// TODO: some code optimization can be done here to improve the performance
 
-	int col = 0;
-	for (int i = 0; i < 6; i++)
-	{
-		if (pyg[i].isVisible(cMo) && patches[i].size() != 0)
-		{
-			col += patchCoor[i].size();
-		}
-	}
 	cv::Mat Jacobian(col, 6, CV_32FC1);
 	cv::Mat curFeature(col, 1, CV_32FC1);
 	cv::Mat tarFeature(col, 1, CV_32FC1);
@@ -244,7 +269,6 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr)
 	//eMe = rate * eMe;
 	//JacobianMe = rate * JacobianMe;
 
-	textureTracker::type method = textureTracker::TYPE_EDGE;
 	switch(method)
 	{
 		case textureTracker::TYPE_TEXTURE:
@@ -262,7 +286,6 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr)
 	}
 
 	/* robust */
-	cv::Mat W = cv::Mat::zeros(e.rows, e.rows, CV_32FC1);
 	float curRes;
 	if (itr == 0)
 	{
@@ -272,10 +295,7 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr)
 	}
 	else
 	{
-		vpRobust robust(e.rows) ;
 		robust.setThreshold(0.0) ;
-		vpColVector w(e.rows);
-		vpColVector res(e.rows);
 
 		switch(method)
 		{
@@ -327,7 +347,8 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr)
 	/* end of robust */
 
 	cv::Mat L, v;
-	L = (Jacobian.t() * Jacobian).inv() * Jacobian.t();
+	L = Jacobian.inv(cv::DECOMP_SVD);
+	//L = (Jacobian.t() * Jacobian).inv() * Jacobian.t();
 	v = - gStep * L * W * e;
 
 
@@ -646,11 +667,12 @@ textureTracker::MovingEdgeBasedTracker(cv::Mat& JacobianMe, cv::Mat& eMe)
 
 	// track the line
 	// size of all the feature points on the visible lines
-	int nbFeatures = 0;
 	for (int i = 0; i < 12; i++)
 	{
 		if (isVisible[i])
-			nbFeatures += lines[i].nbFeature;
+		{
+			lines[i].computeInteractionMatrixError(cMo); 
+		}
 	}
 
 	// create the Jacobian and the error

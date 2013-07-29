@@ -20,6 +20,11 @@ class textureTracker: public cadModel
 			TYPE_HYBRID,
 			TYPE_EDGE
 		};
+
+		textureTracker()
+		:robust(1)
+		{}
+
 		/**
 		 * @brief initialize the class
 		 */
@@ -256,4 +261,14 @@ class textureTracker: public cadModel
 
 		float residual;
 		bool stopFlag;
+
+		// for robustness
+		vpRobust robust;
+		cv::Mat W;
+		vpColVector w;
+		vpColVector res;
+		int col;
+		int nbFeatures;
+
+		type method;
 };

@@ -114,7 +114,9 @@ CEndeffectorTracking::trackCallback(const sensor_msgs::ImageConstPtr& srcImg)
 		fbTracker.pubPose(cMo);
 		fbTracker.pubRst(processedImg, TrackerWindow);
 
-		nptTracker.getPose(cMo);
+
+		/* nptTracker.getPose(cMo); // this get the pose into the previous pose */
+		nptTracker.getPoseCur(cMo);
 		nptTracker.retrieveImage(curImg);
 		nptTracker.track();
 		nptTracker.pubPose(cMo);

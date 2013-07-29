@@ -52,9 +52,20 @@ class cvBaseTracker
 
 		virtual bool pubRst(cv::Mat& img, cv::Rect& box) = 0;
 
+		/**
+		 * @brief WARNING: note here that the getPose function copy the cMo_ into the p_cMo
+		 * not the cMo
+		 *
+		 * @param cMo_
+		 */
 		inline void getPose(vpHomogeneousMatrix& cMo_)
 		{
 			this->p_cMo = cMo_;
+		}
+
+		inline void getPoseCur(vpHomogeneousMatrix& cMo_)
+		{
+			this->cMo = cMo_;
 		}
 
 		inline void pubPose(vpHomogeneousMatrix& cMo_)
