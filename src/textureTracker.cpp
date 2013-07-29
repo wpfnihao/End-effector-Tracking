@@ -130,7 +130,7 @@ textureTracker::track(const cv::Mat& img, const cv::Mat& grad)
 		cv::resize(curImg, scaleImg, cv::Size(curImg.cols / scale, curImg.rows / scale));
 		//bool status = true;
 		stopFlag = false;
-		while (itr < 10) // && !stopFlag)
+		while (itr < 5 && !stopFlag)
 		{
 			// track
 			retrievePatch(curImg, cMo, cam, scale);
@@ -190,7 +190,7 @@ textureTracker::initCoorOnFace(std::vector<vpPoint>& features, vpMbtPolygon& pyg
 void
 textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraParameters& cam_)
 {
-	method = textureTracker::TYPE_HYBRID;
+	method = textureTracker::TYPE_EDGE;
 
 	this->cam = cam_;
 	this->cMo = cMo_;
@@ -291,6 +291,8 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr, vpRobust& r
 	{
 		for (int i = 0; i < e.rows; i++)
 			W.at<float>(i, i) = 1;
+		for (int i = 0; i < w.getRows(); i++)
+			w[i] = 1;
 		residual = 1e8;
 		robust.setIteration(0);
 	}
@@ -306,7 +308,7 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr, vpRobust& r
 		curRes /= res.getRows();
 		//DEBUG
 		std::cout<<"curRes = "<<curRes<<std::endl;
-		if (/*abs(curRes - residual) < 1e-8 ||*/ curRes < 2e-4)
+		if (/*abs(curRes - residual) < 1e-8 ||*/ curRes < 3e-4)
 		{
 			stopFlag = true;
 			return;
