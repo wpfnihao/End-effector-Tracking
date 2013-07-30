@@ -267,4 +267,6 @@ class textureTracker: public cadModel
 		int nbFeatures;
 
 		type method;
+
+		vpHomogeneousMatrix itr_cMo;
 };

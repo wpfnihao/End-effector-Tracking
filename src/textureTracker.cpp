@@ -190,7 +190,21 @@ textureTracker::initCoorOnFace(std::vector<vpPoint>& features, vpMbtPolygon& pyg
 void
 textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraParameters& cam_)
 {
-	method = textureTracker::TYPE_EDGE;
+	method = textureTracker::TYPE_TEXTURE;
+	switch (method)
+	{
+		case textureTracker::TYPE_TEXTURE:
+			gStep = 0.1;
+			break;
+		case textureTracker::TYPE_HYBRID:
+			gStep = 0.6;
+			break;
+		case textureTracker::TYPE_EDGE:
+			gStep = 0.6;
+			break;
+		default:
+			break;
+	}
 
 	this->cam = cam_;
 	this->cMo = cMo_;
@@ -202,7 +216,6 @@ textureTracker::init(const cv::Mat& img, vpHomogeneousMatrix& cMo_, vpCameraPara
 	// TODO: for fast computing, it should be 30
 	numOfPtsPerFace = 5;
 	curdiff = 255;
-	gStep = 0.6;
 	minStep = 0.1;
 	maxStep = 0.6;
 
@@ -229,13 +242,12 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr, vpRobust& r
 	int count = 0;
 
 	// fix the problem while a face on the model disappear during the optimization of  a single frame
-	vpHomogeneousMatrix itr_cMo;
 	if (itr == 0)
 		itr_cMo = cMo;
 
 	for (int i = 0; i < 6; i++)
 	{
-		if (pyg[i].isVisible(itr_cMo) && patches[i].size() != 0)
+		if (pyg[i].isVisible(itr_cMo) && patches[i].size() != 0 && curPatch[i].size() != 0)
 		{
 			for (size_t j = 0; j < patchCoor[i].size(); j++)
 			{
@@ -264,28 +276,44 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr, vpRobust& r
 
 
 	cv::Mat JacobianMe, eMe;
-	MovingEdgeBasedTracker(JacobianMe, eMe);
 
 	cv::Mat e = curFeature - tarFeature;
 
-	// normalize
-	float maxE 	 = *std::max_element(e.begin<float>(), e.end<float>());
-	float maxEMe = *std::max_element(eMe.begin<float>(), eMe.end<float>());
-	float rate = maxEMe / maxE;
-	e = rate * e;
-	Jacobian = rate * Jacobian;
+	float maxE;
+	float maxEMe;
+	float rate;
 
 	switch(method)
 	{
 		case textureTracker::TYPE_TEXTURE:
 			break;
 		case textureTracker::TYPE_HYBRID:
+			// me tracker
+			MovingEdgeBasedTracker(JacobianMe, eMe);
+
+			// normalize
+			try
+			{
+				maxE = *std::max_element(e.begin<float>(), e.end<float>());
+				maxEMe = *std::max_element(eMe.begin<float>(), eMe.end<float>());
+				rate = abs(maxEMe) / (abs(maxE) + 1e-30);
+				e = rate * e;
+				Jacobian = rate * Jacobian;
+			}
+			catch(...)
+			{}
+
+			//stack
 			stackMatrix(Jacobian, JacobianMe, Jacobian);
 			stackMatrix(e, eMe, e);
+
 			break;
 		case textureTracker::TYPE_EDGE:
+			// me tracker
+			MovingEdgeBasedTracker(JacobianMe, eMe);
 			e = eMe;
 			Jacobian = JacobianMe;
+
 			break;
 		default:
 			break;
@@ -313,7 +341,7 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr, vpRobust& r
 			curRes += res[i];
 		curRes /= res.getRows();
 		//DEBUG
-		std::cout<<"curRes = "<<curRes<<std::endl;
+		//std::cout<<"curRes = "<<curRes<<std::endl;
 		if (/*abs(curRes - residual) < 1e-8 ||*/ curRes < 3e-4)
 		{
 			stopFlag = true;
@@ -339,7 +367,12 @@ textureTracker::optimizePose(const cv::Mat& img, int scale, int itr, vpRobust& r
 
 	vpColVector vpV(6);
 	for (int i = 0; i < 6; i++)
+	{
 		vpV[i] = v.at<float>(0, i);
+		//DEBUG
+		std::cout<<" orig["<<i<<"] = "<<vpV[i]<<std::endl; 
+	}
+
 	p_cMo = cMo;
 	cMo = vpExponentialMap::direct(vpV).inverse() * cMo;
 
@@ -516,7 +549,7 @@ bool
 textureTracker::measureFit(bool isUpdate)
 {
 	// DEBUG only
-	return false;
+	return true;
 
 	float tmpdiff = 0;
 	int count = 0;
