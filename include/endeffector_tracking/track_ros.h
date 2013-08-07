@@ -26,6 +26,11 @@
 #include <visp/vpImage.h>
 #include <visp/vpCameraParameters.h>
 #include <visp/vpPoseFeatures.h>
+#include "visp/vpDisplay.h"
+#include "visp/vpDisplayX.h"
+#include "visp/vpXmlParser.h"
+// for conversion
+#include "visp/vpMeterPixelConversion.h"
 
 // for convert between sensor_msgs and visp image
 #include <conversions/image.h>
@@ -36,20 +41,12 @@
 #include <cmath>
 
 // user defined
-#include "endeffector_tracking/KernelBasedTracking.h"
-#include "endeffector_tracking/CamShiftTracking.h"
-#include "endeffector_tracking/medianFlowTracking.h"
-#include "endeffector_tracking/houghLineBasedTracker.h"
 #include "endeffector_tracking/mbtEdgeTracker.h"
 #include "endeffector_tracking/kltFbTracker.h"
-#include "endeffector_tracking/activeModelTracker.h"
 //#include "endeffector_tracking/mbtKltTracker.h"
 //#include "endeffector_tracking/mbtEdgeKltTracker.h"
 
-class CEndeffectorTracking
-{
 // enum, typedef, struct, class ...
-public:
 	
 	/**
 	 * @brief The status of the current tracker
@@ -61,86 +58,7 @@ public:
 		INITIAL
 	};
 
-//member variable
-private:
-	/**
-	 * @brief The status of the current tracker
-	 */
-	tracking_status status;
-
-	// different type of trackers
-	KernelBasedTracking kbTracker;
-	CamShiftTracking csTracker;
-	medianFlowTracking mfTracker;
-	houghLineBasedTracker hlTracker;
-	mbtEdgeTracker meTracker;
-	kltFbTracker fbTracker;
-	activeModelTracker amTracker;
-	//mbtKltTracker kltTracker;
-	//mbtEdgeKltTracker mekltTracker;
-
-	/* ROS params */
-	ros::NodeHandle n;
-	image_transport::Subscriber subCam;
-	image_transport::Publisher imgPub;
-
-	// several config file obtained from the launch file
-	std::string camera_topic;
-	std::string config_file;
-	std::string model_name;
-	std::string init_file;
-	/* End of ROS param */
-
-	/* current state */
-	/**
-	 * @brief  current frame
-	 */
-	cv::Mat curImg;
-
-	/**
-	 * @brief  the processed ver. of current frame to display the tracking rst
-	 */
-	cv::Mat processedImg;
-
-	// pose here is either generated manually or measured by the connected hough lines
-
-	/**
-	 * @brief  	the current pose
-	 */
-	vpHomogeneousMatrix cMo;
-	/**
-	 * @brief  the pose vector corresponding to the pose matrix
-	 * 			tx, ty, tz, thetaux, thetauy, thetauz
-	 */
-	vpPoseVector poseVector;
-
-	/**
-	 * @brief  current window obtained by KernelBasedTracking
-	 */
-	cv::Rect TrackerWindow;
-
-	/* End of current state */
-
-
-
-
-
-	/* Global state */
-	/**
-	 * @brief  rows and cols
-	 */
-	int rows, cols;
-
-	/**
-	 * @brief  the camera currently used
-	 */
-	vpCameraParameters cam;
-
 // member functions
-public:
-	// constructor
-	// ros is inited in this function
-	CEndeffectorTracking(int argc, char **argv);
 			
 	//member function 
 	//the tracking callback function, which actually does the tracking procedure
@@ -162,4 +80,3 @@ public:
 
 	// publish the tracking result
 	void pubRst(const sensor_msgs::ImageConstPtr& srcImg);
-};
