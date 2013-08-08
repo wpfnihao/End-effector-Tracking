@@ -82,6 +82,7 @@ vpCameraParameters cam;
 // different type of trackers
 mbtEdgeTracker meTracker;
 kltFbTracker fbTracker;
+superResolutionTracker srTracker;
 // TODO: init the super-resolution tracker here, and make sure that both the following sections can use the tracker.
 
 /**
@@ -140,7 +141,12 @@ int main(int argc, char **argv)
 		{
 			// for super-resolution dataset processing
 			int ID = omp_get_thread_num();
-			cout<<"this is the "<<ID<<"-th thread!"<<endl;
+			cout<<"this is the "<<ID<<"-th thread processing the database!"<<endl;
+
+			while (true)
+			{
+				srTracker.updateDataBase();
+			}
 		}
 	}
 	return 0;
