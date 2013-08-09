@@ -13,7 +13,10 @@
 #include <opencv2/core/core.hpp>
 // OpenMP
 #include <omp.h>
+// Graph Cut Optimization
+#include "GCoptimization.h"
 
+//TODO: check all the initialization problem of the member variables
 class superResolutionTracker: public vpMbEdgeTracker
 {
 	// the definition of the most important structures in the program
@@ -31,7 +34,8 @@ class superResolutionTracker: public vpMbEdgeTracker
 			/**
 			 * @brief the confidence of the patch in the corresponding scale
 			 */
-			std::map<int, int> confidence;
+			std::map<int, bool> confidence;
+			std::map<int, bool> isChanged;
 
 			int patchScale;
 			// the patch extracted from the key frame only have the following fields filled
@@ -57,7 +61,8 @@ class superResolutionTracker: public vpMbEdgeTracker
 			/**
 			 * @brief the desired image size of the face under the very scale
 			 */
-			std::map<int, cv::Rect> faceSizes;
+			std::map<int, cv::Size> faceSizes;
+			std::map<int, float> invDepth;
 		}scaleInfo;
 
 		/**
@@ -98,7 +103,6 @@ class superResolutionTracker: public vpMbEdgeTracker
 		int numOfPatchScale;
 		int buffSize;
 		int numOfPatches;
-		int numOfconfidence;
 		int rows, cols;
 
 		vpCameraParameters cam;
