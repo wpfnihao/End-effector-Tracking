@@ -37,12 +37,17 @@ class superResolutionTracker: public vpMbEdgeTracker
 			std::map<int, bool> confidence;
 			std::map<int, bool> isChanged;
 
+			/**
+			 * @brief TODO: this value should be maintained in the dataset update procedures
+			 */
+			int highestConfidenceScale;
+
 			int patchScale;
 			// the patch extracted from the key frame only have the following fields filled
 			/**
 			 * @brief only the pixels in the patchRect are saved, and the pixels corresponding to the model face are labeled by the mask.
 			 */
-			cv::Mat orgPatch, mask;
+			cv::Mat orgPatch, mask, invDepth;
 			cv::Rect patchRect;
 
 			int faceID;
@@ -51,6 +56,8 @@ class superResolutionTracker: public vpMbEdgeTracker
 
 		/**
 		 * @brief save the info for faces under different scales
+		 * once the information in this structure is initialized, it should never be changed.
+		 * As a result, no data lock is required while processing the structure.
 		 */
 		typedef struct scaleInfo_
 		{
@@ -58,6 +65,7 @@ class superResolutionTracker: public vpMbEdgeTracker
 			 * @brief the pose under which the image of the target face is under the desired scale and position.
 			 */
 			std::map<int, vpHomogeneousMatrix> cMos;
+			std::map<int, vpMatrix> Ks;
 			/**
 			 * @brief the desired image size of the face under the very scale
 			 */
@@ -103,7 +111,9 @@ class superResolutionTracker: public vpMbEdgeTracker
 		int numOfPatchScale;
 		int buffSize;
 		int numOfPatches;
+		int numOfPatchesUsed;
 		int rows, cols;
+		int upScale;
 
 		vpCameraParameters cam;
 
