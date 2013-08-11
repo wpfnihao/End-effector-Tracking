@@ -16,7 +16,9 @@
 // Graph Cut Optimization
 #include "GCoptimization.h"
 
-//TODO: check all the initialization problem of the member variables
+// TODO; change the two structs into class with embedded member functions
+
+// TODO: check all the initialization problem of the member variables
 class superResolutionTracker: public vpMbEdgeTracker
 {
 	// the definition of the most important structures in the program
@@ -37,12 +39,12 @@ class superResolutionTracker: public vpMbEdgeTracker
 			std::map<int, bool> confidence;
 			std::map<int, bool> isChanged;
 
+			int highestConfidenceScale;
+			int patchScale;
 			/**
 			 * @brief TODO: this value should be maintained in the dataset update procedures
 			 */
-			int highestConfidenceScale;
 
-			int patchScale;
 			// the patch extracted from the key frame only have the following fields filled
 			/**
 			 * @brief only the pixels in the patchRect are saved, and the pixels corresponding to the model face are labeled by the mask.
@@ -64,7 +66,7 @@ class superResolutionTracker: public vpMbEdgeTracker
 			/**
 			 * @brief the pose under which the image of the target face is under the desired scale and position.
 			 */
-			std::map<int, vpHomogeneousMatrix> cMos;
+			vpHomogeneousMatrix cMo;
 			std::map<int, vpMatrix> Ks;
 			/**
 			 * @brief the desired image size of the face under the very scale
@@ -122,6 +124,7 @@ class superResolutionTracker: public vpMbEdgeTracker
 		void pushDataIntoBuff(patch& patchData);
 		bool getDataFromBuff(patch& patchData);	
 		void updataDataset(patch& patchData);
+
 		/**
 		 * @brief in this function, there is no need to lock the dataset, since the function only read the data in the dataset, and won't make any change.
 		 *
@@ -129,6 +132,52 @@ class superResolutionTracker: public vpMbEdgeTracker
 		 */
 		void processKeyPatch(patch& patchData);
 
-		int findPatchScale(patch& patchData);
+		/**
+		 * @brief only the cv::Mat mask (which actually means this orgPatch and invDepth are also obtained while initialization) information should be filled before call this function, please make sure this.
+		 *
+		 * @param patchData the patch requires for its scale information
+		 */
+		void findPatchScale(patch& patchData);
+
+		void findCopyProcessPatch(patch& curPatch, std::list<patch>& dataPatches);
+
+		void deepCopyPatch(std::list<patch>& dataPatches, patch& src);
+
+		/**
+		 * @brief based on the information provided in the curPatch, project the dataPatches onto the image using the curPatch.pose, and the orgPatch as well as its corresponding information is over-written.
+		 *
+		 * @param curPatch
+		 * @param dataPatches
+		 */
+		void projPatch(patch& curPatch, std::list<patch>& dataPatches);
+
+		/**
+		 * @brief change a pixel from one frame to another with the Z-buff
+		 */
+		void projPoint(
+				const vpMatrix& invK, 
+				const vpMatrix& invP, 
+				const vpMatrix& P, 
+				const vpMatrix& K, 
+				float 			depth, 
+				float 			ix, 
+				float 			iy, 
+				int& 			xc, 
+				int& 			yc, 
+				float& 			Z);
+
+		/**
+		 * @brief obtain a face patch based on the current image and pose
+		 *
+		 * @param faceID
+		 *
+		 * @return 
+		 */
+		patch obtainPatch(int faceID);
+
+		float calcInvDepth(
+				const std::vector<cv::Point>& p, 
+				const std::vector<float>& invDepth
+				cv::Point cp);
 	private:
 };
