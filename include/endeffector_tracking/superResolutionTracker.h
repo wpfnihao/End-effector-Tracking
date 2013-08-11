@@ -119,6 +119,8 @@ class superResolutionTracker: public vpMbEdgeTracker
 
 		vpCameraParameters cam;
 
+		dataset_t prePatch;
+
 	// private member functions	
 	protected:
 		void pushDataIntoBuff(patch& patchData);
@@ -179,5 +181,7 @@ class superResolutionTracker: public vpMbEdgeTracker
 				const std::vector<cv::Point>& p, 
 				const std::vector<float>& invDepth
 				cv::Point cp);
+
+		patch deepCopyPrePatch(const patch& src);
 	private:
 };

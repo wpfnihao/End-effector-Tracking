@@ -19,6 +19,7 @@ superResolutionTracker::superResolutionTracker()
 	omp_init_lock(&dataLock);
 }
 
+// TODO: check any pointer like data in the patches shared unconsciously
 void
 superResolutionTracker::track(void)
 {
@@ -30,13 +31,20 @@ superResolutionTracker::track(void)
 		if (faceVisible[i])
 		{
 			patch curPatch = obtainPatch(i);
-			findPatchScale(curPatch);
 			// find the corresponding patches, and copy them out of the dataset
 			findCopyProcessPatch(curPatch, dataPatches[i]);
 		}
 
 	// track
 	optimizePose(dataPatches);
+	// save the patch for next frame tracking
+	for (int i = 0; i < numOfFaces; i++)
+		if (faceVisible[i])
+		{
+			prePatch[i].clear();
+			prePatch[i].push_back(obtainPatch[i]);
+		}
+
 	// measure whether the tracked frame is the key frame
 	// if true
 	// push the frame into the buff
@@ -45,11 +53,9 @@ superResolutionTracker::track(void)
 		for (int i = 0; i < numOfFaces; i++)
 			if (faceVisible[i])
 			{
-				// after the pose updated, retrieve the patch based on the new pose
-				keyPatch = obtainPatch(i);
 				// note: one key frame will produce several patches
 				// buff lock is encapsulated in the function
-				pushDataIntoBuff(keyPatch);
+				pushDataIntoBuff(deepCopyPrePatch(prePatch[i].front()));
 			}
 	}
 }
@@ -606,7 +612,9 @@ superResolutionTracker::obtainPatch(int faceID)
 	p.mask = cv::Mat(mask, cv::Range(lt.y, rb.y + 1), cv::Range(lt.x, rb.x + 1));
 	// invDepth
 	p.invDepth = cv::Mat(invDepth, cv::Range(lt.y, rb.y + 1), cv::Range(lt.x, rb.x + 1));
-	
+	// scale
+	findPatchScale(p);
+
 	return p;
 }
 
@@ -698,6 +706,62 @@ superResolutionTracker::meanPoint(const std::vector<cv::Point>& p)
 	cvp.x /= p.size();
 	cvp.y /= p.size();
 	return cvp;
+}
+
+// TODO: winSize, maxLevel
+void
+superResolutionTracker::optimizePose(dataset_t& dataPatches)
+{
+	// build the image pyramid for tracking
+	std::vector<cv::Mat> cPyramid;
+	cv::buildOpticalFlowPyramid(curImg, cPyramid, cv::Size(winSize, winSize), maxLevel);
+
+	for (int i = 0; i < numOfFaces; i++)
+		if (faceVisible[i])
+		{
+			// detect good features in pre-patch
+			std::vector<cv::Point2f> corners;
+			cv::goodFeaturesToTrack(prePatch[i].front().orgPatch, corners, 20, 0.01, 10, prePatch[i].front().mask);
+
+			// KLT search them in cur-image
+			std::vector<cv::Mat> prePatchPyr;
+			std::vector<cv::Point2f> fStatus, fErr, cFeatures;
+			cv::buildOpticalFlowPyramid(prePatch[i].front().orgPatch, prePatchPyr, cv::Size(winSize, winSize), maxLevel);
+			int dx = prePatch[i].front().patchRect.x;
+			int dy = prePatch[i].front().patchRect.y;
+			std::vector<cv::Point2f>::iterator tar = cFeatures.begin();
+			for (std::vector<cv::Point2f>::iterator itr = corners.begin(); itr != corners.end(); ++itr) 
+			{
+				tar->x = itr->x + dx;
+				tar->y = itr->y + dy;
+				++tar;
+			}
+			cv::calcOpticalFlowPyrLK(prePatchPyr, cPyramid, corners, cFeatures, fStatus, fErr, cv::Size(winSize, winSize), maxLevel, TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 30, 0.01), OPTFLOW_USE_INITIAL_FLOW);
+
+			// push back to compute pose
+			// based on the tracked features and the 3d point calculated based on the pre-features
+		}
+	//
+	// detect good features in dataPatches
+	// KLT search them in cur-image
+	// push back to compute pose
+	//
+	// compute pose
+}
+
+patch
+superResolutionTracker::deepCopyPrePatch(const patch& src)
+{
+	patch p;
+	p.patchScale = src.patchScale;
+	p.orgPatch = src.orgPatch.clone();
+	p.mask = src.mask.clone();
+	p.invDepth = src.invDepth.clone();
+	p.patchRect = src.patchRect;
+	p.faceID = src.faceID;
+	p.pose = src.pose;
+
+	return p;
 }
 
 // TODO: use the pointer gramma rewrite all the cv::Mat related codes
