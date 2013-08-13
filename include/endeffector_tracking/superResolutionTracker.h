@@ -42,15 +42,15 @@ class superResolutionTracker: public vpMbEdgeTracker
 
 			int highestConfidenceScale;
 			int patchScale;
-			/**
-			 * @brief TODO: this value should be maintained in the dataset update procedures
-			 */
 
 			// the patch extracted from the key frame only have the following fields filled
 			/**
 			 * @brief only the pixels in the patchRect are saved, and the pixels corresponding to the model face are labeled by the mask.
 			 */
-			cv::Mat orgPatch, mask, invDepth;
+			cv::Mat orgPatch, mask, depth;
+			/**
+			 * @brief the patchRect here is only used for the orgPatch, for scaledPatch, refer to the faceScaleInfo.faceSizes, and there is offset for scaledPatch, so cv::Size is enough.
+			 */
 			cv::Rect patchRect;
 
 			int faceID;
@@ -68,7 +68,7 @@ class superResolutionTracker: public vpMbEdgeTracker
 			 * @brief the pose under which the image of the target face is under the desired scale and position.
 			 */
 			vpHomogeneousMatrix cMo;
-			float invDepth;
+			float depth;
 			std::map<int, vpMatrix> Ks;
 			/**
 			 * @brief the desired image size of the face under the very scale
@@ -88,13 +88,27 @@ class superResolutionTracker: public vpMbEdgeTracker
 		void track(void);
 		void updateDataBase(void);
 		void initDataset(void);
-		void initialization();
-		void retrieveImage();
+		void initialization(vpCameraParameters& cam, std::string modelName, std::string initName);
+
+		/**
+		 * @brief retrieve image and then convert it to gray scale
+		 *
+		 * @param src
+		 */
+		inline void retrieveImage(const cv::Mat& src)
+		{
+			cv::cvtColor(src, curImg, CV_RGB2GRAY);	
+		}
 
 	// private member variables
 	protected:
 		omp_lock_t buffLock;
 		omp_lock_t dataLock;
+
+		/**
+		 * @brief face visibility maintained in this structure and avoid compute the visibility every time
+		 */
+		std::vector<bool> isVisible;
 
 		/**
 		 * @brief dataset here is the structure saving all the patches.
@@ -131,6 +145,7 @@ class superResolutionTracker: public vpMbEdgeTracker
 	protected:
 		void pushDataIntoBuff(patch& patchData);
 		bool getDataFromBuff(patch& patchData);	
+		//TODO: check lock
 		void updataDataset(patch& patchData);
 
 		/**
@@ -141,7 +156,7 @@ class superResolutionTracker: public vpMbEdgeTracker
 		void processKeyPatch(patch& patchData);
 
 		/**
-		 * @brief only the cv::Mat mask (which actually means this orgPatch and invDepth are also obtained while initialization) information should be filled before call this function, please make sure this.
+		 * @brief only the cv::Mat mask (which actually means this orgPatch and depth are also obtained while initialization) information should be filled before call this function, please make sure this.
 		 *
 		 * @param patchData the patch requires for its scale information
 		 */
@@ -181,6 +196,7 @@ class superResolutionTracker: public vpMbEdgeTracker
 
 		/**
 		 * @brief if new patch has been added to the database, we should refresh the whole database based on the new patch.
+		 * TODO: check lock
 		 */
 		void refreshDataset(void);
 
@@ -204,6 +220,7 @@ class superResolutionTracker: public vpMbEdgeTracker
 		 */
 		bool findConfidence(int scaleID, int& patchID, patch& patchData);
 
+		// TODO: check lock in this function
 		void findCopyProcessPatch(patch& curPatch, std::list<patch>& dataPatches);
 
 		void deepCopyPatch(std::list<patch>& dataPatches, patch& src);
@@ -248,9 +265,9 @@ class superResolutionTracker: public vpMbEdgeTracker
 		 */
 		patch obtainPatch(int faceID);
 
-		float calcInvDepth(
+		float calcDepth(
 				const std::vector<cv::Point>& p, 
-				const std::vector<float>& invDepth
+				const std::vector<float>& depth
 				cv::Point cp);
 
 		patch deepCopyPrePatch(const patch& src);
@@ -269,10 +286,31 @@ class superResolutionTracker: public vpMbEdgeTracker
 		 *
 		 * @param dataPatches
 		 */
-		void optimizePose(dataset_t& dataPatches);
+		void optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_t& dataPatches);
 
 		bool isKeyFrame(void);
 
 		void initFaceScaleInfo(void);
+
+		/**
+		 * @brief generate the virtual camera to produce different scales of the image
+		 *
+		 * @param K
+		 * @param rate
+		 *
+		 * @return 
+		 */
+		vpMatrix scaleCam(vpMatrix K, float rate);
+
+		void initFaceScaleVirtualCam(void);
+		void initFaceScaleSize(void);
+		void initFaceScalePose(void);
+		void initFaceScaleDepth(void);
+		vpMatrix getVirtualCam(void);
+
+		inline float getRate(float maxDownScale, float numOfPatchScale)
+		{
+			return (float)maxDownScale / (float)(numOfPatchScale -1);
+		}
 	private:
 };

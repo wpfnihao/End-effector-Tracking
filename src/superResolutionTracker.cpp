@@ -20,25 +20,36 @@ superResolutionTracker::superResolutionTracker()
 {
 	omp_init_lock(&buffLock);
 	omp_init_lock(&dataLock);
+
+	for (size_t i = 0; i < faces.size(); i++)
+		isVisible.push_back(false);
 }
 
-// TODO: the prePatch during tracking should be upSacled
-// 		 the curImg should be upSacled
-// 		 the getVirtualCam() function should be completed based on the upsacle
-// 		 then, check the whole track procedure
-// TODO: check all the consistence between depth and invDepth, and change them all to depth
 // TODO: check any pointer like data in the patches shared unconsciously
-// TODO: check all the iterator used
 // TODO: what if the face visibility changed after the tracking of one frame
+// TODO: check all the internal camera parameters used all over the codes
+// TODO: check the offset of the patches while using the virtual camera
+// TODO: then, check the whole track procedure
+// TODO: the first frame track is crucial
 void
 superResolutionTracker::track(void)
 {
+	float rate = getRate(maxDownScale, numOfPatchScale);
+
+	// maintain the visibility test
+	for (size_t i = 0; i < faces.size(); i++)
+		isVisible[i] = faces[i]->isVisible(cMo, vpMath::rad(85));
+
 	// a copy of the whole dataset only including the tracking related patches
 	dataset_t dataPatches;
 
-	// TODO: change the face visibility test here when the actual data structure of the face is provided
+	// upScale the src, pre, and database patches for tracking
+	// src
+	cv::Mat upScaleImg;
+	cv::resize(curImg, upScaleImg, cv::Size(curImg.cols * rate, curImg.rows * rate));
+	// dataset
 	for (size_t i = 0; i < faces.size(); i++)
-		if (faces[i]->isVisible(cMo))
+		if (isVisible[i])
 		{
 			patch curPatch = obtainPatch(i);
 			// find the corresponding patches, and copy them out of the dataset
@@ -46,10 +57,16 @@ superResolutionTracker::track(void)
 		}
 
 	// track
-	optimizePose(dataPatches);
+	// super resolution tracking only used in the match between the database and the current frame. The match between the pre and cur frame are based on the org scale
+	optimizePose(upScaleImg, prePatch, dataPatches);
+
+	// maintain the visibility test
+	for (size_t i = 0; i < faces.size(); i++)
+		isVisible[i] = faces[i]->isVisible(cMo, vpMath::rad(85));
+
 	// save the patch for next frame tracking
 	for (size_t i = 0; i < faces.size(); i++)
-		if (faces[i]->isVisible(cMo))
+		if (isVisible[i])
 		{
 			prePatch[i].clear();
 			prePatch[i].push_back(obtainPatch[i]);
@@ -61,7 +78,7 @@ superResolutionTracker::track(void)
 	if (isKeyFrame())
 	{
 		for (size_t i = 0; i < faces.size(); i++)
-			if (faces[i]->isVisible(cMo))
+			if (isVisible[i])
 			{
 				// note: one key frame will produce several patches
 				// buff lock is encapsulated in the function
@@ -70,7 +87,6 @@ superResolutionTracker::track(void)
 	}
 }
 
-// TODO: re-analyze the patch super-resolution procedures here, and check how to change the pose reference into the internal parameters of camera.
 void
 superResolutionTracker::updateDataBase(void)
 {
@@ -215,18 +231,23 @@ superResolutionTracker::genOrgScalePatch(patch& patchData)
 	vpMatrix P = patchData.pose;
 	int shiftX = patchData.patchRect.x;
 	int shiftY = patchData.patchRect.y;
-	for (int i = 0; i < faceScaleInfo[patchData.faceID].faceSizes[patchData.patchScale].height; i++)
-		for (int j = 0; j < faceScaleInfo[patchData.faceID].faceSizes[patchData.patchScale].width; j++)
+
+	int height = faceScaleInfo[patchData.faceID].faceSizes[patchData.patchScale].height;
+	int width = faceScaleInfo[patchData.faceID].faceSizes[patchData.patchScale].width;
+	(float*) pd = (float*) (patchData.depth.data);
+	(uchar*) ps = (uchar*) (patchData.scaledPatch[patchData.patchScale].data);
+	for (int i = 0; i < height; i++)
+		for (int j = 0; j < width; j++)
 		{
-			float depth = 1 / patchData.invDepth.at<float>(i, j);
 			int xc, yc;
 			float Z;
-			projPoint(invK, invP, P, K, depth, j, i, xc, yc, Z);
+			projPoint(invK, invP, P, K, *pd, j, i, xc, yc, Z);
 			xc -= shiftX;
 			yc -= shiftY;
 			// TODO: the scaledPatch should be initialized before
-			patchData.scaledPatch[patchData.patchScale].at<uchar>(i, j) =
-				patchData.orgPatch.at<uchar>(yc, xc);
+			*ps = patchData.orgPatch.at<uchar>(yc, xc);
+			pd++;
+			ps++;
 		}
 }
 
@@ -291,7 +312,10 @@ void
 superResolutionTracker::superResolution(scaleID, patchID, patchData)
 {
 	cv::Mat lowPatch = patchData.scaledPatch[scaleID - 1];
-	cv::Mat highPatch = (dataset[patchData.faceID].begin() + patchID)->scaledPatch[scaleID];
+	std::list<patch>::iterator itr = dataset[patchData.faceID].begin();
+	for (int i = 0; i < patchID; i++)
+		++itr;
+	cv::Mat highPatch = itr->scaledPatch[scaleID];
 
 	cv::Size lowSize(lowPatch.cols, lowPatch.rows);
 	cv::Size highSize(highPatch.cols, highPatch.rows);
@@ -307,7 +331,8 @@ superResolutionTracker::superResolution(scaleID, patchID, patchData)
 	vpMatrix invK = faceScaleInfo[patchData.faceID].Ks[scaleID].inverseByLU();
 	vpMatrix invP = faceScaleInfo[patchData.faceID].cMo.inverseByLU();
 	vpMatrix P = faceScaleInfo[patchData.faceID].cMo;
-	float depth = 1.0 / faceScaleInfo[patchData.faceID].invDepth;
+	float depth = faceScaleInfo[patchData.faceID].depth;
+	(uchar*) hp = (uchar*) (highPatch.data);
 	for (int i = 0; i < highPatch.rows; i++)
 		for (int j = 0; j < highPatch.cols; j++)		
 		{
@@ -318,7 +343,8 @@ superResolutionTracker::superResolution(scaleID, patchID, patchData)
 
 			// update
 			count.at<float>(yc, xc) += 1;
-			tarLowPatch.at<float>(yc, xc) += highPatch.at<uchar>(i, j);
+			tarLowPatch.at<float>(yc, xc) += *hp;
+			hp++;
 		}
 
 	cv::divide(tarLowPatch, count, tarLowPatch);
@@ -326,6 +352,8 @@ superResolutionTracker::superResolution(scaleID, patchID, patchData)
 	findLight(tarLowPatch, lowPatch, light);
 
 	// generate the super resolution patch
+	(uchar*) hp = (uchar*) (highPatch.data);
+	(uchar*) chp = (uchar*) (curHighPatch.data);
 	for (int i = 0; i < highPatch.rows; i++)
 		for (int j = 0; j < highPatch.cols; j++)		
 		{
@@ -335,7 +363,10 @@ superResolutionTracker::superResolution(scaleID, patchID, patchData)
 			projPoint(invk, invP, P, K, depth, j, i, xc, yc, Z);
 
 			// update
-			curHighPatch.at<uchar>(i, j) = highPatch.at<uchar>(i, j) * light.at<float>(yc, xc);
+			*chp = *hp * light.at<float>(yc, xc);
+
+			chp++;
+			hp++;
 		}
 	// save processed data
 	patchData.scaledPatch[scaleID] = curHighPatch;	
@@ -346,6 +377,12 @@ superResolutionTracker::superResolution(scaleID, patchID, patchData)
 void
 superResolutionTracker::refreshDataset(void)
 {
+	// reset the isChanged flags
+	for (int i = 0; i < numOfPatchScale; i++)	
+		for (size_t j = 0; j < dataset.size(); j++)
+			for (std::list<patch>::iterator itrPatch = dataset[j].begin(); itrPatch != dataset[j].end(); ++itrPatch)
+				itrPatch->isChanged[i] = false;
+
 	// number of scales, start from the lowest scale
 	for (int i = 0; i < numOfPatchScale; i++)	
 	{
@@ -376,12 +413,6 @@ superResolutionTracker::refreshDataset(void)
 			}
 		}
 	}
-
-	// reset the isChanged flags
-	for (int i = 0; i < numOfPatchScale; i++)	
-		for (size_t j = 0; j < dataset.size(); j++)
-			for (std::list<patch>::iterator itrPatch = dataset[j].begin(); itrPatch != dataset[j].end(); ++itrPatch)
-				itrPatch->isChanged[i] = true;
 }
 
 void
@@ -442,7 +473,6 @@ superResolutionTracker::findLight(const cv::Mat& tarLowPatch,const cv::Mat& lowP
 }
 
 // TODO: if necessary, only use the most close scale
-// TODO: check how to access the data in std::list
 void
 superResolutionTracker::findCopyProcessPatch(patch& curPatch, std::list<patch>& dataPatches)
 {
@@ -474,8 +504,11 @@ superResolutionTracker::findCopyProcessPatch(patch& curPatch, std::list<patch>& 
 	if (id.empty())
 	{
 		// the deepCopyPatch here only copy the information used by the tracker
+		std::list<patch>::iterator itr = dataset[faceID].begin();
+		for (int i = 0; i < highestID; i++)
+			++itr;
 		for (int i = 0; i < numOfPatchesUsed; i++)
-			deepCopyPatch(dataPatches, *(dataset[faceID].begin() + highestID));
+			deepCopyPatch(dataPatches, *itr);
 	}
 	else
 	{
@@ -483,7 +516,10 @@ superResolutionTracker::findCopyProcessPatch(patch& curPatch, std::list<patch>& 
 		for (int i = 0; i < numOfPatchesUsed; i++)
 		{
 			int idx = rng.uniform(0, count);
-			deepCopyPatch(dataPatches, *(dataset[faceID].begin() + id[idx]));
+			std::list<patch>::iterator itr = dataset[faceID].begin();
+			for (int i = 0; i < id[idx]; i++)
+				++itr;
+			deepCopyPatch(dataPatches, *itr);
 		}
 	}
 	omp_unset_lock(&dataLock);
@@ -495,24 +531,28 @@ superResolutionTracker::findCopyProcessPatch(patch& curPatch, std::list<patch>& 
 void
 superResolutionTracker::projPatch(patch& curPatch, std::list<patch>& dataPatches)
 {
+	float rate = getRate(maxDownScale, numOfPatchScale);
+	int r = rate * rows,
+		c = rate * cols;
 	for (std::list<patch>::iterator itr = dataPatches.begin(); itr != dataPatches.end(); ++itr)
 	{
 		itr->pose = curPatch.pose;
 
 		int hs = itr->highestConfidenceScale;
-		int id = curPatch.faceID
+		int id = curPatch.faceID;
 
-		cv::Mat projImg = cv::Mat::zeros(rows, cols, CV_8UC1);		
-		cv::Mat invDepth = cv::Mat::zeros(rows, cols, CV_32FC1);		
-		cv::Mat mask = cv::Mat::zeros(rows, cols, CV_8UC1);		
+		cv::Mat projImg = cv::Mat::zeros(r, c, CV_8UC1);		
+		cv::Mat depth   = cv::Mat::zeros(r, c, CV_32FC1);		
+		cv::Mat mask    = cv::Mat::zeros(r, c, CV_8UC1);		
 
 		vpMatrix invK = faceScaleInfo[id].Ks[hs].inverseByLU();
 		vpMatrix invP = faceScaleInfo[id].cMo.inverseByLU();
 		vpMatrix P = itr->pose;
 		vpMatrix K = getVirtualCam();
-		float depth = 1.0 / faceScaleInfo[id].invDepth;
+		float depth = faceScaleInfo[id].depth;
 
 		cv::Size pSize = faceScaleInfo[id].faceSizes[hs];
+		(uchar*) sp = (uchar*) (itr->scaledPatch[hs].data);
 		for (int i = 0; i < pSize.height; i++)
 			for (int j = 0; j < pSize.width; j++)
 			{
@@ -520,14 +560,15 @@ superResolutionTracker::projPatch(patch& curPatch, std::list<patch>& dataPatches
 				float Z;
 				projPoint(invK, invP, P, K, depth, j, i, xc, yc, Z);
 				// TODO: the scaledPatch should be initialized before
-				projImg.at<uchar>(yc, xc) = itr->scaledPatch[hs].at<uchar>(i, j);
-				invDepth.at<float>(yc, xc) = 1/Z;
+				projImg.at<uchar>(yc, xc) = *sp;
+				depth.at<float>(yc, xc) = Z;
 				mask.at<uchar>(yc, xc) = 255;
+				sp++;
 			}
 
 		// copy to the patches
 		itr->orgPatch = projImg;
-		itr->invDepth = invDepth;
+		itr->depth = depth;
 		itr->mask = mask;
 	}
 }
@@ -545,7 +586,6 @@ superResolutionTracker::deepCopyPatch(std::list<patch>& dataPatches, patch& src)
 	dataPatches.push_back(p);
 }
 
-// TODO: the pyg used here should be replaced by the true data structure saving the cad model of the target object
 // FIXME: note that the codes here assume that the faces are rectangles
 patch
 superResolutionTracker::obtainPatch(int faceID)
@@ -557,22 +597,22 @@ superResolutionTracker::obtainPatch(int faceID)
 	// fill the projected face
 	
 	cv::Mat mask = cv::Mat::zeros(rows, cols, CV_8UC1);
-	cv::Mat invDepth = cv::Mat::zeros(rows, cols, CV_32FC1);
+	cv::Mat depth = cv::Mat::zeros(rows, cols, CV_32FC1);
 
-	std::vector<cv::Point> p(pyg[faceID].nbPoints);
-	std::vector<float> invDepth(pyg[faceID].nbPoints);
-	for (int i = 0; i < pyg[faceID].nbPoints; i++)
+	std::vector<cv::Point> p(faces[faceID]->nbPoints);
+	std::vector<float> depth(faces[faceID]->nbPoints);
+	for (int i = 0; i < faces[faceID]->nbPoints; i++)
 	{
-		vpPoint& vp = pyg[faceID].p[i];
+		vpPoint& vp = faces[faceID]->p[i];
 		vp.changeFrame(cMo);
 		vp.project();
 
 		vpMeterPixelConversion::convertPoint(cam, vp.get_x(), vp.get_y(), p[i].x, p[i].y);
-		invDepth[i] = 1 / vp.get_Z();
+		depth[i] = vp.get_Z();
 	}
 
 	for (size_t i = 0; i < p.size(); i++)
-		cv::line(mask, p[i], p[(i+ )%p.size()], 255);
+		cv::line(mask, p[i], p[(i+1) % p.size()], 255);
 	cv::floodFill(mask, meanPoint(p), 255);
 
 	// handle the mask problem here
@@ -595,13 +635,14 @@ superResolutionTracker::obtainPatch(int faceID)
 
 	// fill the depth map using the interpolation method
 	(uchar*) pm = (uchar*) (mask.data);
-	(float*) pd = (uchar*) (invDepth.data);
+	(float*) pd = (uchar*) (depth.data);
 	for (int i = 0; i < mask.rows; i++)
 		for (int j = 0; j < mask.cols; j++)
 		{
-			int s = i * cols + j;
-			if (*(pm + s) == 255)
-				*(pd + s) = calcInvDepth(p, invDepth, cv::Point(j, i));
+			if (*pm == 255)
+				*pd = calcDepth(p, depth, cv::Point(j, i));
+			pm++;
+			pd++;
 		}
 
 
@@ -620,8 +661,8 @@ superResolutionTracker::obtainPatch(int faceID)
 	p.orgPatch = cv::Mat(curImg, cv::Range(lt.y, rb.y + 1), cv::Range(lt.x, rb.x + 1));
 	// mask
 	p.mask = cv::Mat(mask, cv::Range(lt.y, rb.y + 1), cv::Range(lt.x, rb.x + 1));
-	// invDepth
-	p.invDepth = cv::Mat(invDepth, cv::Range(lt.y, rb.y + 1), cv::Range(lt.x, rb.x + 1));
+	// depth
+	p.depth = cv::Mat(depth, cv::Range(lt.y, rb.y + 1), cv::Range(lt.x, rb.x + 1));
 	// scale
 	findPatchScale(p);
 
@@ -629,12 +670,19 @@ superResolutionTracker::obtainPatch(int faceID)
 }
 
 vpMatrix 
-superResolutionTracker::getVirtualCam()
+superResolutionTracker::getVirtualCam(void)
 {
+	float rate = getRate(maxDownScale, numOfPatchScale);
+	vpMatrix K = cam.get_K();
+	K[0][0] *= rate;
+	K[0][2] *= rate;
+	K[1][1] *= rate;
+	K[1][2] *= rate;
+	return K;
 }
 
 inline void
-superResolutionTracker::2dTo3d(
+superResolutionTracker::backProj(
 		const vpMatrix& invK, 
 		const vpMatrix& invP, 
 		float 			depth, 
@@ -687,9 +735,9 @@ superResolutionTracker::projPoint(
 }
 
 float
-superResolutionTracker::calcInvDepth(
+superResolutionTracker::calcDepth(
 		const std::vector<cv::Point>& p, 
-		const std::vector<float>& invDepth
+		const std::vector<float>& depth
 		cv::Point cp)
 {
 	// solve the equ. Ax = b, x = A\b;
@@ -712,11 +760,11 @@ superResolutionTracker::calcInvDepth(
 	(float*) xb = (float*) (x.data);
 	float alpha = *(xb + 0);
 	float beta  = *(xb + 1);
-	float invd = (alpha + beta - 1) * invDepth[1] + (1 - alpha) * invDepth[0] + (1 - beta) * invDepth[2];
-	return invd;
+	float dp = (alpha + beta - 1) * depth[1] + (1 - alpha) * depth[0] + (1 - beta) * depth[2];
+	return dp;
 }
 
-cv::Point
+inline cv::Point
 superResolutionTracker::meanPoint(const std::vector<cv::Point>& p)
 {
 	cv::Point cvp;
@@ -730,22 +778,26 @@ superResolutionTracker::meanPoint(const std::vector<cv::Point>& p)
 	return cvp;
 }
 
-void
-superResolutionTracker::optimizePose(dataset_t& dataPatches)
+void 
+superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_t& dataPatches)
 {
 	vpPoseFeatures featuresComputePose;
 	// build the image pyramid for tracking
 	std::vector<cv::Mat> cPyramid;
+	std::vector<cv::Mat> upScaleCPyramid;
 	cv::buildOpticalFlowPyramid(curImg, cPyramid, cv::Size(winSize, winSize), maxLevel);
-	vpMatrix invK = getVirtualCam().inverseByLU();
+	cv::buildOpticalFlowPyramid(img, upScaleCPyramid, cv::Size(winSize, winSize), maxLevel);
+
+	vpMatrix invVirtualK = getVirtualCam().inverseByLU();
+	vpMatrix invK = cam.get_K();
 	vpMatrix invP = cMo.inverseByLU();
 
 	for (size_t i = 0; i < faces.size(); i++)
-		if (faces[i]->isVisible(cMo))
+		if (isVisible[i])
 		{
 			// detect good features in pre-patch
 			std::vector<cv::Point2f> corners;
-			cv::goodFeaturesToTrack(prePatch[i].front().orgPatch, corners, 20, 0.01, 10, prePatch[i].front().mask);
+			cv::goodFeaturesToTrack(prePatch[i].front().orgPatch, corners, 20, 0.01, 10, upScalePrePatch[i].front().mask);
 
 			// KLT search them in cur-image
 			std::vector<cv::Mat> prePatchPyr;
@@ -770,10 +822,12 @@ superResolutionTracker::optimizePose(dataset_t& dataPatches)
 				{
 					vpPoint p;	
 					// 2d point
-					p.set_x(cFeatures[j].x);
-					p.set_y(cFeatures[j].y);
+					double u, v;
+					vpPixelMeterConversion::convertPoint(cam, cFeatures[j].x,cFeatures[j].y,u,v);
+					p.set_x(u);
+					p.set_y(v);
 					// 3d point
-					float depth = 1.0 / prePatch[i].front().invDepth.at<float>(corners[j].y, corners[j].y);
+					float depth = prePatch[i].front().depth.at<float>(corners[j].y, corners[j].x);
 					backProj(invK, invP, depth, corners[j].x + dx, corners[j].y + dy, p);
 					featuresComputePose.addFeaturePoint(p);
 				}
@@ -781,8 +835,11 @@ superResolutionTracker::optimizePose(dataset_t& dataPatches)
 
 	//
 	// detect good features in dataPatches
+	// virtual camera is used here
+	vpCameraParameters virtualCam;
+	virtualCam.initFromCalibrationMatrix(getVirtualCam());
 	for (size_t i = 0; i < faces.size(); i++)
-		if (faces[i]->isVisible(cMo))
+		if (isVisible[i])
 			for (std::list<patch>::iterator pp = dataPatches[i].begin(); pp != dataPatches[i].end(); ++pp)
 			{
 				// detect good features in pp-patch
@@ -794,7 +851,7 @@ superResolutionTracker::optimizePose(dataset_t& dataPatches)
 				std::vector<cv::Point2f> fErr, cFeatures;
 				std::vector<uchar> fStatus;
 				cv::buildOpticalFlowPyramid(pp->orgPatch, prePatchPyr, cv::Size(winSize, winSize), maxLevel);
-				cv::calcOpticalFlowPyrLK(prePatchPyr, cPyramid, corners, cFeatures, fStatus, fErr, cv::Size(winSize, winSize), maxLevel);
+				cv::calcOpticalFlowPyrLK(prePatchPyr, upScaleCPyramid, corners, cFeatures, fStatus, fErr, cv::Size(winSize, winSize), maxLevel);
 
 				// find the 3d point: based on the tracked features and the 3d point calculated based on the pre-features
 				// push back to compute pose
@@ -803,11 +860,13 @@ superResolutionTracker::optimizePose(dataset_t& dataPatches)
 					{
 						vpPoint p;	
 						// 2d point
+						double u, v;
+						vpPixelMeterConversion::convertPoint(virtualCam, cFeatures[j].x,cFeatures[j].y,u,v);
 						p.set_x(cFeatures[j].x);
 						p.set_y(cFeatures[j].y);
 						// 3d point
-						float depth = 1.0 / prePatch[i].front().invDepth.at<float>(corners[j].y, corners[j].y);
-						backProj(invK, invP, depth, corners[j].x, corners[j].y, p);
+						float depth = prePatch[i].front().depth.at<float>(corners[j].y, corners[j].x);
+						backProj(invVirtualK, invP, depth, corners[j].x, corners[j].y, p);
 						featuresComputePose.addFeaturePoint(p);
 					}
 			}
@@ -833,7 +892,7 @@ superResolutionTracker::deepCopyPrePatch(const patch& src)
 	p.patchScale = src.patchScale;
 	p.orgPatch = src.orgPatch.clone();
 	p.mask = src.mask.clone();
-	p.invDepth = src.invDepth.clone();
+	p.depth = src.depth.clone();
 	p.patchRect = src.patchRect;
 	p.faceID = src.faceID;
 	p.pose = src.pose;
@@ -894,7 +953,7 @@ superResolutionTracker::initFaceScaleDepth(void)
 	{
 		vpPoint p = faces[i]->p[0];
 		p.changeFrame(faceScaleInfo[i].cMo);
-		faceScaleInfo[i].invDepth = 1.0 / p.get_Z();
+		faceScaleInfo[i].depth = p.get_Z();
 	}
 }
 
@@ -945,7 +1004,7 @@ superResolutionTracker::initFaceScalePose(void)
 void
 superResolutionTracker::initFaceScaleSize(void)
 {
-	float rate = (float)maxDownScale / (float)(numOfPatchScale -1);
+	float rate = getRate(maxDownScale, numOfPatchScale);
 	for (size_t i = 0; i < faces.size(); i++)
 	{
 		// width / height
@@ -978,7 +1037,7 @@ superResolutionTracker::initFaceScaleSize(void)
 void
 superResolutionTracker::initFaceScaleVirtualCam(void)
 {
-	float rate = (float)maxDownScale / (float)(numOfPatchScale -1);
+	float rate = getRate(maxDownScale, numOfPatchScale);
 	for (size_t i = 0; i < faces.size(); i++)
 	{
 		faceScaleInfo[i].Ks[numOfPatchScale-1] = cam.get_K(); 
@@ -988,22 +1047,14 @@ superResolutionTracker::initFaceScaleVirtualCam(void)
 }
 
 vpMatrix
-scaleCam(vpMatrix& K, float rate)
+superResolutionTracker::scaleCam(vpMatrix K, float rate)
 {
-	vpMatrix KK = K;
-	KK[0][0] /= rate;
-	KK[0][2] /= rate;
-	KK[1][1] /= rate;
-	KK[1][2] /= rate;
+	K[0][0] /= rate;
+	K[0][2] /= rate;
+	K[1][1] /= rate;
+	K[1][2] /= rate;
 
-	return KK;
+	return K;
 }
 
 // TODO: check all the procedure to see whether a function will crash at the first frame
-void 
-superResolutionTracker::retrieveImage(const cv::Mat& src)
-{
-	cv::cvtColor(src, curImg, CV_RGB2GRAY);	
-}
-
-// TODO: use the pointer gramma rewrite all the cv::Mat related codes
