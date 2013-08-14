@@ -40,13 +40,16 @@ class superResolutionTracker: public vpMbEdgeTracker
 			std::map<int, bool> confidence;
 			std::map<int, bool> isChanged;
 
+			/**
+			 * @brief TODO: highestConfidenceScale is assumed to be handled in the dataset update procedure, check whether it is.
+			 */
 			int highestConfidenceScale;
-			int patchScale;
 
 			// the patch extracted from the key frame only have the following fields filled
 			/**
 			 * @brief only the pixels in the patchRect are saved, and the pixels corresponding to the model face are labeled by the mask.
 			 */
+			int patchScale;
 			cv::Mat orgPatch, mask, depth;
 			/**
 			 * @brief the patchRect here is only used for the orgPatch, for scaledPatch, refer to the faceScaleInfo.faceSizes, and there is offset for scaledPatch, so cv::Size is enough.
@@ -61,6 +64,7 @@ class superResolutionTracker: public vpMbEdgeTracker
 		 * @brief save the info for faces under different scales
 		 * once the information in this structure is initialized, it should never be changed.
 		 * As a result, no data lock is required while processing the structure.
+		 * Once initialized, this structure can't be modified
 		 */
 		typedef struct scaleInfo_
 		{
@@ -106,11 +110,6 @@ class superResolutionTracker: public vpMbEdgeTracker
 		omp_lock_t dataLock;
 
 		/**
-		 * @brief face visibility maintained in this structure and avoid compute the visibility every time
-		 */
-		std::vector<bool> isVisible;
-
-		/**
 		 * @brief dataset here is the structure saving all the patches.
 		 * the face ID here should be consistent with the index in the polygon class
 		 */
@@ -127,6 +126,11 @@ class superResolutionTracker: public vpMbEdgeTracker
 		 */
 		face_t buff;
 
+		/**
+		 * @brief face visibility maintained in this structure and avoid compute the visibility every time
+		 */
+		std::vector<bool> isVisible;
+
 		int numOfPatchScale;
 		int maxDownScale;
 		int buffSize;
@@ -136,6 +140,11 @@ class superResolutionTracker: public vpMbEdgeTracker
 		int upScale;
 		int winSize;
 		int maxLevel;
+		/**
+		 * @brief the angle define the which face can be identified as visible
+		 * the angle is in degree (not rad)
+		 */
+		int faceAngle;
 
 		vpHomogeneousMatrix p_cMo;
 
@@ -161,6 +170,15 @@ class superResolutionTracker: public vpMbEdgeTracker
 		 * @param patchData the patch requires for its scale information
 		 */
 		void findPatchScale(patch& patchData);
+
+		/**
+		 * @brief only find the scale of the patch i, without obtaining the whole patch
+		 *
+		 * @param i
+		 *
+		 * @return 
+		 */
+		int findPatchScale(int i);
 
 		/**
 		 * @brief the initial scale patch based on the original patch scale found
@@ -221,17 +239,39 @@ class superResolutionTracker: public vpMbEdgeTracker
 		bool findConfidence(int scaleID, int& patchID, patch& patchData);
 
 		// TODO: check lock in this function
-		void findCopyProcessPatch(patch& curPatch, std::list<patch>& dataPatches);
+		void findCopyProcessPatch(
+				int faceID,
+				int patchScale,
+				vpHomogeneousMatrix pose,
+				std::list<patch>& patchList);
 
+		/**
+		 * @brief the following information has been copied:
+		 * highestConfidenceScale patch
+		 * highestConfidenceScale
+		 * patchScale
+		 * faceID
+		 * pose
+		 *
+		 * @param dataPatches
+		 * @param src
+		 */
 		void deepCopyPatch(std::list<patch>& dataPatches, patch& src);
 
 		/**
 		 * @brief based on the information provided in the curPatch, project the dataPatches onto the image using the curPatch.pose, and the orgPatch as well as its corresponding information is over-written.
+		 * the image patch is projected based on the virtual camera
+		 * the following information has been processed and saved during this function:
+		 * pose not used, since using the cMo is the same
+		 * highestConfidenceScale not used
+		 * orgPatch used
+		 * depth used
+		 * mask used
 		 *
 		 * @param curPatch
 		 * @param dataPatches
 		 */
-		void projPatch(patch& curPatch, std::list<patch>& dataPatches);
+		void projPatch(vpHomogeneousMatrix pose, int id, std::list<patch>& dataPatches);
 
 		inline void backProj(
 				const vpMatrix& invK, 
@@ -310,7 +350,7 @@ class superResolutionTracker: public vpMbEdgeTracker
 
 		inline float getRate(float maxDownScale, float numOfPatchScale)
 		{
-			return (float)maxDownScale / (float)(numOfPatchScale -1);
+			return pow(maxDownScale, numOfPatchScale-1);
 		}
 	private:
 };
