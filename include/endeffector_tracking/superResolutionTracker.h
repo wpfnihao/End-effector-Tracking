@@ -10,12 +10,19 @@
 // ViSP
 #include <visp/vpMbEdgeTracker.h>
 #include <visp/vpImageConvert.h>
+#include "visp/vpMeterPixelConversion.h"
+#include "visp/vpPixelMeterConversion.h"
+#include "visp/vpPose.h"
+#include "visp/vpDisplayX.h"
+#include "visp/vpPoseFeatures.h"
 // OpenCV
 #include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/video/tracking.hpp>
 // OpenMP
 #include <omp.h>
 // Graph Cut Optimization
-#include "GCoptimization.h"
+#include "gco/GCoptimization.h"
 
 // TODO; change the two structs into class with embedded member functions
 
@@ -115,6 +122,8 @@ class superResolutionTracker: public vpMbEdgeTracker
 		 */
 		dataset_t dataset;
 
+		cv::Mat curImg;
+
 		/**
 		 * @brief the size and the pose under which can obtain the size of faces is saved in this structure
 		 * This structure should be initialized as soon as the cad model of the target has been loaded.
@@ -210,7 +219,7 @@ class superResolutionTracker: public vpMbEdgeTracker
 		 * @param patchID
 		 * @param patchData
 		 */
-		void superResolution(scaleID, patchID, patchData);
+		void superResolution(int scaleID, int patchID, patch& patchData);
 
 		/**
 		 * @brief if new patch has been added to the database, we should refresh the whole database based on the new patch.
@@ -253,6 +262,8 @@ class superResolutionTracker: public vpMbEdgeTracker
 		 * faceID
 		 * pose
 		 *
+		 * This function only copy the information used for the tracking procedure
+		 * while the deepCopyPrePatch function copy all the information obtained from the frame
 		 * @param dataPatches
 		 * @param src
 		 */
@@ -287,7 +298,7 @@ class superResolutionTracker: public vpMbEdgeTracker
 		void projPoint(
 					const vpMatrix& invK, 
 					const vpMatrix& invP, 
-					const vpMatrix& P, 
+					const vpHomogeneousMatrix& P, 
 					const vpMatrix& K, 
 					float 			depth, 
 					float 			ix, 
@@ -307,10 +318,10 @@ class superResolutionTracker: public vpMbEdgeTracker
 
 		float calcDepth(
 				const std::vector<cv::Point>& p, 
-				const std::vector<float>& depth
+				const std::vector<float>& depth,
 				cv::Point cp);
 
-		patch deepCopyPrePatch(const patch& src);
+		patch deepCopyPrePatch(patch& src);
 
 		/**
 		 * @brief the mean value of a batch of points
@@ -350,7 +361,9 @@ class superResolutionTracker: public vpMbEdgeTracker
 
 		inline float getRate(float maxDownScale, float numOfPatchScale)
 		{
-			return pow(maxDownScale, numOfPatchScale-1);
+			return pow(maxDownScale, 1.0/(numOfPatchScale-1));
 		}
+
+		inline float pointDistance3D(const vpPoint& p1, const vpPoint& p2);
 	private:
 };
