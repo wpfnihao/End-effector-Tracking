@@ -85,6 +85,9 @@ kltFbTracker fbTracker;
 superResolutionTracker srTracker;
 // TODO: init the super-resolution tracker here, and make sure that both the following sections can use the tracker.
 
+// for display
+vpDisplayX d;
+
 /**
  * @brief The program entry point 
  *
@@ -139,6 +142,7 @@ int main(int argc, char **argv)
 
 #pragma omp section
 		{
+			/*
 			// for super-resolution dataset processing
 			int ID = omp_get_thread_num();
 			cout<<"this is the "<<ID<<"-th thread processing the database!"<<endl;
@@ -147,6 +151,7 @@ int main(int argc, char **argv)
 			{
 				srTracker.updateDataBase();
 			}
+			*/
 		}
 	}
 	return 0;
@@ -186,7 +191,7 @@ trackCallback(const sensor_msgs::ImageConstPtr& srcImg)
 			rows = grayImg.rows;
 			cols = grayImg.cols;
 			
-			initializeTracker(srcImg);
+			//initializeTracker(srcImg);
 			srTracker.retrieveImage(curImg);
 			srTracker.initialization(config_file, model_name, init_file);
 			//fbTracker.getInitPoints(init_file);
@@ -206,16 +211,6 @@ trackCallback(const sensor_msgs::ImageConstPtr& srcImg)
 	{
 		srTracker.retrieveImage(curImg);
 		srTracker.track();
-
-		vpImage<uchar> I;
-		vpImageConvert::convert(curImg,I);
-		vpDisplay::display(I);
-		srTracker.getPose(cMo);
-		srTracker.getCameraParameters(cam);
-		srTracker.display(I, cMo, cam, vpColor::red, 2);
-		vpDisplay::displayFrame(I, cMo, cam, 0.025, vpColor::none, 3);
-		vpDisplay::flush(I);
-		vpTime::wait(40);
 	}
 }
 
@@ -252,7 +247,7 @@ void
 initializeTracker(const sensor_msgs::ImageConstPtr& srcImg)
 {
 	// the vpImg is a mono channel image
-	vpImage<unsigned char> vpImg;
+	vpImage<uchar> vpImg;
 	// the operator:=() will allocate the memory automatically
 	vpImg = visp_bridge::toVispImage(*srcImg);
 
@@ -266,8 +261,7 @@ initializeTracker(const sensor_msgs::ImageConstPtr& srcImg)
 
 	//initial the display
 	//these steps are not shown in the manual document
-	vpDisplayX display;
-	display.init(vpImg);
+	d.init(vpImg);
 
 	initializer.initClick(vpImg, init_file);
 	// obtain the initial pose of the model

@@ -111,7 +111,8 @@ class superResolutionTracker: public vpMbEdgeTracker
 			cv::cvtColor(src, curImg, CV_RGB2GRAY);	
 		}
 
-	// private member variables
+
+		// private member variables
 	protected:
 		omp_lock_t buffLock;
 		omp_lock_t dataLock;
@@ -155,9 +156,13 @@ class superResolutionTracker: public vpMbEdgeTracker
 		 */
 		int faceAngle;
 
+
 		vpHomogeneousMatrix p_cMo;
 
 		dataset_t prePatch;
+
+		vpDisplayX disp;
+		vpImage<uchar> I;
 
 	// private member functions	
 	protected:
@@ -316,12 +321,20 @@ class superResolutionTracker: public vpMbEdgeTracker
 		 */
 		patch obtainPatch(int faceID);
 
+		// obsoleted function
 		float calcDepth(
 				const std::vector<cv::Point>& p, 
 				const std::vector<float>& depth,
 				cv::Point cp);
 
-		patch& deepCopyPrePatch(patch& src);
+		float calcDepth(
+				vpPoint* vp,
+				vpMatrix invP,
+				vpMatrix invK,
+				cv::Point cp
+				);
+
+		void deepCopyPrePatch(patch& src, patch& p);
 
 		/**
 		 * @brief the mean value of a batch of points
