@@ -21,9 +21,6 @@ superResolutionTracker::superResolutionTracker()
 {
 	omp_init_lock(&buffLock);
 	omp_init_lock(&dataLock);
-
-	for (size_t i = 0; i < faces.getPolygon().size(); i++)
-		isVisible.push_back(false);
 }
 
 // TODO: check the lock , by search dataset
@@ -39,7 +36,7 @@ superResolutionTracker::track(void)
 
 	// maintain the visibility test
 	int i = 0;
-	for (std::list<vpMbtPolygon*>::iterator itr = faces.getPolygon().begin(); itr != faces.getPolygon().end(); ++itr)
+	for (std::list<vpMbtPolygon *>::iterator itr = faces.getPolygon().begin(); itr != faces.getPolygon().end(); ++itr)
 	{
 		isVisible[i] = (*itr)->isVisible(cMo, vpMath::rad(faceAngle));
 		++i;
@@ -79,7 +76,7 @@ superResolutionTracker::track(void)
 		if (isVisible[i])
 		{
 			prePatch[i].clear();
-			prePatch[i].push_back(obtainPatch[i]);
+			prePatch[i].push_back(obtainPatch(i));
 		}
 
 	// measure whether the tracked frame is the key frame
@@ -191,7 +188,7 @@ superResolutionTracker::findPatchScale(int faceID)
 	for (int i = 0; i < faceID; i++)
 		++itr;
 
-	int npt = (*itr)->nbPoints;
+	int npt = (*itr)->getNbPoint();
 	std::vector<cv::Point> pt(npt);
 	for (int i = 0; i < npt; i++)
 	{
@@ -233,32 +230,32 @@ superResolutionTracker::findPatchScale(patch& patchData)
 	scaleInfo& si = faceScaleInfo[patchData.faceID];
 	for (int i = 0; i < numOfPatchScale; i++)
 	{
-		switch (i)
+		if (i == 0)
 		{
-			case 0:
-				nxtWidth = si.faceSizes[i].width;
-				nxtHeight = si.faceSizes[i].height;
-				if (numOfPixels < nxtWidth * nxtHeight)
-				{
-					patchScale = i;	
-					scaleFound = true;
-				}
-				break;
-			case numOfPatchScale - 1:
+			nxtWidth = si.faceSizes[i].width;
+			nxtHeight = si.faceSizes[i].height;
+			if (numOfPixels < nxtWidth * nxtHeight)
+			{
 				patchScale = i;	
 				scaleFound = true;
-				break;
-			default:
-				curWidth = nxtWidth;
-				curHeight = nxtHeight;
-				nxtWidth = si.faceSizes[i+1].width;
-				nxtHeight = si.faceSizes[i+1].height;
-				if (numOfPixels > curWidth * curHeight && numOfPixels < nxtWidth * nxtHeight)
-				{
-					patchScale = numOfPixels / (curWidth * curHeight) > (nxtWidth * nxtHeight) / numOfPixels ? i+1:i;	
-					scaleFound = true;
-				}
-				break;
+			}
+		}
+		else if (i == numOfPatchScale-1)
+		{
+			patchScale = i;	
+			scaleFound = true;
+		}
+		else
+		{
+			curWidth = nxtWidth;
+			curHeight = nxtHeight;
+			nxtWidth = si.faceSizes[i+1].width;
+			nxtHeight = si.faceSizes[i+1].height;
+			if (numOfPixels > curWidth * curHeight && numOfPixels < nxtWidth * nxtHeight)
+			{
+				patchScale = numOfPixels / (curWidth * curHeight) > (nxtWidth * nxtHeight) / numOfPixels ? i+1:i;	
+				scaleFound = true;
+			}
 		}
 
 		if (scaleFound)
@@ -541,6 +538,10 @@ superResolutionTracker::findCopyProcessPatch(
 		vpHomogeneousMatrix pose,
 		std::list<patch>& patchList)
 {
+	// check whether the dataset is empty, is so, return
+	if (dataset[faceID].empty())
+		return;	
+
 	omp_set_lock(&dataLock);
 	// 1. Choose which patch to copy
 	// 1.1. Randomly choose among the database, or (activated)
@@ -663,7 +664,7 @@ superResolutionTracker::obtainPatch(int faceID)
 	std::list<vpMbtPolygon*>::iterator itr = faces.getPolygon().begin();
 	for (int i = 0; i < faceID; i++)
 		++itr;
-	int npt = (*itr)->nbPoints;
+	int npt = (*itr)->getNbPoint();
 	std::vector<cv::Point> pt(npt);
 	std::vector<float> dp(npt);
 	for (int i = 0; i < npt; i++)
@@ -871,45 +872,58 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 	// for pre-frame
 	for (size_t i = 0; i < faces.getPolygon().size(); i++)
 		if (isVisible[i])
-		{
-			patch& pp = prePatch[i].front();
-			// detect good features in pre-patch
-			std::vector<cv::Point2f> corners;
-			cv::goodFeaturesToTrack(pp.orgPatch, corners, 20, 0.01, 10, pp.mask);
-
-			// KLT search them in cur-image
-			std::vector<cv::Mat> prePatchPyr;
-			std::vector<cv::Point2f> fErr, cFeatures;
-			std::vector<uchar> fStatus;
-			cv::buildOpticalFlowPyramid(pp.orgPatch, prePatchPyr, cv::Size(winSize, winSize), maxLevel);
-			int dx = pp.patchRect.x;
-			int dy = pp.patchRect.y;
-			std::vector<cv::Point2f>::iterator tar = cFeatures.begin();
-			for (std::vector<cv::Point2f>::iterator itr = corners.begin(); itr != corners.end(); ++itr) 
+			if(!prePatch[i].empty())
 			{
-				tar->x = itr->x + dx;
-				tar->y = itr->y + dy;
-				++tar;
-			}
-			cv::calcOpticalFlowPyrLK(prePatchPyr, cPyramid, corners, cFeatures, fStatus, fErr, cv::Size(winSize, winSize), maxLevel, cv::TermCriteria(cv::TermCriteria::COUNT+cv::TermCriteria::EPS, 30, 0.01), cv::OPTFLOW_USE_INITIAL_FLOW);
+				patch& pp = prePatch[i].front();
+				// restore the patch to the image size
+				cv::Mat orgPatch = cv::Mat::zeros(cv::Size(cols, rows), CV_8UC1);
+				cv::Mat mask 	 = cv::Mat::zeros(cv::Size(cols, rows), CV_8UC1);
+				pp.orgPatch.copyTo(
+						orgPatch(
+							cv::Range(pp.patchRect.y, pp.patchRect.y + pp.patchRect.height),
+							cv::Range(pp.patchRect.x, pp.patchRect.x + pp.patchRect.width)
+							)
+						);
+				pp.mask.copyTo(
+						mask(
+							cv::Range(pp.patchRect.y, pp.patchRect.y + pp.patchRect.height),
+							cv::Range(pp.patchRect.x, pp.patchRect.x + pp.patchRect.width)
+							)
+						);
+				// detect good features in pre-patch
+				std::vector<cv::Point2f> corners;
+				cv::goodFeaturesToTrack(orgPatch, corners, 20, 0.01, 5, mask);
+				// if not corners are detection in this face, then we won't do the klt tracking procedure, and simply move to another face
+				if (corners.empty())
+					continue;
 
-			// find the 3d point: based on the tracked features and the 3d point calculated based on the pre-features
-			// push back to compute pose
-			for (size_t j = 0; j < corners.size(); j++)
-				if (fStatus[j] == 1)
-				{
-					vpPoint p;	
-					// 2d point
-					double u, v;
-					vpPixelMeterConversion::convertPoint(cam, cFeatures[j].x,cFeatures[j].y,u,v);
-					p.set_x(u);
-					p.set_y(v);
-					// 3d point
-					float depth = pp.depth.at<float>(corners[j].y, corners[j].x);
-					backProj(invK, invP, depth, corners[j].x + dx, corners[j].y + dy, p);
-					featuresComputePose.addFeaturePoint(p);
-				}
-		}
+				// KLT search them in cur-image
+				std::vector<cv::Mat> prePatchPyr;
+				std::vector<cv::Point2f> cFeatures;
+				std::vector<float> fErr;
+				std::vector<uchar> fStatus;
+				cv::buildOpticalFlowPyramid(orgPatch, prePatchPyr, cv::Size(winSize, winSize), maxLevel);
+				cv::calcOpticalFlowPyrLK(prePatchPyr, cPyramid, corners, cFeatures, fStatus, fErr, cv::Size(winSize, winSize), maxLevel);
+
+				// find the 3d point: based on the tracked features and the 3d point calculated based on the pre-features
+				// push back to compute pose
+				int dx = pp.patchRect.x;
+				int dy = pp.patchRect.y;
+				for (size_t j = 0; j < corners.size(); j++)
+					if (fStatus[j] == 1)
+					{
+						vpPoint p;	
+						// 2d point
+						double u, v;
+						vpPixelMeterConversion::convertPoint(cam, cFeatures[j].x,cFeatures[j].y,u,v);
+						p.set_x(u);
+						p.set_y(v);
+						// 3d point
+						float depth = pp.depth.at<float>(corners[j].y - dy, corners[j].x - dy);
+						backProj(invK, invP, depth, corners[j].x, corners[j].y, p);
+						featuresComputePose.addFeaturePoint(p);
+					}
+			}
 
 	//
 	// detect good features in dataPatches
@@ -926,7 +940,8 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 
 				// KLT search them in cur-image
 				std::vector<cv::Mat> prePatchPyr;
-				std::vector<cv::Point2f> fErr, cFeatures;
+				std::vector<cv::Point2f> cFeatures;
+				std::vector<float> fErr;
 				std::vector<uchar> fStatus;
 				cv::buildOpticalFlowPyramid(pp->orgPatch, prePatchPyr, cv::Size(winSize, winSize), maxLevel);
 				cv::calcOpticalFlowPyrLK(prePatchPyr, upScaleCPyramid, corners, cFeatures, fStatus, fErr, cv::Size(winSize, winSize), maxLevel);
@@ -963,7 +978,7 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 	}
 }
 
-superResolutionTracker::patch
+superResolutionTracker::patch&
 superResolutionTracker::deepCopyPrePatch(patch& src)
 {
 	patch p;
@@ -986,10 +1001,9 @@ superResolutionTracker::isKeyFrame(void)
 }
 
 void 
-superResolutionTracker::initialization(vpCameraParameters& cam, std::string modelName, std::string initName)
+superResolutionTracker::initialization(std::string config_file, std::string modelName, std::string initName)
 {
-	// Get the camera parameters used by the tracker (from the configuration file).
-	getCameraParameters(cam); 
+	loadConfigFile(config_file);
 	// Load the 3d model in cao format. No 3rd party library is required
 	loadModel(modelName); 
 
@@ -998,14 +1012,31 @@ superResolutionTracker::initialization(vpCameraParameters& cam, std::string mode
 	vpImage<uchar> I;
 	vpImageConvert::convert(curImg,I);
 	display.init(I);
-	initClick(I, initName.c_str()); 
+	initClick(I, initName); 
+	cMo = getPose();
 
 	// initialize the member variables
 	rows = curImg.rows;
 	cols = curImg.cols;
 
+	for (size_t i = 0; i < faces.getPolygon().size(); i++)
+		isVisible.push_back(false);
 	// once the model has been read, we can init this important structure
 	initFaceScaleInfo();
+
+	// for first frame tracking
+	int i = 0;
+	for (std::list<vpMbtPolygon*>::iterator itr = faces.getPolygon().begin(); itr != faces.getPolygon().end(); ++itr)
+	{
+		isVisible[i] = (*itr)->isVisible(cMo, vpMath::rad(faceAngle));
+		++i;
+	}
+	for (size_t i = 0; i < faces.getPolygon().size(); i++)
+		if (isVisible[i])
+		{
+			prePatch[i].clear();
+			prePatch[i].push_back(obtainPatch(i));
+		}
 }
 
 void
@@ -1123,7 +1154,7 @@ void
 superResolutionTracker::initFaceScaleVirtualCam(void)
 {
 	float rate = getRate(maxDownScale, numOfPatchScale);
-	for (size_t i = 0; i < faces.size(); i++)
+	for (size_t i = 0; i < faces.getPolygon().size(); i++)
 	{
 		faceScaleInfo[i].Ks[numOfPatchScale-1] = cam.get_K(); 
 		for (int j = 0; j < numOfPatchScale-1; j++)

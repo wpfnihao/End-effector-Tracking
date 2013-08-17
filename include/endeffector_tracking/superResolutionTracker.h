@@ -99,7 +99,7 @@ class superResolutionTracker: public vpMbEdgeTracker
 		void track(void);
 		void updateDataBase(void);
 		void initDataset(void);
-		void initialization(vpCameraParameters& cam, std::string modelName, std::string initName);
+		void initialization(std::string config_file, std::string modelName, std::string initName);
 
 		/**
 		 * @brief retrieve image and then convert it to gray scale
@@ -321,7 +321,7 @@ class superResolutionTracker: public vpMbEdgeTracker
 				const std::vector<float>& depth,
 				cv::Point cp);
 
-		patch deepCopyPrePatch(patch& src);
+		patch& deepCopyPrePatch(patch& src);
 
 		/**
 		 * @brief the mean value of a batch of points

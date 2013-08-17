@@ -43,6 +43,7 @@
 // user defined
 #include "endeffector_tracking/mbtEdgeTracker.h"
 #include "endeffector_tracking/kltFbTracker.h"
+#include "endeffector_tracking/superResolutionTracker.h"
 //#include "endeffector_tracking/mbtKltTracker.h"
 //#include "endeffector_tracking/mbtEdgeKltTracker.h"
 

@@ -186,35 +186,36 @@ trackCallback(const sensor_msgs::ImageConstPtr& srcImg)
 			rows = grayImg.rows;
 			cols = grayImg.cols;
 			
-			fbTracker.getInitPoints(init_file);
-			fbTracker.init(curImg);
+			initializeTracker(srcImg);
+			srTracker.retrieveImage(curImg);
+			srTracker.initialization(config_file, model_name, init_file);
+			//fbTracker.getInitPoints(init_file);
+			//fbTracker.init(curImg);
 
-			meTracker.retrieveImage(srcImg);
-			meTracker.initialize(config_file, model_name, init_file);
+			//meTracker.retrieveImage(srcImg);
+			//meTracker.initialize(config_file, model_name, init_file);
 		}
 
-		initializeTracker(srcImg);
-		fbTracker.retrieveImage(curImg);
-		fbTracker.initialize(cam, cMo, poseVector, rows, cols);
+		//fbTracker.retrieveImage(curImg);
+		//fbTracker.initialize(cam, cMo, poseVector, rows, cols);
 
 		//finish the initialization step and start to track
 		status = TRACKING;
 	}	
 	else if (status == TRACKING)
 	{
-		fbTracker.getPose(cMo);
-		fbTracker.retrieveImage(curImg);
-		fbTracker.track();
-		fbTracker.pubPose(cMo);
-		if(fbTracker.pubRst(processedImg, TrackerWindow))
-			status = LOST;
-		
-		meTracker.getPose(cMo);
-		meTracker.retrieveImage(srcImg);
-		meTracker.track();
-		meTracker.pubPose(cMo);
+		srTracker.retrieveImage(curImg);
+		srTracker.track();
 
-		pubRst(srcImg);
+		vpImage<uchar> I;
+		vpImageConvert::convert(curImg,I);
+		vpDisplay::display(I);
+		srTracker.getPose(cMo);
+		srTracker.getCameraParameters(cam);
+		srTracker.display(I, cMo, cam, vpColor::red, 2);
+		vpDisplay::displayFrame(I, cMo, cam, 0.025, vpColor::none, 3);
+		vpDisplay::flush(I);
+		vpTime::wait(40);
 	}
 }
 
