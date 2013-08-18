@@ -25,8 +25,7 @@
 #include "gco/GCoptimization.h"
 
 // TODO; change the two structs into class with embedded member functions
-
-// TODO: check all the initialization problem of the member variables
+// TODO: the klt tracker seems not very stable
 class superResolutionTracker: public vpMbEdgeTracker
 {
 	// the definition of the most important structures in the program
@@ -319,7 +318,7 @@ class superResolutionTracker: public vpMbEdgeTracker
 		 *
 		 * @return 
 		 */
-		patch obtainPatch(int faceID);
+		void obtainPatch(int faceID, patch& p);
 
 		// obsoleted function
 		float calcDepth(

@@ -14,8 +14,8 @@ superResolutionTracker::superResolutionTracker()
 ,numOfPatches(10)
 ,numOfPatchesUsed(3)
 ,upScale(1)
-,winSize(10)
-,maxLevel(3)
+,winSize(3)
+,maxLevel(1)
 ,maxDownScale(16)
 ,faceAngle(80)
 {
@@ -25,9 +25,6 @@ superResolutionTracker::superResolutionTracker()
 
 // TODO: check the lock , by search dataset
 // TODO: check any pointer like data in the patches shared unconsciously
-// TODO: check all the internal camera parameters used all over the codes
-// TODO: check the offset of the patches while using the virtual camera
-// TODO: then, check the whole track procedure
 // TODO: the first frame track is crucial
 void
 superResolutionTracker::track(void)
@@ -78,11 +75,15 @@ superResolutionTracker::track(void)
 
 	// save the patch for next frame tracking
 	for (size_t i = 0; i < faces.getPolygon().size(); i++)
+	{
+		prePatch[i].clear();
 		if (isVisible[i])
 		{
-			prePatch[i].clear();
-			prePatch[i].push_back(obtainPatch(i));
+			patch p;
+			obtainPatch(i, p);
+			prePatch[i].push_back(p);
 		}
+	}
 
 	// measure whether the tracked frame is the key frame
 	// if true
@@ -107,7 +108,7 @@ superResolutionTracker::track(void)
 	display(I, cMo, cam, vpColor::red, 2, true);
 	vpDisplay::displayFrame(I, cMo, cam, 0.025, vpColor::none, 3);
 	vpDisplay::flush(I);
-	vpTime::wait(40);
+	vpTime::wait(10);
 }
 
 void
@@ -218,7 +219,6 @@ superResolutionTracker::findPatchScale(int faceID)
 		pt[i].y = v;
 	}
 
-	// TODO: check whether the codes here work
 	for (size_t i = 0; i < npt; i++)
 		cv::line(mask, pt[i], pt[(i+1) % npt], 255);
 	cv::floodFill(mask, meanPoint(pt), 255);
@@ -665,10 +665,9 @@ superResolutionTracker::deepCopyPatch(std::list<patch>& dataPatches, patch& src)
 }
 
 // FIXME: note that the codes here assume that the faces are rectangles
-superResolutionTracker::patch
-superResolutionTracker::obtainPatch(int faceID)
+void
+superResolutionTracker::obtainPatch(int faceID, patch& p)
 {
-	patch p;
 	// note: the patchRect should be handled here
 	// project the face onto the mask image, draw the boarder lines
 	// save the depth of the four corners
@@ -749,8 +748,6 @@ superResolutionTracker::obtainPatch(int faceID)
 	p.depth = cv::Mat(depth, cv::Range(lt.y, rb.y + 1), cv::Range(lt.x, rb.x + 1));
 	// scale
 	findPatchScale(p);
-
-	return p;
 }
 
 vpMatrix 
@@ -886,6 +883,8 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 	vpMatrix invK = cam.get_K().inverseByLU();
 	vpMatrix invP = cMo.inverseByLU();
 
+	cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(7,7), cv::Point(3, 3));
+
 	// for pre-frame
 	for (size_t i = 0; i < faces.getPolygon().size(); i++)
 		if (isVisible[i])
@@ -901,6 +900,7 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 							cv::Range(pp.patchRect.x, pp.patchRect.x + pp.patchRect.width)
 							)
 						);
+				cv::erode(pp.mask, pp.mask, element);
 				pp.mask.copyTo(
 						mask(
 							cv::Range(pp.patchRect.y, pp.patchRect.y + pp.patchRect.height),
@@ -910,6 +910,14 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 				// detect good features in pre-patch
 				std::vector<cv::Point2f> corners;
 				cv::goodFeaturesToTrack(orgPatch, corners, 20, 0.01, 5, mask);
+				// DEBUG only
+				//cv::imshow("mask", mask);
+				//cv::Mat pImg = orgPatch.clone();
+				//for (size_t j = 0; j < corners.size(); j++)
+				//	cv::circle(pImg, corners[j], 3, cv::Scalar(255, 0, 0));
+				//cv::imshow("pre-features", pImg);
+				//cv::waitKey();
+				// END OF DEBUG
 				// if not corners are detection in this face, then we won't do the klt tracking procedure, and simply move to another face
 				if (corners.empty())
 					continue;
@@ -921,6 +929,14 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 				std::vector<uchar> fStatus;
 				cv::buildOpticalFlowPyramid(orgPatch, prePatchPyr, cv::Size(winSize, winSize), maxLevel);
 				cv::calcOpticalFlowPyrLK(prePatchPyr, cPyramid, corners, cFeatures, fStatus, fErr, cv::Size(winSize, winSize), maxLevel);
+				// DEBUG only
+				//cv::Mat cImg = curImg.clone();
+				//for (size_t j = 0; j < cFeatures.size(); j++)
+				//	if (fStatus[j] == 1) // only the tracked features are used
+				//		cv::circle(cImg, cFeatures[j], 3, cv::Scalar(255, 0, 0));
+				//cv::imshow("cur-features", cImg);
+				//cv::waitKey();
+				// END OF DEBUG
 
 				// find the 3d point: based on the tracked features and the 3d point calculated based on the pre-features
 				// push back to compute pose
@@ -935,8 +951,11 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 						vpPixelMeterConversion::convertPoint(cam, cFeatures[j].x, cFeatures[j].y, u, v);
 						p.set_x(u);
 						p.set_y(v);
+						p.set_w(1);
 						// 3d point
 						float depth = pp.depth.at<float>(corners[j].y - dy, corners[j].x - dx);
+						if (depth < 1e-5)
+							continue;
 						backProj(invK, invP, depth, corners[j].x, corners[j].y, p);
 						featuresComputePose.addFeaturePoint(p);
 					}
@@ -953,6 +972,7 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 			{
 				// detect good features in pp-patch
 				std::vector<cv::Point2f> corners;
+				cv::erode(pp->mask, pp->mask, element);
 				cv::goodFeaturesToTrack(pp->orgPatch, corners, 20, 0.01, 10, pp->mask);
 
 				// KLT search them in cur-image
@@ -974,8 +994,11 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 						vpPixelMeterConversion::convertPoint(virtualCam, cFeatures[j].x,cFeatures[j].y,u,v);
 						p.set_x(u);
 						p.set_y(v);
+						p.set_w(1);
 						// 3d point
 						float depth = pp->depth.at<float>(corners[j].y, corners[j].x);
+						if (depth < 1e-5)
+							continue;
 						backProj(invVirtualK, invP, depth, corners[j].x, corners[j].y, p);
 						featuresComputePose.addFeaturePoint(p);
 					}
@@ -998,13 +1021,13 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 void
 superResolutionTracker::deepCopyPrePatch(patch& src, patch& p)
 {
-	p.patchScale = src.patchScale;
-	p.orgPatch = src.orgPatch.clone();
-	p.mask = src.mask.clone();
-	p.depth = src.depth.clone();
-	p.patchRect = src.patchRect;
-	p.faceID = src.faceID;
-	p.pose = src.pose;
+	p.patchScale 	= src.patchScale;
+	p.orgPatch 		= src.orgPatch.clone();
+	p.mask 			= src.mask.clone();
+	p.depth 		= src.depth.clone();
+	p.patchRect 	= src.patchRect;
+	p.faceID 		= src.faceID;
+	p.pose 			= src.pose;
 }
 
 // TODO: complete this function
@@ -1025,8 +1048,6 @@ superResolutionTracker::initialization(std::string config_file, std::string mode
 	vpImageConvert::convert(curImg,I);
 	disp.init(I);
 	initClick(I, initName); 
-	cMo = getPose();
-	//this->cMo = cMo_;
 
 	// initialize the member variables
 	rows = curImg.rows;
@@ -1045,11 +1066,15 @@ superResolutionTracker::initialization(std::string config_file, std::string mode
 		++i;
 	}
 	for (size_t i = 0; i < faces.getPolygon().size(); i++)
+	{
+		prePatch[i].clear();
 		if (isVisible[i])
 		{
-			prePatch[i].clear();
-			prePatch[i].push_back(obtainPatch(i));
+			patch p;
+			obtainPatch(i, p);
+			prePatch[i].push_back(p);
 		}
+	}
 }
 
 void
@@ -1093,7 +1118,7 @@ superResolutionTracker::initFaceScalePose(void)
 		{
 			vpPoint p = (*itr)->p[j];
 			double x, y;
-			int u, v;
+			double u, v;
 			switch (j)
 			{
 				case 0:
@@ -1118,6 +1143,7 @@ superResolutionTracker::initFaceScalePose(void)
 			vpPixelMeterConversion::convertPoint(cam, u, v, x, y);
 			p.set_x(x);
 			p.set_y(y);
+			p.set_w(1);
 			pose.addPoint(p);
 		}
 		pose.computePose(vpPose::DEMENTHON_VIRTUAL_VS, faceScaleInfo[i].cMo);
@@ -1219,22 +1245,22 @@ superResolutionTracker::calcDepth(
 	vpMatrix b(3, 1);
 
 	// fill b
-	b[0][0] = -vp[1].get_X() + vp[0].get_X() + vp[2].get_X() - invP[0][3];
-	b[1][0] = -vp[1].get_Y() + vp[0].get_Y() + vp[2].get_Y() - invP[1][3];
-	b[2][0] = -vp[1].get_Z() + vp[0].get_Z() + vp[2].get_Z() - invP[2][3];
+	b[0][0] = -vp[1].get_X() + vp[0].get_X() + vp[2].get_X();
+	b[1][0] = -vp[1].get_Y() + vp[0].get_Y() + vp[2].get_Y();
+	b[2][0] = -vp[1].get_Z() + vp[0].get_Z() + vp[2].get_Z();
 	// fill A
 	// second column
-	A[0][1] = vp[1].get_X() - vp[0].get_X();
-	A[1][1] = vp[1].get_Y() - vp[0].get_Y();
-	A[2][1] = vp[1].get_Z() - vp[0].get_Z();
+	A[0][1] = -(vp[1].get_X() - vp[0].get_X());
+	A[1][1] = -(vp[1].get_Y() - vp[0].get_Y());
+	A[2][1] = -(vp[1].get_Z() - vp[0].get_Z());
 	// third column
-	A[0][2] = vp[1].get_X() - vp[2].get_X();
-	A[1][2] = vp[1].get_Y() - vp[2].get_Y();
-	A[2][2] = vp[1].get_Z() - vp[2].get_Z();
+	A[0][2] = -(vp[1].get_X() - vp[2].get_X());
+	A[1][2] = -(vp[1].get_Y() - vp[2].get_Y());
+	A[2][2] = -(vp[1].get_Z() - vp[2].get_Z());
 	// first column
-	A[0][0] = invP[0][0] * X[0][0] + invP[0][1] * X[1][0] + invP[0][2] * X[2][0];
-	A[1][0] = invP[1][0] * X[0][0] + invP[1][1] * X[1][0] + invP[1][2] * X[2][0];
-	A[2][0] = invP[2][0] * X[0][0] + invP[2][1] * X[1][0] + invP[2][2] * X[2][0];
+	A[0][0] = X[0][0];
+	A[1][0] = X[1][0];
+	A[2][0] = X[2][0];
 
 	x = A.inverseByLU() * b;
 
