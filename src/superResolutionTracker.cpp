@@ -18,6 +18,8 @@ superResolutionTracker::superResolutionTracker()
 ,maxLevel(1)
 ,maxDownScale(16)
 ,faceAngle(80)
+,frameCount(0)
+,minFrameCount(20)
 {
 	omp_init_lock(&buffLock);
 	omp_init_lock(&dataLock);
@@ -25,7 +27,7 @@ superResolutionTracker::superResolutionTracker()
 
 // TODO: check the lock , by search dataset
 // TODO: check any pointer like data in the patches shared unconsciously
-// TODO: the first frame track is crucial
+// TODO: without key frame the tracker works much faster 
 void
 superResolutionTracker::track(void)
 {
@@ -90,6 +92,8 @@ superResolutionTracker::track(void)
 	// push the frame into the buff
 	if (isKeyFrame())
 	{
+		std::cout<<"NOTICE: a key frame detected!"<<std::endl;
+		frameCount = 0;
 		for (size_t i = 0; i < faces.getPolygon().size(); i++)
 			if (isVisible[i])
 			{
@@ -299,7 +303,8 @@ superResolutionTracker::genOrgScalePatch(patch& patchData)
 
 	int height = si.faceSizes[patchData.patchScale].height;
 	int width = si.faceSizes[patchData.patchScale].width;
-	float* pd = (float*) (patchData.depth.data);
+	float depth = si.depth;
+	//float* pd = (float*) (patchData.depth.data);
 	cv::Mat sp(si.faceSizes[patchData.patchScale], CV_8UC1);
 	uchar* ps = (uchar*) (sp.data);
 	for (int i = 0; i < height; i++)
@@ -307,12 +312,17 @@ superResolutionTracker::genOrgScalePatch(patch& patchData)
 		{
 			int xc, yc;
 			float Z;
-			projPoint(invK, invP, P, K, *pd++, j, i, xc, yc, Z);
+			projPoint(invK, invP, P, K, depth, j, i, xc, yc, Z);
 			xc -= shiftX;
 			yc -= shiftY;
 			*ps++ = patchData.orgPatch.at<uchar>(yc, xc);
 		}
 	patchData.scaledPatch[patchData.patchScale] = sp;
+	// DEBUG only
+	// holes in the patch
+	//cv::imshow("patch", sp);
+	//cv::imshow("orgPatch", patchData.orgPatch);
+	//cv::waitKey();
 }
 
 void
@@ -359,9 +369,7 @@ superResolutionTracker::findConfidence(int scaleID, int& patchID, patch& patchDa
 	for (std::list<patch>::iterator itr = dataset[patchData.faceID].begin(); itr != dataset[patchData.faceID].end(); ++itr)
 	{
 		if (itr->confidence[scaleID])
-		{
 			IDs.push_back(count);
-		}
 		count++;
 	}
 
@@ -439,53 +447,54 @@ superResolutionTracker::superResolution(int scaleID, int patchID, patch& patchDa
 }
 
 // TODO: don't forget the lock while updating the database
-void
+// TODO: check all the map based structure, to see whether the loop works correctly
+	void
 superResolutionTracker::refreshDataset(void)
 {
+
 	// reset the isChanged flags
 	for (int i = 0; i < numOfPatchScale; i++)	
-		for (size_t j = 0; j < dataset.size(); j++)
+		for (size_t j = 0; j < faces.getPolygon().size(); j++)
 			for (std::list<patch>::iterator itrPatch = dataset[j].begin(); itrPatch != dataset[j].end(); ++itrPatch)
 				itrPatch->isChanged[i] = false;
 
 	// number of scales, start from the lowest scale
 	// there is no need to update the lowest scale, so we start from scale 1 here
 	for (int i = 1; i < numOfPatchScale; i++)	
-	{
-		// number of faces
-		for (size_t j = 0; j < dataset.size(); j++)
-		{
+		for (size_t j = 0; j < faces.getPolygon().size(); j++) // number of faces
 			for (std::list<patch>::iterator itrPatch = dataset[j].begin(); itrPatch != dataset[j].end(); ++itrPatch)
-			{
-				int patchID;
-				if (findConfidence(i, patchID, *itrPatch))
+				if (!itrPatch->confidence[i]) // only those without confidence should be updated
 				{
-					omp_set_lock(&dataLock);
-					superResolution(i, patchID, *itrPatch);
-					itrPatch->confidence[i] = true;
-					itrPatch->isChanged[i] = true;
-					omp_unset_lock(&dataLock);
-				}
-				else
-				{
-					if (itrPatch->isChanged[i-1])
+					int patchID;
+					if (findConfidence(i, patchID, *itrPatch))
 					{
 						omp_set_lock(&dataLock);
-						interpolate(*itrPatch, i);
+						superResolution(i, patchID, *itrPatch);
+						itrPatch->confidence[i] = true;
 						itrPatch->isChanged[i] = true;
 						omp_unset_lock(&dataLock);
 					}
+					else
+					{
+						if (itrPatch->isChanged[i-1])
+						{
+							omp_set_lock(&dataLock);
+							interpolate(*itrPatch, i);
+							itrPatch->isChanged[i] = true;
+							omp_unset_lock(&dataLock);
+						}
+					}
 				}
-			}
-		}
-	}
 
 	// maintain the highestConfidenceScale
+	omp_set_lock(&dataLock);
 	for (int i = 0; i < numOfPatchScale; i++)	
-		for (size_t j = 0; j < dataset.size(); j++)
+		for (size_t j = 0; j < faces.getPolygon().size(); j++)
 			for (std::list<patch>::iterator itrPatch = dataset[j].begin(); itrPatch != dataset[j].end(); ++itrPatch)
 				if (itrPatch->confidence[i])
 					itrPatch->highestConfidenceScale = i;
+	omp_unset_lock(&dataLock);
+
 }
 
 void
@@ -609,6 +618,7 @@ superResolutionTracker::findCopyProcessPatch(
 }
 
 // FIXME: some computational expensive steps in this function, try to tune it
+// TODO: check the patch database choose strategy, it seems that path with very low confidence will be used as well.
 void
 superResolutionTracker::projPatch(vpHomogeneousMatrix pose, int id, std::list<patch>& dataPatches)
 {
@@ -631,23 +641,89 @@ superResolutionTracker::projPatch(vpHomogeneousMatrix pose, int id, std::list<pa
 		vpMatrix K = getVirtualCam();
 		float dp = faceScaleInfo[id].depth;
 
+		// find the four corners
 		cv::Size pSize = faceScaleInfo[id].faceSizes[hs];
-		uchar* sp = (uchar*) (itr->scaledPatch[hs].data);
-		for (int i = 0; i < pSize.height; i++)
-			for (int j = 0; j < pSize.width; j++)
+		std::vector<cv::Point> corners;
+		for (int i = 0; i < 4; i++)
+		{
+			int x, y;
+			switch (i)
 			{
-				int xc, yc;
-				float Z;
-				projPoint(invK, invP, P, K, dp, j, i, xc, yc, Z);
-				projImg.at<uchar>(yc, xc) = *sp++;
-				depth.at<float>(yc, xc) = Z;
-				mask.at<uchar>(yc, xc) = 255;
+				case 0:
+					x = 0;
+					y = 0;
+					break;
+				case 1:
+					x = 0;
+					y = pSize.height;
+					break;
+				case 2:
+					x = pSize.width;
+					y = pSize.height;
+					break;
+				case 3:
+					x = pSize.width;
+					y = 0;
+					break;
+				default:
+					break;
+			}
+
+			// project the corners 
+			int xc, yc;
+			float Z;
+			projPoint(invK, invP, P, K, dp, x, y, xc, yc, Z);
+			corners.push_back(cv::Point(xc, yc));
+		}
+		// fill the mask
+		for (size_t i = 0; i < 4; i++)
+			cv::line(mask, corners[i], corners[(i+1) % 4], 255);
+		cv::floodFill(mask, meanPoint(corners), 255);
+
+		// restore the four corners in 3d space
+		vpPoint corners3d[4];
+		for (int i = 0; i < 4; i++)
+		{
+			backProj(invK, invP, dp, corners[i].x, corners[i].y, corners3d[i]);
+			corners3d[i].changeFrame(P);
+		}
+
+		invK = getVirtualCam().inverseByLU();
+		invP = (itr->pose).inverseByLU();
+		P = faceScaleInfo[id].cMo;
+		K = faceScaleInfo[id].Ks[hs];
+		uchar* pm = (uchar*) (mask.data);
+		float* pd = (float*) (depth.data);
+		uchar* pi = (uchar*) (projImg.data);
+		cv::Mat oPatch = itr->scaledPatch[hs];
+		for (int i = 0; i < r; i++)
+			for (int j = 0; j < c; j++)
+			{
+				if (*pm++ == 255)
+				{
+					// TODO: four points here
+					*pd = calcDepth(corners3d, invP, invK, cv::Point(j, i));
+					int xc, yc;
+					float Z;
+					projPoint(invK, invP, P, K, *pd, j, i, xc, yc, Z);
+					*pi = oPatch.at<uchar>(yc, xc);
+				}
+				++pd;
+				++pi;
 			}
 
 		// copy to the patches
 		itr->orgPatch = projImg;
 		itr->depth = depth;
 		itr->mask = mask;
+		//DEBUG only
+		// TODO: holes in the patch, but it's not empty
+		//cv::imshow("scalepatch", itr->scaledPatch[hs]);
+		//cv::imshow("projImg", itr->orgPatch);
+		//cv::imshow("mask", itr->mask);
+		//cv::imshow("depth", itr->depth);
+		//cv::waitKey();
+		// END OF DEBUG
 	}
 }
 
@@ -741,7 +817,7 @@ superResolutionTracker::obtainPatch(int faceID, patch& p)
 	// pose
 	p.pose = cMo;
 	// orgPatch
-	p.orgPatch = cv::Mat(curImg, cv::Range(lt.y, rb.y + 1), cv::Range(lt.x, rb.x + 1));
+	p.orgPatch = cv::Mat(curImg, cv::Range(lt.y, rb.y + 1), cv::Range(lt.x, rb.x + 1)).clone();
 	// mask
 	p.mask = cv::Mat(mask, cv::Range(lt.y, rb.y + 1), cv::Range(lt.x, rb.x + 1));
 	// depth
@@ -883,7 +959,7 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 	vpMatrix invK = cam.get_K().inverseByLU();
 	vpMatrix invP = cMo.inverseByLU();
 
-	cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(7,7), cv::Point(3, 3));
+	cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(7,7), cv::Point(3, 3)); // erode the mask so the feature points detected will not be at the border
 
 	// for pre-frame
 	for (size_t i = 0; i < faces.getPolygon().size(); i++)
@@ -916,7 +992,6 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 				//for (size_t j = 0; j < corners.size(); j++)
 				//	cv::circle(pImg, corners[j], 3, cv::Scalar(255, 0, 0));
 				//cv::imshow("pre-features", pImg);
-				//cv::waitKey();
 				// END OF DEBUG
 				// if not corners are detection in this face, then we won't do the klt tracking procedure, and simply move to another face
 				if (corners.empty())
@@ -973,7 +1048,11 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 				// detect good features in pp-patch
 				std::vector<cv::Point2f> corners;
 				cv::erode(pp->mask, pp->mask, element);
-				cv::goodFeaturesToTrack(pp->orgPatch, corners, 20, 0.01, 10, pp->mask);
+				cv::goodFeaturesToTrack(pp->orgPatch, corners, 20, 0.01, 5, pp->mask);
+				// DEBUG only
+				//cv::imshow("mask", pp->mask);
+				//cv::waitKey();
+				// END OF DEBUG
 
 				// KLT search them in cur-image
 				std::vector<cv::Mat> prePatchPyr;
@@ -1034,7 +1113,41 @@ superResolutionTracker::deepCopyPrePatch(patch& src, patch& p)
 bool
 superResolutionTracker::isKeyFrame(void)
 {
-	return true;
+	float th1 = 0.01;
+	float th2 = 0.01;
+	bool frameDist = true, 
+		 poseDiff  = true, 
+		 matchness = true;
+
+	// frameDist
+	frameDist = frameCount > minFrameCount ? true : false;
+
+	// poseDiff
+	vpPoseVector pose;
+	pose.buildFrom(cMo);
+	omp_set_lock(&dataLock);
+	for (int i = 0; i < faces.getPolygon().size(); i++)
+		for (std::list<patch>::iterator itr = dataset[i].begin(); itr != dataset[i].end(); ++itr)
+		{
+			vpPoseVector curPose;
+			curPose.buildFrom(itr->pose);
+			for (int j = 0; j < 3; j++)
+				if (abs(pose[j] - curPose[j]) < th1)
+				{
+					poseDiff = false;
+					break;
+				}
+			for (int j = 3; j < 6; j++)
+				if (abs(pose[j] - curPose[j]) < th2)
+				{
+					poseDiff = false;
+					break;
+				}
+		}
+	omp_unset_lock(&dataLock);
+
+	// matchness
+	return frameDist & poseDiff & matchness;
 }
 
 void 
@@ -1127,14 +1240,14 @@ superResolutionTracker::initFaceScalePose(void)
 					break;
 				case 1:
 					u = 0;
-					v = faceScaleInfo[i].faceSizes[j].height;
-					break;
-				case 2:
-					u = faceScaleInfo[i].faceSizes[j].width;
-					v = faceScaleInfo[i].faceSizes[j].height;
-					break;
-				case 3:
-					u = faceScaleInfo[i].faceSizes[j].width;
+					v = faceScaleInfo[i].faceSizes[numOfPatchScale-1].height;
+					break;                                        
+				case 2:                                           
+					u = faceScaleInfo[i].faceSizes[numOfPatchScale-1].width;
+					v = faceScaleInfo[i].faceSizes[numOfPatchScale-1].height;
+					break;                                        
+				case 3:                                           
+					u = faceScaleInfo[i].faceSizes[numOfPatchScale-1].width;
 					v = 0;
 					break;
 				default:

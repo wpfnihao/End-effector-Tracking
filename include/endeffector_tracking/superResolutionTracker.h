@@ -107,6 +107,7 @@ class superResolutionTracker: public vpMbEdgeTracker
 		 */
 		inline void retrieveImage(const cv::Mat& src)
 		{
+			++frameCount;
 			cv::cvtColor(src, curImg, CV_RGB2GRAY);	
 		}
 
@@ -149,6 +150,8 @@ class superResolutionTracker: public vpMbEdgeTracker
 		int upScale;
 		int winSize;
 		int maxLevel;
+		int minFrameCount;
+		int frameCount;
 		/**
 		 * @brief the angle define the which face can be identified as visible
 		 * the angle is in degree (not rad)

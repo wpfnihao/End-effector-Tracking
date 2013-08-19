@@ -142,16 +142,9 @@ int main(int argc, char **argv)
 
 #pragma omp section
 		{
-			/*
 			// for super-resolution dataset processing
-			int ID = omp_get_thread_num();
-			cout<<"this is the "<<ID<<"-th thread processing the database!"<<endl;
-
 			while (true)
-			{
 				srTracker.updateDataBase();
-			}
-			*/
 		}
 	}
 	return 0;
