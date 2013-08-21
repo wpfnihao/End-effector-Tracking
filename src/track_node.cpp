@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 	//the ros initial steps are done in the constructor, so only instantiate the CEndeffectorTracking class is sufficient
 	std::string name = "endeffector_tracking";
 
-
+omp_set_nested(1);
 #pragma omp parallel sections
 	{
 #pragma omp section

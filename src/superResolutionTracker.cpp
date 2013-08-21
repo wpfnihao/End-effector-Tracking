@@ -14,7 +14,7 @@ superResolutionTracker::superResolutionTracker()
 ,numOfPatches(10)
 ,numOfPatchesUsed(2)
 ,upScale(1)
-,winSize(5)
+,winSize(7)
 ,maxLevel(1)
 ,maxDownScale(16)
 ,faceAngle(80)
@@ -23,6 +23,7 @@ superResolutionTracker::superResolutionTracker()
 {
 	omp_init_lock(&buffLock);
 	omp_init_lock(&dataLock);
+	omp_init_lock(&featureLock);
 }
 
 // TODO: check the lock, by search dataset
@@ -64,6 +65,7 @@ superResolutionTracker::track(void)
 	//pose.buildFrom(cMo);
 	//std::cout<<pose<<std::endl;
 	optimizePose(upScaleImg, prePatch, dataPatches);
+	p_cMo = cMo;
 	vpMbEdgeTracker::track(I);
 	//pose.buildFrom(cMo);
 	//std::cout<<pose<<std::endl;
@@ -399,7 +401,6 @@ superResolutionTracker::superResolution(int scaleID, int patchID, patch& patchDa
 	cv::Mat count = cv::Mat::zeros(lowSize, CV_32FC1) + 1e-10;
 	cv::Mat tarLowPatch = cv::Mat::zeros(lowSize, CV_32FC1);
 	cv::Mat light = cv::Mat::ones(lowSize, CV_32FC1);
-	cv::Mat high2low(lowSize, CV_32FC1);
 	cv::Mat curHighPatch(highSize, CV_8UC1);
 	cv::Mat xCoor(highSize, CV_32FC1);
 	cv::Mat yCoor(highSize, CV_32FC1);
@@ -441,14 +442,23 @@ superResolutionTracker::superResolution(int scaleID, int patchID, patch& patchDa
 	yp = (float*) (yCoor.data);
 	for (int i = 0; i < highPatch.rows; i++)
 		for (int j = 0; j < highPatch.cols; j++)		
-			*chp++ = (*hp++) * light.at<float>(*yp++, *xp++);
+			*chp++ = std::min((int)((float)(*hp++) * light.at<float>(*yp++, *xp++)), 255);
 	// save processed data
 	patchData.scaledPatch[scaleID] = curHighPatch;	
+
+	//DEBUG only
+	//cv::imshow("tarLowPatch", tarLowPatch / 255);
+	//cv::imshow("light", light / 1.3);
+	cv::imshow("hightPatch", highPatch);
+	cv::imshow("lowPatch", lowPatch);
+	cv::imshow("curHighPatch", curHighPatch);
+	cv::waitKey(100);
+	// END OF DEBUG
 }
 
 // TODO: don't forget the lock while updating the database
 // TODO: check all the map based structure, to see whether the loop works correctly
-	void
+void
 superResolutionTracker::refreshDataset(void)
 {
 
@@ -514,13 +524,13 @@ superResolutionTracker::findLight(const cv::Mat& tarLowPatch,const cv::Mat& lowP
 		lightWeight[i] = low + (float)i / num_labels * (high - low);
 
 	// FIXME: tune this value
-	int smoothWeight = 10;
+	int smoothWeight = 15;
 	try
 	{
 		GCoptimizationGridGraph *gc = new GCoptimizationGridGraph(width,height,num_labels);
 
 		// first set up data costs individually
-		uchar *tar = (uchar*) (tarLowPatch.data);
+		float *tar = (float*) (tarLowPatch.data);
 		uchar *cur = (uchar*) (lowPatch.data);
 		for ( int i = 0; i < num_pixels; i++ )
 			for (int l = 0; l < num_labels; l++ )
@@ -593,11 +603,11 @@ superResolutionTracker::findCopyProcessPatch(
 	if (id.empty())
 	{
 		//the deepCopyPatch here only copy the information used by the tracker
-		//std::list<patch>::iterator itr = dataset[faceID].begin();
-		//for (int i = 0; i < highestID; i++)
-		//	++itr;
-		//for (int i = 0; i < numOfPatchesUsed; i++)
-		//	deepCopyPatch(patchList, *itr);
+		std::list<patch>::iterator itr = dataset[faceID].begin();
+		for (int i = 0; i < highestID; i++)
+			++itr;
+		for (int i = 0; i < numOfPatchesUsed; i++)
+			deepCopyPatch(patchList, *itr);
 	}
 	else
 	{
@@ -707,7 +717,9 @@ superResolutionTracker::projPatch(vpHomogeneousMatrix pose, int id, std::list<pa
 		cv::Point lu, rb;
 		findMinMax(corners, lu, rb);
 		prepCalcDepth(corners3d, A, b, coefficient);
-		for (int i = lu.y; i < rb.y + 1; i++)
+		int maxy = rb.y + 1;
+#pragma omp parallel for num_threads(3)
+		for (int i = lu.y; i < maxy; i++)
 			for (int j = lu.x; j < rb.x + 1; j++)
 			{
 				int offset = c * i + j;
@@ -717,6 +729,9 @@ superResolutionTracker::projPatch(vpHomogeneousMatrix pose, int id, std::list<pa
 					int xc, yc;
 					float Z;
 					projPoint(invK, invP, P, K, *(pd + offset), j, i, xc, yc, Z);
+					xc = std::min(xc, oPatch.cols);
+					yc = std::min(yc, oPatch.rows);
+					// still have the possibility to get segmentation fault here
 					*(pi + offset) = oPatch.at<uchar>(yc, xc);
 				}
 			}
@@ -808,12 +823,13 @@ superResolutionTracker::obtainPatch(int faceID, patch& p)
 	prepCalcDepth((*itr)->p, A, b, coefficient); 
 	uchar* pm = (uchar*) (mask.data);
 	float* pd = (float*) (depth.data);
+#pragma omp parallel for num_threads(3)
 	for (int i = 0; i < mask.rows; i++)
 		for (int j = 0; j < mask.cols; j++)
 		{
-			if (*pm++ == 255)
-				*pd = calcDepth(A, b, coefficient, invP, invK, cv::Point(j, i));
-			++pd;
+			int offset = i * mask.cols + j;
+			if (*(pm + offset) == 255)
+				*(pd + offset) = calcDepth(A, b, coefficient, invP, invK, cv::Point(j, i));
 		}
 
 
@@ -974,129 +990,154 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 	vpMatrix invK = cam.get_K().inverseByLU();
 	vpMatrix invP = cMo.inverseByLU();
 
-	cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(9,9), cv::Point(4, 4)); // erode the mask so the feature points detected will not be at the border
+	cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(15,15), cv::Point(7, 7)); // erode the mask so the feature points detected will not be at the border
 
-	// for pre-frame
-	for (size_t i = 0; i < faces.getPolygon().size(); i++)
-		if (isVisible[i])
-			if(!prePatch[i].empty())
-			{
-				patch& pp = prePatch[i].front();
-				// restore the patch to the image size
-				cv::Mat orgPatch = cv::Mat::zeros(cv::Size(cols, rows), CV_8UC1);
-				cv::Mat mask 	 = cv::Mat::zeros(cv::Size(cols, rows), CV_8UC1);
-				pp.orgPatch.copyTo(
-						orgPatch(
-							cv::Range(pp.patchRect.y, pp.patchRect.y + pp.patchRect.height),
-							cv::Range(pp.patchRect.x, pp.patchRect.x + pp.patchRect.width)
-							)
-						);
-				cv::erode(pp.mask, pp.mask, element);
-				pp.mask.copyTo(
-						mask(
-							cv::Range(pp.patchRect.y, pp.patchRect.y + pp.patchRect.height),
-							cv::Range(pp.patchRect.x, pp.patchRect.x + pp.patchRect.width)
-							)
-						);
-				// detect good features in pre-patch
-				std::vector<cv::Point2f> corners;
-				cv::goodFeaturesToTrack(orgPatch, corners, 30, 0.01, 5, mask);
-				// DEBUG only
-				//cv::imshow("mask", mask);
-				//cv::Mat pImg = orgPatch.clone();
-				//for (size_t j = 0; j < corners.size(); j++)
-				//	cv::circle(pImg, corners[j], 3, cv::Scalar(255, 0, 0));
-				//cv::imshow("pre-features", pImg);
-				// END OF DEBUG
-				// if not corners are detection in this face, then we won't do the klt tracking procedure, and simply move to another face
-				if (corners.empty())
-					continue;
-
-				// KLT search them in cur-image
-				std::vector<cv::Mat> prePatchPyr;
-				std::vector<cv::Point2f> cFeatures;
-				std::vector<float> fErr;
-				std::vector<uchar> fStatus;
-				cv::buildOpticalFlowPyramid(orgPatch, prePatchPyr, cv::Size(winSize, winSize), maxLevel);
-				cv::calcOpticalFlowPyrLK(prePatchPyr, cPyramid, corners, cFeatures, fStatus, fErr, cv::Size(winSize, winSize), maxLevel);
-				// DEBUG only
-				//cv::Mat cImg = curImg.clone();
-				//for (size_t j = 0; j < cFeatures.size(); j++)
-				//	if (fStatus[j] == 1) // only the tracked features are used
-				//		cv::circle(cImg, cFeatures[j], 3, cv::Scalar(255, 0, 0));
-				//cv::imshow("cur-features", cImg);
-				//cv::waitKey();
-				// END OF DEBUG
-
-				// find the 3d point: based on the tracked features and the 3d point calculated based on the pre-features
-				// push back to compute pose
-				int dx = pp.patchRect.x;
-				int dy = pp.patchRect.y;
-				for (size_t j = 0; j < corners.size(); j++)
-					if (fStatus[j] == 1) // only the tracked features are used
+#pragma omp parallel sections
+	{
+#pragma omp section
+		{
+			// for pre-frame
+			for (size_t i = 0; i < faces.getPolygon().size(); i++)
+				if (isVisible[i])
+					if(!prePatch[i].empty())
 					{
-						vpPoint p;	
-						// 2d point
-						double u, v;
-						vpPixelMeterConversion::convertPoint(cam, cFeatures[j].x, cFeatures[j].y, u, v);
-						p.set_x(u);
-						p.set_y(v);
-						p.set_w(1);
-						// 3d point
-						float depth = pp.depth.at<float>(corners[j].y - dy, corners[j].x - dx);
-						if (depth < 1e-5)
+						patch& pp = prePatch[i].front();
+						// restore the patch to the image size
+						cv::Mat orgPatch = cv::Mat::zeros(cv::Size(cols, rows), CV_8UC1);
+						cv::Mat mask 	 = cv::Mat::zeros(cv::Size(cols, rows), CV_8UC1);
+						pp.orgPatch.copyTo(
+								orgPatch(
+									cv::Range(pp.patchRect.y, pp.patchRect.y + pp.patchRect.height),
+									cv::Range(pp.patchRect.x, pp.patchRect.x + pp.patchRect.width)
+									)
+								);
+						cv::erode(pp.mask, pp.mask, element);
+						pp.mask.copyTo(
+								mask(
+									cv::Range(pp.patchRect.y, pp.patchRect.y + pp.patchRect.height),
+									cv::Range(pp.patchRect.x, pp.patchRect.x + pp.patchRect.width)
+									)
+								);
+						// detect good features in pre-patch
+						std::vector<cv::Point2f> corners;
+						cv::goodFeaturesToTrack(orgPatch, corners, 50, 0.01, 5, mask);
+						// DEBUG only
+						//cv::imshow("mask", mask);
+						//cv::Mat pImg = orgPatch.clone();
+						//for (size_t j = 0; j < corners.size(); j++)
+						//	cv::circle(pImg, corners[j], 3, cv::Scalar(255, 0, 0));
+						//cv::imshow("pre-features", pImg);
+						// END OF DEBUG
+						// if not corners are detection in this face, then we won't do the klt tracking procedure, and simply move to another face
+						if (corners.empty())
 							continue;
-						backProj(invK, invP, depth, corners[j].x, corners[j].y, p);
-						featuresComputePose.addFeaturePoint(p);
+
+						// KLT search them in cur-image
+						std::vector<cv::Mat> prePatchPyr;
+						std::vector<cv::Point2f> cFeatures;
+						std::vector<float> fErr;
+						std::vector<uchar> fStatus;
+						cv::buildOpticalFlowPyramid(orgPatch, prePatchPyr, cv::Size(winSize, winSize), maxLevel);
+						cv::calcOpticalFlowPyrLK(prePatchPyr, cPyramid, corners, cFeatures, fStatus, fErr, cv::Size(winSize, winSize), maxLevel);
+						// DEBUG only
+						//cv::Mat cImg = curImg.clone();
+						//for (size_t j = 0; j < cFeatures.size(); j++)
+						//	if (fStatus[j] == 1) // only the tracked features are used
+						//		cv::circle(cImg, cFeatures[j], 3, cv::Scalar(255, 0, 0));
+						//cv::imshow("cur-features", cImg);
+						//cv::waitKey();
+						// END OF DEBUG
+
+						// find the 3d point: based on the tracked features and the 3d point calculated based on the pre-features
+						// push back to compute pose
+						int dx = pp.patchRect.x;
+						int dy = pp.patchRect.y;
+						for (size_t j = 0; j < corners.size(); j++)
+							if (fStatus[j] == 1) // only the tracked features are used
+							{
+								vpPoint p;	
+								// 2d point
+								double u, v;
+								vpPixelMeterConversion::convertPoint(cam, cFeatures[j].x, cFeatures[j].y, u, v);
+								p.set_x(u);
+								p.set_y(v);
+								p.set_w(1);
+								// 3d point
+								float depth = pp.depth.at<float>(corners[j].y - dy, corners[j].x - dx);
+								if (depth < 1e-5)
+									continue;
+								backProj(invK, invP, depth, corners[j].x, corners[j].y, p);
+								omp_set_lock(&featureLock);
+								featuresComputePose.addFeaturePoint(p);
+								omp_unset_lock(&featureLock);
+							}
 					}
-			}
+		}
 
-	//
-	// detect good features in dataPatches
-	// virtual camera is used here
-	vpCameraParameters virtualCam;
-	virtualCam.initFromCalibrationMatrix(getVirtualCam());
-	for (size_t i = 0; i < faces.getPolygon().size(); i++)
-		if (isVisible[i])
-			for (std::list<patch>::iterator pp = dataPatches[i].begin(); pp != dataPatches[i].end(); ++pp)
-			{
-				// detect good features in pp-patch
-				std::vector<cv::Point2f> corners;
-				cv::erode(pp->mask, pp->mask, element);
-				cv::goodFeaturesToTrack(pp->orgPatch, corners, 30, 0.01, 5, pp->mask);
-				// DEBUG only
-				//cv::imshow("mask", pp->mask);
-				//cv::waitKey();
-				// END OF DEBUG
-
-				// KLT search them in cur-image
-				std::vector<cv::Mat> prePatchPyr;
-				std::vector<cv::Point2f> cFeatures;
-				std::vector<float> fErr;
-				std::vector<uchar> fStatus;
-				cv::buildOpticalFlowPyramid(pp->orgPatch, prePatchPyr, cv::Size(winSize, winSize), maxLevel);
-				cv::calcOpticalFlowPyrLK(prePatchPyr, upScaleCPyramid, corners, cFeatures, fStatus, fErr, cv::Size(winSize, winSize), maxLevel);
-
-				// find the 3d point: based on the tracked features and the 3d point calculated based on the pre-features
-				// push back to compute pose
-				for (size_t j = 0; j < corners.size(); j++)
-					if (fStatus[j] == 1)
+#pragma omp section
+		{
+			//
+			// detect good features in dataPatches
+			// virtual camera is used here
+			vpCameraParameters virtualCam;
+			virtualCam.initFromCalibrationMatrix(getVirtualCam());
+			for (size_t i = 0; i < faces.getPolygon().size(); i++)
+				if (isVisible[i])
+					for (std::list<patch>::iterator pp = dataPatches[i].begin(); pp != dataPatches[i].end(); ++pp)
 					{
-						vpPoint p;	
-						// 2d point
-						double u, v;
-						vpPixelMeterConversion::convertPoint(virtualCam, cFeatures[j].x,cFeatures[j].y,u,v);
-						p.set_x(u);
-						p.set_y(v);
-						p.set_w(1);
-						// 3d point
-						float depth = pp->depth.at<float>(corners[j].y, corners[j].x);
-						if (depth < 1e-5)
+						// detect good features in pp-patch
+						std::vector<cv::Point2f> corners;
+						cv::erode(pp->mask, pp->mask, element);
+						cv::goodFeaturesToTrack(pp->orgPatch, corners, 50, 0.01, 5, pp->mask);
+						if (corners.empty())
 							continue;
-						backProj(invVirtualK, invP, depth, corners[j].x, corners[j].y, p);
-						featuresComputePose.addFeaturePoint(p);
+						// DEBUG only
+						//cv::Mat pImg = pp->orgPatch.clone();
+						//for (size_t j = 0; j < corners.size(); j++)
+						//	cv::circle(pImg, corners[j], 3, cv::Scalar(255, 0, 0));
+						//cv::imshow("orgPatch", pImg);
+						// END OF DEBUG
+
+						// KLT search them in cur-image
+						std::vector<cv::Mat> prePatchPyr;
+						std::vector<cv::Point2f> cFeatures;
+						std::vector<float> fErr;
+						std::vector<uchar> fStatus;
+						cv::buildOpticalFlowPyramid(pp->orgPatch, prePatchPyr, cv::Size(winSize, winSize), maxLevel);
+						cv::calcOpticalFlowPyrLK(prePatchPyr, upScaleCPyramid, corners, cFeatures, fStatus, fErr, cv::Size(winSize, winSize), maxLevel);
+						// DEBUG only
+						//cv::Mat cImg = img.clone();
+						//for (size_t j = 0; j < cFeatures.size(); j++)
+						//	if (fStatus[j] == 1) // only the tracked features are used
+						//		cv::circle(cImg, cFeatures[j], 3, cv::Scalar(255, 0, 0));
+						//cv::imshow("curImg", cImg);
+						//cv::waitKey(10);
+						// END OF DEBUG
+
+						// find the 3d point: based on the tracked features and the 3d point calculated based on the pre-features
+						// push back to compute pose
+						for (size_t j = 0; j < corners.size(); j++)
+							if (fStatus[j] == 1)
+							{
+								vpPoint p;	
+								// 2d point
+								double u, v;
+								vpPixelMeterConversion::convertPoint(virtualCam, cFeatures[j].x,cFeatures[j].y,u,v);
+								p.set_x(u);
+								p.set_y(v);
+								p.set_w(1);
+								// 3d point
+								float depth = pp->depth.at<float>(corners[j].y, corners[j].x);
+								if (depth < 1e-5)
+									continue;
+								backProj(invVirtualK, invP, depth, corners[j].x, corners[j].y, p);
+								omp_set_lock(&featureLock);
+								featuresComputePose.addFeaturePoint(p);
+								omp_unset_lock(&featureLock);
+							}
 					}
-			}
+		}
+	}
 
 	//
 	// compute pose
@@ -1129,7 +1170,7 @@ bool
 superResolutionTracker::isKeyFrame(void)
 {
 	float th1 = 0.001;
-	float th2 = 0.001;
+	float th2 = 0.015;
 	bool frameDist = true, 
 		 poseDiff  = true, 
 		 matchness = true;
@@ -1141,25 +1182,33 @@ superResolutionTracker::isKeyFrame(void)
 	vpPoseVector pose;
 	pose.buildFrom(cMo);
 	omp_set_lock(&dataLock);
+	float diff = 0;
 	for (int i = 0; i < faces.getPolygon().size(); i++)
 		for (std::list<patch>::iterator itr = dataset[i].begin(); itr != dataset[i].end(); ++itr)
 		{
 			vpPoseVector curPose;
 			curPose.buildFrom(itr->pose);
-			for (int j = 0; j < 3; j++)
-				if (fabs(pose[j] - curPose[j]) < th1)
-				{
-					poseDiff = false;
-					break;
-				}
-			for (int j = 3; j < 6; j++)
-				if (fabs(pose[j] - curPose[j]) < th2)
-				{
-					poseDiff = false;
-					break;
-				}
+			diff = 0;
+			for (int j = 0; j < 6; j++)
+				diff += fabs(pose[j] - curPose[j]);
+			std::cout<<"diff1 = "<<diff<<std::endl;
+			if (diff < 6 * th1)
+			{
+				poseDiff = false;
+				break;
+			}
 		}
 	omp_unset_lock(&dataLock);
+
+	// the pose similarity between the klt tracker and the edge detector
+	diff = 0;
+	vpPoseVector pPose;
+	pPose.buildFrom(p_cMo);
+	for (int j = 0; j < 6; j++)
+		diff += fabs(pose[j] - pPose[j]);
+	std::cout<<"diff2 = "<<diff<<std::endl;
+	matchness = diff < th2 * 6 ? true : false;
+
 
 	// matchness
 	return frameDist & poseDiff & matchness;
@@ -1201,6 +1250,10 @@ superResolutionTracker::initialization(std::string config_file, std::string mode
 			patch p;
 			obtainPatch(i, p);
 			prePatch[i].push_back(p);
+			// the only absolute information is the first frame initialized manually
+			patch pb;
+			deepCopyPrePatch(p, pb);
+			pushDataIntoBuff(pb);
 		}
 	}
 }
