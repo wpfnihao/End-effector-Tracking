@@ -100,7 +100,7 @@ class superResolutionTracker: public vpMbEdgeTracker
 		void track(void);
 		void updateDataBase(void);
 		void initDataset(void);
-		void initialization(std::string config_file, std::string modelName, std::string initName);
+		void initialization(cv::Mat& src, std::string config_file, std::string modelName, std::string initName);
 
 		/**
 		 * @brief retrieve image and then convert it to gray scale
@@ -110,6 +110,7 @@ class superResolutionTracker: public vpMbEdgeTracker
 		inline void retrieveImage(const cv::Mat& src)
 		{
 			++frameCount;
+			preImg = curImg.clone();
 			cv::cvtColor(src, curImg, CV_RGB2GRAY);	
 		}
 
@@ -126,7 +127,7 @@ class superResolutionTracker: public vpMbEdgeTracker
 		 */
 		dataset_t dataset;
 
-		cv::Mat curImg;
+		cv::Mat curImg, preImg;
 
 		/**
 		 * @brief the size and the pose under which can obtain the size of faces is saved in this structure
@@ -240,8 +241,8 @@ class superResolutionTracker: public vpMbEdgeTracker
 		/**
 		 * @brief the key function based on the graph cut optimization method to super resolute the current patch
 		 *
-		 * @param tarLowPatch
-		 * @param lowPatch
+		 * @param tarLowPatch NOTE here the tarLowPatch is CV_32FC1
+		 * @param lowPatch    NOTE here the lowPatch    is CV_8UC1
 		 * @param light
 		 */
 		void findLight(const cv::Mat& tarLowPatch,const cv::Mat& lowPatch, cv::Mat& light);
@@ -399,6 +400,15 @@ class superResolutionTracker: public vpMbEdgeTracker
 
 		inline float pointDistance3D(const vpPoint& p1, const vpPoint& p2);
 
-void findMinMax(std::vector<cv::Point> corners, cv::Point& lu, cv::Point& rb);
+		void findMinMax(std::vector<cv::Point> corners, cv::Point& lu, cv::Point& rb);
+
+		void findStableFeatures(
+				std::vector<bool>& 		    finalStatus, 
+				std::vector<cv::Point2f>& 	corners, 
+				std::vector<cv::Point2f>& 	bFeatures,
+				std::vector<unsigned char>& fStatus, 
+				std::vector<unsigned char>& bStatus,
+				float 						th
+				);
 	private:
 };

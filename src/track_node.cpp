@@ -185,8 +185,7 @@ trackCallback(const sensor_msgs::ImageConstPtr& srcImg)
 			cols = grayImg.cols;
 			
 			//initializeTracker(srcImg);
-			srTracker.retrieveImage(curImg);
-			srTracker.initialization(config_file, model_name, init_file);
+			srTracker.initialization(curImg, config_file, model_name, init_file);
 			//fbTracker.getInitPoints(init_file);
 			//fbTracker.init(curImg);
 

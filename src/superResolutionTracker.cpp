@@ -981,8 +981,10 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 	// build the image pyramid for tracking
 	std::vector<cv::Mat> cPyramid;
 	std::vector<cv::Mat> upScaleCPyramid;
+	std::vector<cv::Mat> pPyramid;
 	cv::buildOpticalFlowPyramid(curImg, cPyramid, cv::Size(winSize, winSize), maxLevel);
 	cv::buildOpticalFlowPyramid(img, upScaleCPyramid, cv::Size(winSize, winSize), maxLevel);
+	cv::buildOpticalFlowPyramid(preImg, pPyramid, cv::Size(winSize, winSize), maxLevel);
 
 	// for dataset
 	vpMatrix invVirtualK = getVirtualCam().inverseByLU();
@@ -1033,14 +1035,17 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 							continue;
 
 						// KLT search them in cur-image
-						std::vector<cv::Mat> prePatchPyr;
-						std::vector<cv::Point2f> cFeatures;
-						std::vector<float> fErr;
-						std::vector<uchar> fStatus;
-						cv::buildOpticalFlowPyramid(orgPatch, prePatchPyr, cv::Size(winSize, winSize), maxLevel);
-						cv::calcOpticalFlowPyrLK(prePatchPyr, cPyramid, corners, cFeatures, fStatus, fErr, cv::Size(winSize, winSize), maxLevel);
-						// DEBUG only
-						//cv::Mat cImg = curImg.clone();
+						std::vector<cv::Point2f> cFeatures, bFeatures;
+						std::vector<float> fErr, bErr;
+						std::vector<uchar> fStatus, bStatus;
+						// forward-backward track
+						cv::calcOpticalFlowPyrLK(pPyramid, cPyramid, corners, cFeatures, fStatus, fErr, cv::Size(winSize, winSize), maxLevel);
+						cv::calcOpticalFlowPyrLK(cPyramid, pPyramid, cFeatures, bFeatures, bStatus, bErr, cv::Size(winSize, winSize), maxLevel);
+						std::vector<bool> finalStatus(corners.size());
+						float th = 0.5;
+						findStableFeatures(finalStatus, corners, bFeatures, fStatus, bStatus, th);
+							// DEBUG only
+							//cv::Mat cImg = curImg.clone();
 						//for (size_t j = 0; j < cFeatures.size(); j++)
 						//	if (fStatus[j] == 1) // only the tracked features are used
 						//		cv::circle(cImg, cFeatures[j], 3, cv::Scalar(255, 0, 0));
@@ -1053,7 +1058,7 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 						int dx = pp.patchRect.x;
 						int dy = pp.patchRect.y;
 						for (size_t j = 0; j < corners.size(); j++)
-							if (fStatus[j] == 1) // only the tracked features are used
+							if (finalStatus[j]) // only the forward-backward stable features are used
 							{
 								vpPoint p;	
 								// 2d point
@@ -1215,8 +1220,9 @@ superResolutionTracker::isKeyFrame(void)
 }
 
 void 
-superResolutionTracker::initialization(std::string config_file, std::string modelName, std::string initName)
+superResolutionTracker::initialization(cv::Mat& src, std::string config_file, std::string modelName, std::string initName)
 {
+	cv::cvtColor(src, curImg, CV_RGB2GRAY);	
 	loadConfigFile(config_file);
 	// Load the 3d model in cao format. No 3rd party library is required
 	loadModel(modelName); 
@@ -1495,5 +1501,30 @@ superResolutionTracker::findMinMax(std::vector<cv::Point> corners, cv::Point& lu
 			rb.x = corners[i].x;
 		if (rb.y < corners[i].y)
 			rb.y = corners[i].y;
+	}
+}
+
+void 
+superResolutionTracker::findStableFeatures(
+		std::vector<bool>& 		    finalStatus, 
+		std::vector<cv::Point2f>& 	corners, 
+		std::vector<cv::Point2f>& 	bFeatures,
+		std::vector<uchar>& 		fStatus, 
+		std::vector<uchar>& 		bStatus,
+		float 						th
+		)
+{
+	for (size_t i = 0; i < corners.size(); i++)
+	{
+		if (fStatus[i] && bStatus[i])
+		{
+			float dx = corners[i].x - bFeatures[i].x;
+			float dy = corners[i].y - bFeatures[i].y;
+			float dist = std::sqrt(dx * dx + dy * dy);
+			if (dist < th)
+				finalStatus[i] = true;
+			else
+				finalStatus[i] = false;
+		}
 	}
 }
