@@ -24,6 +24,8 @@
 // Graph Cut Optimization
 #include "gco/GCoptimization.h"
 
+#include <stdlib.h>
+
 // TODO; change the two structs into class with embedded member functions
 // TODO: the klt tracker seems not very stable
 class superResolutionTracker: public vpMbEdgeTracker
@@ -324,17 +326,32 @@ class superResolutionTracker: public vpMbEdgeTracker
 		void obtainPatch(int faceID, patch& p);
 
 		// obsoleted function
-		float calcDepth(
-				const std::vector<cv::Point>& p, 
-				const std::vector<float>& depth,
-				cv::Point cp);
+		//float calcDepth(
+		//		const std::vector<cv::Point>& p, 
+		//		const std::vector<float>& depth,
+		//		cv::Point cp);
 
+		/**
+		 * @brief this function and the following prepCalcDepth function are ultimately optimized for performance.
+		 *
+		 */
 		float calcDepth(
-				vpPoint* vp,
+				vpMatrix& A,
+				vpMatrix& b,
+				float* coefficient,
 				vpMatrix invP,
 				vpMatrix invK,
 				cv::Point cp
 				);
+
+		/**
+		 * @brief call this function first before using the calcDepth function
+		 *
+		 * @param vp
+		 * @param A
+		 * @param b
+		 */
+		void prepCalcDepth(vpPoint* vp, vpMatrix& A, vpMatrix& b, float* coefficient);
 
 		void deepCopyPrePatch(patch& src, patch& p);
 
@@ -380,5 +397,7 @@ class superResolutionTracker: public vpMbEdgeTracker
 		}
 
 		inline float pointDistance3D(const vpPoint& p1, const vpPoint& p2);
+
+void findMinMax(std::vector<cv::Point> corners, cv::Point& lu, cv::Point& rb);
 	private:
 };

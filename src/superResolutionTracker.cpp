@@ -9,12 +9,12 @@
 #include "endeffector_tracking/superResolutionTracker.h"
 
 superResolutionTracker::superResolutionTracker()
-:numOfPatchScale(5)
+:numOfPatchScale(10)
 ,buffSize(20)
 ,numOfPatches(10)
-,numOfPatchesUsed(3)
+,numOfPatchesUsed(2)
 ,upScale(1)
-,winSize(3)
+,winSize(5)
 ,maxLevel(1)
 ,maxDownScale(16)
 ,faceAngle(80)
@@ -25,13 +25,13 @@ superResolutionTracker::superResolutionTracker()
 	omp_init_lock(&dataLock);
 }
 
-// TODO: check the lock , by search dataset
+// TODO: check the lock, by search dataset
 // TODO: check any pointer like data in the patches shared unconsciously
-// TODO: without key frame the tracker works much faster 
 void
 superResolutionTracker::track(void)
 {
 	float rate = getRate(maxDownScale, numOfPatchScale);
+	vpImageConvert::convert(curImg,I);
 
 	// maintain the visibility test
 	int i = 0;
@@ -60,12 +60,13 @@ superResolutionTracker::track(void)
 
 	// track
 	// super resolution tracking only used in the match between the database and the current frame. The match between the pre and cur frame are based on the org scale
-	vpPoseVector pose;
-	pose.buildFrom(cMo);
-	std::cout<<pose<<std::endl;
+	//vpPoseVector pose;
+	//pose.buildFrom(cMo);
+	//std::cout<<pose<<std::endl;
 	optimizePose(upScaleImg, prePatch, dataPatches);
-	pose.buildFrom(cMo);
-	std::cout<<pose<<std::endl;
+	vpMbEdgeTracker::track(I);
+	//pose.buildFrom(cMo);
+	//std::cout<<pose<<std::endl;
 
 	// maintain the visibility test
 	i = 0;
@@ -106,7 +107,6 @@ superResolutionTracker::track(void)
 	}
 
 	// display
-	vpImageConvert::convert(curImg,I);
 	vpDisplay::display(I);
 	// for display
 	display(I, cMo, cam, vpColor::red, 2, true);
@@ -319,10 +319,10 @@ superResolutionTracker::genOrgScalePatch(patch& patchData)
 		}
 	patchData.scaledPatch[patchData.patchScale] = sp;
 	// DEBUG only
-	// holes in the patch
 	//cv::imshow("patch", sp);
 	//cv::imshow("orgPatch", patchData.orgPatch);
 	//cv::waitKey();
+	//END OF DEBUG
 }
 
 void
@@ -580,7 +580,7 @@ superResolutionTracker::findCopyProcessPatch(
 	int highestID;
 	for (std::list<patch>::iterator itr = dataset[faceID].begin(); itr != dataset[faceID].end(); ++itr)
 	{
-		if (itr->highestConfidenceScale >= std::max(patchScale + upScale, numOfPatchScale-1))
+		if (itr->highestConfidenceScale >= std::min(patchScale + upScale, numOfPatchScale-1))
 			id.push_back(count);
 		if (itr->highestConfidenceScale > highestScale)
 		{
@@ -592,12 +592,12 @@ superResolutionTracker::findCopyProcessPatch(
 
 	if (id.empty())
 	{
-		// the deepCopyPatch here only copy the information used by the tracker
-		std::list<patch>::iterator itr = dataset[faceID].begin();
-		for (int i = 0; i < highestID; i++)
-			++itr;
-		for (int i = 0; i < numOfPatchesUsed; i++)
-			deepCopyPatch(patchList, *itr);
+		//the deepCopyPatch here only copy the information used by the tracker
+		//std::list<patch>::iterator itr = dataset[faceID].begin();
+		//for (int i = 0; i < highestID; i++)
+		//	++itr;
+		//for (int i = 0; i < numOfPatchesUsed; i++)
+		//	deepCopyPatch(patchList, *itr);
 	}
 	else
 	{
@@ -618,7 +618,6 @@ superResolutionTracker::findCopyProcessPatch(
 }
 
 // FIXME: some computational expensive steps in this function, try to tune it
-// TODO: check the patch database choose strategy, it seems that path with very low confidence will be used as well.
 void
 superResolutionTracker::projPatch(vpHomogeneousMatrix pose, int id, std::list<patch>& dataPatches)
 {
@@ -696,20 +695,30 @@ superResolutionTracker::projPatch(vpHomogeneousMatrix pose, int id, std::list<pa
 		float* pd = (float*) (depth.data);
 		uchar* pi = (uchar*) (projImg.data);
 		cv::Mat oPatch = itr->scaledPatch[hs];
-		for (int i = 0; i < r; i++)
-			for (int j = 0; j < c; j++)
+		vpMatrix A(3, 3), 
+				 b(3, 1);
+        float coefficient[6];    
+		//	a11a22
+        //  a01a12
+        //  a02a21
+        //  a12a21
+        //  a01a22		
+        //  a02a11
+		cv::Point lu, rb;
+		findMinMax(corners, lu, rb);
+		prepCalcDepth(corners3d, A, b, coefficient);
+		for (int i = lu.y; i < rb.y + 1; i++)
+			for (int j = lu.x; j < rb.x + 1; j++)
 			{
-				if (*pm++ == 255)
+				int offset = c * i + j;
+				if (*(pm + offset) == 255)
 				{
-					// TODO: four points here
-					*pd = calcDepth(corners3d, invP, invK, cv::Point(j, i));
+					*(pd + offset) = calcDepth(A, b, coefficient, invP, invK, cv::Point(j, i));
 					int xc, yc;
 					float Z;
-					projPoint(invK, invP, P, K, *pd, j, i, xc, yc, Z);
-					*pi = oPatch.at<uchar>(yc, xc);
+					projPoint(invK, invP, P, K, *(pd + offset), j, i, xc, yc, Z);
+					*(pi + offset) = oPatch.at<uchar>(yc, xc);
 				}
-				++pd;
-				++pi;
 			}
 
 		// copy to the patches
@@ -717,7 +726,6 @@ superResolutionTracker::projPatch(vpHomogeneousMatrix pose, int id, std::list<pa
 		itr->depth = depth;
 		itr->mask = mask;
 		//DEBUG only
-		// TODO: holes in the patch, but it's not empty
 		//cv::imshow("scalepatch", itr->scaledPatch[hs]);
 		//cv::imshow("projImg", itr->orgPatch);
 		//cv::imshow("mask", itr->mask);
@@ -794,13 +802,17 @@ superResolutionTracker::obtainPatch(int faceID, patch& p)
 	// fill the depth map using the interpolation method
 	vpMatrix invP = cMo.inverseByLU();
 	vpMatrix invK = cam.get_K().inverseByLU();
+	vpMatrix A(3, 3),
+			 b(3, 1);
+	float coefficient[6];
+	prepCalcDepth((*itr)->p, A, b, coefficient); 
 	uchar* pm = (uchar*) (mask.data);
 	float* pd = (float*) (depth.data);
 	for (int i = 0; i < mask.rows; i++)
 		for (int j = 0; j < mask.cols; j++)
 		{
 			if (*pm++ == 255)
-				*pd = calcDepth((*itr)->p, invP, invK, cv::Point(j, i));
+				*pd = calcDepth(A, b, coefficient, invP, invK, cv::Point(j, i));
 			++pd;
 		}
 
@@ -808,20 +820,21 @@ superResolutionTracker::obtainPatch(int faceID, patch& p)
 	// save the patch using the filled Project face
 	//
 	// patchRect
-	p.patchRect.x 		= lt.x;
-	p.patchRect.y 		= lt.y;
-	p.patchRect.width 	= rb.x - lt.x + 1;
-	p.patchRect.height 	= rb.y - lt.y + 1;
+	int border = 3;
+	p.patchRect.x 		= lt.x - border;
+	p.patchRect.y 		= lt.y - border;
+	p.patchRect.width 	= rb.x - lt.x + 1 + 2 * border;
+	p.patchRect.height 	= rb.y - lt.y + 1 + 2 * border;
 	// faceID
 	p.faceID = faceID;
 	// pose
 	p.pose = cMo;
 	// orgPatch
-	p.orgPatch = cv::Mat(curImg, cv::Range(lt.y, rb.y + 1), cv::Range(lt.x, rb.x + 1)).clone();
+	p.orgPatch = cv::Mat(curImg, cv::Range(lt.y - border, rb.y + 1 + border), cv::Range(lt.x - border, rb.x + 1 + border)).clone();
 	// mask
-	p.mask = cv::Mat(mask, cv::Range(lt.y, rb.y + 1), cv::Range(lt.x, rb.x + 1));
+	p.mask = cv::Mat(mask, cv::Range(lt.y - border, rb.y + 1 + border), cv::Range(lt.x - border, rb.x + 1 + border));
 	// depth
-	p.depth = cv::Mat(depth, cv::Range(lt.y, rb.y + 1), cv::Range(lt.x, rb.x + 1));
+	p.depth = cv::Mat(depth, cv::Range(lt.y - border, rb.y + 1 + border), cv::Range(lt.x - border, rb.x + 1 + border));
 	// scale
 	findPatchScale(p);
 }
@@ -899,6 +912,7 @@ superResolutionTracker::projPoint(
 }
 
 // note this function is obsoleted
+/*
 float
 superResolutionTracker::calcDepth(
 		const std::vector<cv::Point>& p, 
@@ -928,6 +942,7 @@ superResolutionTracker::calcDepth(
 	float dp = (alpha + beta - 1) * depth[1] + (1 - alpha) * depth[0] + (1 - beta) * depth[2];
 	return dp;
 }
+*/
 
 inline cv::Point
 superResolutionTracker::meanPoint(const std::vector<cv::Point>& p)
@@ -959,7 +974,7 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 	vpMatrix invK = cam.get_K().inverseByLU();
 	vpMatrix invP = cMo.inverseByLU();
 
-	cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(7,7), cv::Point(3, 3)); // erode the mask so the feature points detected will not be at the border
+	cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(9,9), cv::Point(4, 4)); // erode the mask so the feature points detected will not be at the border
 
 	// for pre-frame
 	for (size_t i = 0; i < faces.getPolygon().size(); i++)
@@ -985,7 +1000,7 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 						);
 				// detect good features in pre-patch
 				std::vector<cv::Point2f> corners;
-				cv::goodFeaturesToTrack(orgPatch, corners, 20, 0.01, 5, mask);
+				cv::goodFeaturesToTrack(orgPatch, corners, 30, 0.01, 5, mask);
 				// DEBUG only
 				//cv::imshow("mask", mask);
 				//cv::Mat pImg = orgPatch.clone();
@@ -1048,7 +1063,7 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 				// detect good features in pp-patch
 				std::vector<cv::Point2f> corners;
 				cv::erode(pp->mask, pp->mask, element);
-				cv::goodFeaturesToTrack(pp->orgPatch, corners, 20, 0.01, 5, pp->mask);
+				cv::goodFeaturesToTrack(pp->orgPatch, corners, 30, 0.01, 5, pp->mask);
 				// DEBUG only
 				//cv::imshow("mask", pp->mask);
 				//cv::waitKey();
@@ -1113,8 +1128,8 @@ superResolutionTracker::deepCopyPrePatch(patch& src, patch& p)
 bool
 superResolutionTracker::isKeyFrame(void)
 {
-	float th1 = 0.01;
-	float th2 = 0.01;
+	float th1 = 0.001;
+	float th2 = 0.001;
 	bool frameDist = true, 
 		 poseDiff  = true, 
 		 matchness = true;
@@ -1132,13 +1147,13 @@ superResolutionTracker::isKeyFrame(void)
 			vpPoseVector curPose;
 			curPose.buildFrom(itr->pose);
 			for (int j = 0; j < 3; j++)
-				if (abs(pose[j] - curPose[j]) < th1)
+				if (fabs(pose[j] - curPose[j]) < th1)
 				{
 					poseDiff = false;
 					break;
 				}
 			for (int j = 3; j < 6; j++)
-				if (abs(pose[j] - curPose[j]) < th2)
+				if (fabs(pose[j] - curPose[j]) < th2)
 				{
 					poseDiff = false;
 					break;
@@ -1340,23 +1355,49 @@ superResolutionTracker::pointDistance3D(const vpPoint& p1, const vpPoint& p2)
 
 float
 superResolutionTracker::calcDepth(
-		vpPoint* vp,
+		vpMatrix& A,
+		vpMatrix& b,
+		float* coefficient,
 		vpMatrix invP,
 		vpMatrix invK,
 		cv::Point cp
 		)
 {
+	// NOTE: only the first column of A can be changed here
+	//
 	vpMatrix X(3, 1);
 	X[0][0] = cp.x;
 	X[1][0] = cp.y;
 	X[2][0] = 1;
 	X = invK * X;
 
-	// Ax = b; x = A\b;
-	vpMatrix A(3, 3);
-	vpMatrix x(3, 1);
-	vpMatrix b(3, 1);
+	float detA = coefficient[0] * X[0][0] 
+		       + coefficient[1] * X[2][0] 
+		       + coefficient[2] * X[1][0] 
+		       - coefficient[3] * X[0][0] 
+		       - coefficient[4] * X[1][0] 
+		       - coefficient[5] * X[2][0];
 
+	// for detx
+	float detx = coefficient[0] * b[0][0] 
+		       + coefficient[1] * b[2][0] 
+		       + coefficient[2] * b[1][0] 
+		       - coefficient[3] * b[0][0] 
+		       - coefficient[4] * b[1][0] 
+		       - coefficient[5] * b[2][0];
+
+	float depth = detx / detA;
+
+	return depth;
+}
+
+void
+superResolutionTracker::prepCalcDepth(
+		vpPoint*  vp, 
+		vpMatrix& A, 
+		vpMatrix& b,
+        float* coefficient)
+{
 	// fill b
 	b[0][0] = -vp[1].get_X() + vp[0].get_X() + vp[2].get_X();
 	b[1][0] = -vp[1].get_Y() + vp[0].get_Y() + vp[2].get_Y();
@@ -1370,13 +1411,36 @@ superResolutionTracker::calcDepth(
 	A[0][2] = -(vp[1].get_X() - vp[2].get_X());
 	A[1][2] = -(vp[1].get_Y() - vp[2].get_Y());
 	A[2][2] = -(vp[1].get_Z() - vp[2].get_Z());
-	// first column
-	A[0][0] = X[0][0];
-	A[1][0] = X[1][0];
-	A[2][0] = X[2][0];
 
-	x = A.inverseByLU() * b;
+	// pre-compute the coefficient for performance
+	//	a11a22
+    //  a01a12
+    //  a02a21
+    //  a12a21
+    //  a01a22		
+    //  a02a11
+	coefficient[0] = A[1][1] * A[2][2];
+	coefficient[1] = A[0][1] * A[1][2];
+	coefficient[2] = A[0][2] * A[2][1];
+	coefficient[3] = A[1][2] * A[2][1];
+	coefficient[4] = A[0][1] * A[2][2];
+	coefficient[5] = A[0][2] * A[1][1];
+}
 
-	float depth = x[0][0];
-	return depth;
+void
+superResolutionTracker::findMinMax(std::vector<cv::Point> corners, cv::Point& lu, cv::Point& rb)
+{
+	lu = corners[0];
+	rb = corners[0];
+	for (size_t i = 1; i < corners.size(); i++)
+	{
+		if (lu.x > corners[i].x)
+			lu.x = corners[i].x;
+		if (lu.y > corners[i].y)
+			lu.y = corners[i].y;
+		if (rb.x < corners[i].x)
+			rb.x = corners[i].x;
+		if (rb.y < corners[i].y)
+			rb.y = corners[i].y;
+	}
 }
