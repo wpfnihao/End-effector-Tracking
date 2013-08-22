@@ -8,11 +8,16 @@
 
 #include <ros/ros.h>
 
+// for opencv
+#include "opencv2/opencv.hpp"
 // for parallel computing
 #include <omp.h>
 
 // user defined
 #include "endeffector_tracking/track_ros.h"
+
+#define VIDEO 0
+#define ROS   1
 
 // TODO: change the face appear and disappear angles
 // TODO: maintain the final codes and give substantial comments
@@ -111,33 +116,82 @@ omp_set_nested(1);
 			// using the ros
 			//
 			
-			ros::init(argc, argv, name);
+			//ros::init(argc, argv, name);
 
-			/* ROS params */
-			ros::NodeHandle n;
-
-
-			//get param from the launch file or command line
-
-			//param([param_name], [member_variable], [default_value])
-
-			//FIXME:the param namespace is weird, how to figure out the namespace of an param?
-			n.param<std::string>("endeffector_tracking/camera_topic", camera_topic, "camera/image_raw");
-			//the config_file containing the info of the cam
-			n.param<std::string>("endeffector_tracking/config_file", config_file, "config.xml");
-			n.param<std::string>("endeffector_tracking/model_name", model_name, "config.cao");
-			n.param<std::string>("endeffector_tracking/init_file", init_file, "config.init");
+			///* ROS params */
+			//ros::NodeHandle n;
 
 
-			image_transport::ImageTransport it(n);
-			// subCam is member variable subscribe to the msg published by the camera
-			// trackCallback do the tracking procedure
-			// the callback function is a member function of a class, so we should point out which class it belongs to explicitly
-			subCam = it.subscribe(camera_topic, 1, trackCallback);
+			////get param from the launch file or command line
 
-			// publish message
-			imgPub = it.advertise("result", 1);
-			ros::spin();
+			////param([param_name], [member_variable], [default_value])
+
+			////FIXME:the param namespace is weird, how to figure out the namespace of an param?
+			//n.param<std::string>("endeffector_tracking/camera_topic", camera_topic, "camera/image_raw");
+			////the config_file containing the info of the cam
+			//n.param<std::string>("endeffector_tracking/config_file", config_file, "config.xml");
+			//n.param<std::string>("endeffector_tracking/model_name", model_name, "config.cao");
+			//n.param<std::string>("endeffector_tracking/init_file", init_file, "config.init");
+			//		
+			//image_transport::ImageTransport it(n);
+			cv::VideoCapture cap("/home/sai/Desktop/cracker.avi"); // open the default video file
+
+
+			int MODE = VIDEO;
+			switch (MODE)
+			{
+				case VIDEO:
+					config_file = "config.xml";
+					model_name = "config.cao";
+					init_file = "config.init";
+					// capture frames
+					//if(!cap.isOpened()) // check if we succeeded
+						//return -1;
+
+					for (;;)
+					{
+						// retrieve image from the camera
+						cv::Mat curImg;
+						cap >> curImg; // get a new frame from camera
+						//tracking based on different status
+						if (status == LOST || status == INITIAL)
+						{
+							// init the model from file
+							// only requires when initializing
+							if (status == INITIAL)
+							{
+								// get some basic info about the video
+								cv::Mat grayImg;
+								cv::cvtColor(curImg, grayImg, CV_BGR2GRAY);
+								rows = grayImg.rows;
+								cols = grayImg.cols;
+
+								//initializeTracker(srcImg);
+								srTracker.initialization(curImg, config_file, model_name, init_file);
+							}
+							//finish the initialization step and start to track
+							status = TRACKING;
+						}	
+						else if (status == TRACKING)
+						{
+							srTracker.retrieveImage(curImg);
+							srTracker.track();
+						}
+					}
+					break;
+				//case ROS:
+				//	// subCam is member variable subscribe to the msg published by the camera
+				//	// trackCallback do the tracking procedure
+				//	// the callback function is a member function of a class, so we should point out which class it belongs to explicitly
+				//	subCam = it.subscribe(camera_topic, 1, trackCallback);
+
+				//	// publish message
+				//	imgPub = it.advertise("result", 1);
+				//	ros::spin();
+				//	break;
+				default:
+					break;
+			}
 		}
 
 #pragma omp section

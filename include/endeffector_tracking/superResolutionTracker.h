@@ -410,5 +410,13 @@ class superResolutionTracker: public vpMbEdgeTracker
 				std::vector<unsigned char>& bStatus,
 				float 						th
 				);
+
+		void
+			findClosestPatch(
+				vpPoseVector& 		vp, 
+				std::vector<int>& 	id, 
+				std::vector<int>& 	idx, 
+				int 				numOfPatchesUsed,
+				int 				faceID);
 	private:
 };
