@@ -165,6 +165,8 @@ class superResolutionTracker: public vpMbEdgeTracker
 
 		vpHomogeneousMatrix p_cMo;
 
+		vpMatrix virtualCam, invVirtualCam;
+
 		dataset_t prePatch;
 
 		vpDisplayX disp;
@@ -403,20 +405,29 @@ class superResolutionTracker: public vpMbEdgeTracker
 		void findMinMax(std::vector<cv::Point> corners, cv::Point& lu, cv::Point& rb);
 
 		void findStableFeatures(
-				std::vector<bool>& 		    finalStatus, 
-				std::vector<cv::Point2f>& 	corners, 
-				std::vector<cv::Point2f>& 	bFeatures,
-				std::vector<unsigned char>& fStatus, 
-				std::vector<unsigned char>& bStatus,
-				float 						th
+				std::vector<bool>& 		    		finalStatus, 
+				const std::vector<cv::Point2f>& 	corners, 
+				const std::vector<cv::Point2f>& 	bFeatures,
+				const std::vector<uchar>& 			fStatus, 
+				const std::vector<uchar>& 			bStatus,
+				const std::vector<float>& 			fErr,
+				float 								th,
+				float 								rate
 				);
 
-		void
-			findClosestPatch(
+		void findClosestPatch(
 				vpPoseVector& 		vp, 
 				std::vector<int>& 	id, 
 				std::vector<int>& 	idx, 
 				int 				numOfPatchesUsed,
 				int 				faceID);
+
+		inline int findMinCost(float tar, int pos, const cv::Mat& img , int rows, int cols, int ws);
+
+		void findStableFeaturesWithRate(
+				const std::vector<float>& 	fErr, 
+				const std::vector<uchar>& 	fStatus, 
+				std::vector<bool>& 			finalStatus, 
+				float 						rate);
 	private:
 };
