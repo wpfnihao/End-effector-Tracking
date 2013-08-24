@@ -8,6 +8,8 @@
 
 #include "endeffector_tracking/superResolutionTracker.h"
 
+#include <assert.h>
+
 superResolutionTracker::superResolutionTracker()
 :numOfPatchScale(10)
 ,buffSize(20)
@@ -294,6 +296,10 @@ superResolutionTracker::findPatchScale(patch& patchData)
 void
 superResolutionTracker::genOrgScalePatch(patch& patchData)
 {
+	// DEBUG only
+	std::cout<<"start genOrgScalePatch"<<std::endl;
+	// END OF DEBUG
+	
 	// set the confidence
 	patchData.confidence[patchData.patchScale] = true;
 	patchData.highestConfidenceScale = patchData.patchScale;
@@ -320,22 +326,39 @@ superResolutionTracker::genOrgScalePatch(patch& patchData)
 			projPoint(invK, invP, P, K, depth, j, i, xc, yc, Z);
 			xc -= shiftX;
 			yc -= shiftY;
+			xc = std::min(xc, patchData.orgPatch.cols-1);
+			yc = std::min(yc, patchData.orgPatch.rows-1);
+			xc = std::max(xc, 0);
+			yc = std::max(yc, 0);
 			*ps++ = patchData.orgPatch.at<uchar>(yc, xc);
 		}
 	patchData.scaledPatch[patchData.patchScale] = sp;
 	// DEBUG only
 	//cv::imshow("patch", sp);
 	//cv::imshow("orgPatch", patchData.orgPatch);
-	//cv::waitKey();
+	//cv::waitKey(100);
 	//END OF DEBUG
+	
+	// DEBUG only
+	std::cout<<"end genOrgScalePatch"<<std::endl;
+	// END OF DEBUG
 }
 
 void
 superResolutionTracker::genRestScalePatch(patch& patchData, int scaleID)
 {
+	// DEBUG only
+	std::cout<<"start genRestScalePatch"<<std::endl;
+	// END OF DEBUG
 	if (scaleID == patchData.patchScale)
+	{
+	// DEBUG only
+	std::cout<<"end genRestScalePatch"<<std::endl;
+	// END OF DEBUG
 		return;
-	else if (scaleID < patchData.patchScale)
+	}
+
+	if (scaleID < patchData.patchScale)
 	{
 		interpolate(patchData, scaleID);
 		patchData.confidence[scaleID] = true;
@@ -345,7 +368,16 @@ superResolutionTracker::genRestScalePatch(patch& patchData, int scaleID)
 		int patchID;
 		if (findConfidence(scaleID, patchID, patchData))
 		{
+			// DEBUG only
+			std::cout<<"start superResolution"<<std::endl;
+			// END OF DEBUG
+
 			superResolution(scaleID, patchID, patchData);
+
+			// DEBUG only
+			std::cout<<"end superResolution"<<std::endl;
+			// END OF DEBUG
+
 			patchData.confidence[scaleID] = true;
 		}
 		else
@@ -354,6 +386,9 @@ superResolutionTracker::genRestScalePatch(patch& patchData, int scaleID)
 			patchData.confidence[scaleID] = false;
 		}
 	}
+	// DEBUG only
+	std::cout<<"end genRestScalePatch"<<std::endl;
+	// END OF DEBUG
 }
 
 inline void
@@ -373,6 +408,7 @@ superResolutionTracker::findConfidence(int scaleID, int& patchID, patch& patchDa
 	int count = 0;
 	for (std::list<patch>::iterator itr = dataset[patchData.faceID].begin(); itr != dataset[patchData.faceID].end(); ++itr)
 	{
+		// only the original patchScale will be treated as a confidence superResolution
 		if (itr->patchScale >= scaleID)
 			IDs.push_back(count);
 		count++;
@@ -392,21 +428,23 @@ superResolutionTracker::findConfidence(int scaleID, int& patchID, patch& patchDa
 void
 superResolutionTracker::superResolution(int scaleID, int patchID, patch& patchData)
 {
+	assert(scaleID > patchData.patchScale);
+
 	// scaleID - 1 here won't be negative
-	cv::Mat lowPatch = patchData.scaledPatch[scaleID - 1];
+	const cv::Mat& lowPatch = patchData.scaledPatch[patchData.patchScale];
 	std::list<patch>::iterator itr = dataset[patchData.faceID].begin();
 	for (int i = 0; i < patchID; i++)
 		++itr;
-	cv::Mat highPatch = itr->scaledPatch[scaleID];
+	const cv::Mat& highPatch = itr->scaledPatch[scaleID];
 
 	cv::Size lowSize(lowPatch.cols, lowPatch.rows);
 	cv::Size highSize(highPatch.cols, highPatch.rows);
 	cv::Mat count = cv::Mat::zeros(lowSize, CV_32FC1) + 1e-10;
 	cv::Mat tarLowPatch = cv::Mat::zeros(lowSize, CV_32FC1);
 	cv::Mat light = cv::Mat::ones(lowSize, CV_32FC1);
-	cv::Mat curHighPatch(highSize, CV_8UC1);
-	cv::Mat xCoor(highSize, CV_32FC1);
-	cv::Mat yCoor(highSize, CV_32FC1);
+	patchData.scaledPatch[scaleID] = cv::Mat(highSize, CV_8UC1);
+	cv::Mat xCoor(highSize, CV_32SC1);
+	cv::Mat yCoor(highSize, CV_32SC1);
 
 	// process
 	// hight to low projection
@@ -417,8 +455,8 @@ superResolutionTracker::superResolution(int scaleID, int patchID, patch& patchDa
 	vpHomogeneousMatrix P = si.cMo;
 	float depth = si.depth;
 	const uchar* hp = (const uchar*) (highPatch.data);
-	float* xp = (float*) (xCoor.data);
-	float* yp = (float*) (yCoor.data);
+	int* xp = (int*) (xCoor.data);
+	int* yp = (int*) (yCoor.data);
 	for (int i = 0; i < highPatch.rows; i++)
 		for (int j = 0; j < highPatch.cols; j++)		
 		{
@@ -438,17 +476,25 @@ superResolutionTracker::superResolution(int scaleID, int patchID, patch& patchDa
 
 	findLight(tarLowPatch, lowPatch, light);
 
+	// DEBUG only
+	std::cout<<"after findLight, start fill patch"<<std::endl;
+	// END OF DEBUG
+
 	// generate the super resolution patch
 	hp = (const uchar*) (highPatch.data);
-	uchar* chp = (uchar*) (curHighPatch.data);
-	xp = (float*) (xCoor.data);
-	yp = (float*) (yCoor.data);
+	uchar* chp = (uchar*) (patchData.scaledPatch[scaleID].data);
+	xp = (int*) (xCoor.data);
+	yp = (int*) (yCoor.data);
 	for (int i = 0; i < highPatch.rows; i++)
 		for (int j = 0; j < highPatch.cols; j++)		
-			*chp++ = std::min((int)((float)(*hp++) * light.at<float>(*yp++, *xp++)), 255);
+			*chp++ = (uchar) std::min((int)((float)(*hp++) * light.at<float>(*yp++, *xp++)), 255);
 	// save processed data
-	patchData.scaledPatch[scaleID] = curHighPatch;	
+	//patchData.scaledPatch[scaleID] = curHighPatch;	
 
+	// DEBUG only
+	std::cout<<"after fill patch"<<std::endl;
+	// END OF DEBUG
+	
 	//DEBUG only
 	//cv::imshow("tarLowPatch", tarLowPatch / 255);
 	//cv::imshow("light", (light - 0.8) * 2.5);
@@ -459,6 +505,88 @@ superResolutionTracker::superResolution(int scaleID, int patchID, patch& patchDa
 	// END OF DEBUG
 }
 
+/* old version of superResolution backup
+ * scaleID is superResolutioned by the scaleID -1
+ * while the new version is scaled by the patchScale
+void
+superResolutionTracker::superResolution(int scaleID, int patchID, patch& patchData)
+{
+	// scaleID - 1 here won't be negative
+	const cv::Mat& lowPatch = patchData.scaledPatch[scaleID - 1];
+	std::list<patch>::iterator itr = dataset[patchData.faceID].begin();
+	for (int i = 0; i < patchID; i++)
+		++itr;
+	const cv::Mat& highPatch = (itr->scaledPatch[scaleID]);
+
+	cv::Size lowSize(lowPatch.cols, lowPatch.rows);
+	cv::Size highSize(highPatch.cols, highPatch.rows);
+	cv::Mat count = cv::Mat::zeros(lowSize, CV_32FC1) + 1e-10;
+	cv::Mat tarLowPatch = cv::Mat::zeros(lowSize, CV_32FC1);
+	cv::Mat light = cv::Mat::ones(lowSize, CV_32FC1);
+	patchData.scaledPatch[scaleID] = cv::Mat(highSize, CV_8UC1);
+	cv::Mat xCoor(highSize, CV_32SC1);
+	cv::Mat yCoor(highSize, CV_32SC1);
+
+	// process
+	// hight to low projection
+	scaleInfo& si = faceScaleInfo[patchData.faceID];
+	vpMatrix K = si.Ks[scaleID-1];
+	vpMatrix invK = si.Ks[scaleID].inverseByLU();
+	vpMatrix invP = si.cMo.inverseByLU();
+	vpHomogeneousMatrix P = si.cMo;
+	float depth = si.depth;
+	const uchar* hp = (const uchar*) (highPatch.data);
+	int* xp = (int*) (xCoor.data);
+	int* yp = (int*) (yCoor.data);
+	for (int i = 0; i < highPatch.rows; i++)
+		for (int j = 0; j < highPatch.cols; j++)		
+		{
+			// project
+			int xc, yc;
+			float Z;
+			projPoint(invK, invP, P, K, depth, j, i, xc, yc, Z);
+
+			// update
+			*xp++ = xc;
+			*yp++ = yc;
+			count.at<float>(yc, xc) += 1;
+			tarLowPatch.at<float>(yc, xc) += *hp++;
+		}
+
+	cv::divide(tarLowPatch, count, tarLowPatch);
+
+	findLight(tarLowPatch, lowPatch, light);
+
+	// DEBUG only
+	std::cout<<"after findLight, start fill patch"<<std::endl;
+	// END OF DEBUG
+
+	// generate the super resolution patch
+	hp = (const uchar*) (highPatch.data);
+	uchar* chp = (uchar*) (patchData.scaledPatch[scaleID].data);
+	xp = (int*) (xCoor.data);
+	yp = (int*) (yCoor.data);
+	for (int i = 0; i < highPatch.rows; i++)
+		for (int j = 0; j < highPatch.cols; j++)		
+			*chp++ = (uchar) std::min((int)((float)(*hp++) * light.at<float>(*yp++, *xp++)), 255);
+	// save processed data
+	//patchData.scaledPatch[scaleID] = curHighPatch;	
+
+	// DEBUG only
+	std::cout<<"after fill patch"<<std::endl;
+	// END OF DEBUG
+	
+	//DEBUG only
+	//cv::imshow("tarLowPatch", tarLowPatch / 255);
+	//cv::imshow("light", (light - 0.8) * 2.5);
+	//cv::imshow("hightPatch", highPatch);
+	//cv::imshow("lowPatch", lowPatch);
+	//cv::imshow("curHighPatch", curHighPatch);
+	//cv::waitKey(100);
+	// END OF DEBUG
+}
+ */
+
 // TODO: don't forget the lock while updating the database
 // TODO: check all the map based structure, to see whether the loop works correctly
 void
@@ -466,16 +594,18 @@ superResolutionTracker::refreshDataset(void)
 {
 	omp_set_lock(&dataLock);
 
+	int len = faces.getPolygon().size();
+
 	// reset the isChanged flags
 	for (int i = 0; i < numOfPatchScale; i++)	
-		for (size_t j = 0; j < faces.getPolygon().size(); j++)
+		for (int j = 0; j < len; j++)
 			for (std::list<patch>::iterator itrPatch = dataset[j].begin(); itrPatch != dataset[j].end(); ++itrPatch)
 				itrPatch->isChanged[i] = false;
 
-	// number of scales, start from the lowest scale
+	// number of scales, start from the second lowest scale
 	// there is no need to update the lowest scale, so we start from scale 1 here
 	for (int i = 1; i < numOfPatchScale; i++)	
-		for (size_t j = 0; j < faces.getPolygon().size(); j++) // number of faces
+		for (int j = 0; j < len; j++) // number of faces
 			for (std::list<patch>::iterator itrPatch = dataset[j].begin(); itrPatch != dataset[j].end(); ++itrPatch)
 				if (!itrPatch->confidence[i]) // only those without confidence should be updated
 				{
@@ -487,18 +617,16 @@ superResolutionTracker::refreshDataset(void)
 						itrPatch->isChanged[i] = true;
 					}
 					else
-					{
 						if (itrPatch->isChanged[i-1])
 						{
 							interpolate(*itrPatch, i);
 							itrPatch->isChanged[i] = true;
 						}
-					}
 				}
 
 	// maintain the highestConfidenceScale
 	for (int i = 0; i < numOfPatchScale; i++)	
-		for (size_t j = 0; j < faces.getPolygon().size(); j++)
+		for (size_t j = 0; j < len; j++)
 			for (std::list<patch>::iterator itrPatch = dataset[j].begin(); itrPatch != dataset[j].end(); ++itrPatch)
 				if (itrPatch->confidence[i])
 					itrPatch->highestConfidenceScale = i;
@@ -576,7 +704,10 @@ superResolutionTracker::findCopyProcessPatch(
 		std::list<patch>& patchList)
 {
 	// check whether the dataset is empty, is so, do nothing
-	if (dataset[faceID].empty())
+	omp_set_lock(&dataLock);
+	bool isEmpty = dataset[faceID].empty();
+	omp_unset_lock(&dataLock);
+	if (isEmpty)
 		return;	
 
 	omp_set_lock(&dataLock);
@@ -632,7 +763,7 @@ superResolutionTracker::findCopyProcessPatch(
 }
 
 // FIXME: some computational expensive steps in this function, try to tune it
-// something still goes wrong here, and the program will crash
+// TODO: something still goes wrong here, and the program will crash
 void
 superResolutionTracker::projPatch(vpHomogeneousMatrix pose, int id, std::list<patch>& dataPatches)
 {

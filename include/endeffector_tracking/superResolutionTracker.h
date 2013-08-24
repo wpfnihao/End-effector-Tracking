@@ -277,6 +277,7 @@ class superResolutionTracker: public vpMbEdgeTracker
 		 *
 		 * This function only copy the information used for the tracking procedure
 		 * while the deepCopyPrePatch function copy all the information obtained from the frame
+		 * NOTE: dataLock not used in this function, every time you call this function, you MUST make sure you have employed the dataLock explicitly
 		 * @param dataPatches
 		 * @param src
 		 */
@@ -322,6 +323,14 @@ class superResolutionTracker: public vpMbEdgeTracker
 
 		/**
 		 * @brief obtain a face patch based on the current image and pose
+		 * The following information saved in the patch:
+		 * patchRect
+		 * faceID
+		 * pose
+		 * orgPatch
+		 * mask
+		 * depth
+		 * patchScale
 		 *
 		 * @param faceID
 		 *
