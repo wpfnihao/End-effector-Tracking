@@ -141,6 +141,7 @@ superResolutionTracker::updateDataBase(void)
 		updataDataset(keyPatch);
 		// refresh the patches already in the database, since new key frame arrived
 		refreshDataset();
+
 	}
 	else
 	{
@@ -431,6 +432,7 @@ superResolutionTracker::superResolution(int scaleID, int patchID, patch& patchDa
 	assert(scaleID > patchData.patchScale);
 
 	// scaleID - 1 here won't be negative
+	//const cv::Mat& lowPatch = patchData.scaledPatch[scaleID - 1];
 	const cv::Mat& lowPatch = patchData.scaledPatch[patchData.patchScale];
 	std::list<patch>::iterator itr = dataset[patchData.faceID].begin();
 	for (int i = 0; i < patchID; i++)
@@ -477,7 +479,7 @@ superResolutionTracker::superResolution(int scaleID, int patchID, patch& patchDa
 	findLight(tarLowPatch, lowPatch, light);
 
 	// DEBUG only
-	std::cout<<"after findLight, start fill patch"<<std::endl;
+	std::cout<<"start fill patch"<<std::endl;
 	// END OF DEBUG
 
 	// generate the super resolution patch
@@ -495,6 +497,20 @@ superResolutionTracker::superResolution(int scaleID, int patchID, patch& patchDa
 	std::cout<<"after fill patch"<<std::endl;
 	// END OF DEBUG
 	
+	// DEBUG only
+	//std::cout<<"start checking the database..."<<std::endl;
+	//// go through all the patches in the database
+	//for (size_t i = 0; i < faces.getPolygon().size(); i++)
+	//	for (std::list<patch>::iterator itr = dataset[i].begin(); itr != dataset[i].end(); ++itr)
+	//		for (int j = 0; j < numOfPatchScale; j++)
+	//		{
+	//			std::cout<<"face "<<i<<", scale"<<j<<std::endl;
+	//			cv::imshow("database", itr->scaledPatch[j]);
+	//			cv::waitKey(100);
+	//		}
+	//std::cout<<"finish checking the database..."<<std::endl;
+	// END OF DEBUG
+
 	//DEBUG only
 	//cv::imshow("tarLowPatch", tarLowPatch / 255);
 	//cv::imshow("light", (light - 0.8) * 2.5);
@@ -505,90 +521,6 @@ superResolutionTracker::superResolution(int scaleID, int patchID, patch& patchDa
 	// END OF DEBUG
 }
 
-/* old version of superResolution backup
- * scaleID is superResolutioned by the scaleID -1
- * while the new version is scaled by the patchScale
-void
-superResolutionTracker::superResolution(int scaleID, int patchID, patch& patchData)
-{
-	// scaleID - 1 here won't be negative
-	const cv::Mat& lowPatch = patchData.scaledPatch[scaleID - 1];
-	std::list<patch>::iterator itr = dataset[patchData.faceID].begin();
-	for (int i = 0; i < patchID; i++)
-		++itr;
-	const cv::Mat& highPatch = (itr->scaledPatch[scaleID]);
-
-	cv::Size lowSize(lowPatch.cols, lowPatch.rows);
-	cv::Size highSize(highPatch.cols, highPatch.rows);
-	cv::Mat count = cv::Mat::zeros(lowSize, CV_32FC1) + 1e-10;
-	cv::Mat tarLowPatch = cv::Mat::zeros(lowSize, CV_32FC1);
-	cv::Mat light = cv::Mat::ones(lowSize, CV_32FC1);
-	patchData.scaledPatch[scaleID] = cv::Mat(highSize, CV_8UC1);
-	cv::Mat xCoor(highSize, CV_32SC1);
-	cv::Mat yCoor(highSize, CV_32SC1);
-
-	// process
-	// hight to low projection
-	scaleInfo& si = faceScaleInfo[patchData.faceID];
-	vpMatrix K = si.Ks[scaleID-1];
-	vpMatrix invK = si.Ks[scaleID].inverseByLU();
-	vpMatrix invP = si.cMo.inverseByLU();
-	vpHomogeneousMatrix P = si.cMo;
-	float depth = si.depth;
-	const uchar* hp = (const uchar*) (highPatch.data);
-	int* xp = (int*) (xCoor.data);
-	int* yp = (int*) (yCoor.data);
-	for (int i = 0; i < highPatch.rows; i++)
-		for (int j = 0; j < highPatch.cols; j++)		
-		{
-			// project
-			int xc, yc;
-			float Z;
-			projPoint(invK, invP, P, K, depth, j, i, xc, yc, Z);
-
-			// update
-			*xp++ = xc;
-			*yp++ = yc;
-			count.at<float>(yc, xc) += 1;
-			tarLowPatch.at<float>(yc, xc) += *hp++;
-		}
-
-	cv::divide(tarLowPatch, count, tarLowPatch);
-
-	findLight(tarLowPatch, lowPatch, light);
-
-	// DEBUG only
-	std::cout<<"after findLight, start fill patch"<<std::endl;
-	// END OF DEBUG
-
-	// generate the super resolution patch
-	hp = (const uchar*) (highPatch.data);
-	uchar* chp = (uchar*) (patchData.scaledPatch[scaleID].data);
-	xp = (int*) (xCoor.data);
-	yp = (int*) (yCoor.data);
-	for (int i = 0; i < highPatch.rows; i++)
-		for (int j = 0; j < highPatch.cols; j++)		
-			*chp++ = (uchar) std::min((int)((float)(*hp++) * light.at<float>(*yp++, *xp++)), 255);
-	// save processed data
-	//patchData.scaledPatch[scaleID] = curHighPatch;	
-
-	// DEBUG only
-	std::cout<<"after fill patch"<<std::endl;
-	// END OF DEBUG
-	
-	//DEBUG only
-	//cv::imshow("tarLowPatch", tarLowPatch / 255);
-	//cv::imshow("light", (light - 0.8) * 2.5);
-	//cv::imshow("hightPatch", highPatch);
-	//cv::imshow("lowPatch", lowPatch);
-	//cv::imshow("curHighPatch", curHighPatch);
-	//cv::waitKey(100);
-	// END OF DEBUG
-}
- */
-
-// TODO: don't forget the lock while updating the database
-// TODO: check all the map based structure, to see whether the loop works correctly
 void
 superResolutionTracker::refreshDataset(void)
 {
@@ -619,8 +551,9 @@ superResolutionTracker::refreshDataset(void)
 					else
 						if (itrPatch->isChanged[i-1])
 						{
-							interpolate(*itrPatch, i);
-							itrPatch->isChanged[i] = true;
+							// TODO: the following line of code has been commented out for debugging only
+							//interpolate(*itrPatch, i);
+							//itrPatch->isChanged[i] = true;
 						}
 				}
 
@@ -840,7 +773,7 @@ superResolutionTracker::projPatch(vpHomogeneousMatrix pose, int id, std::list<pa
 		uchar* pm = (uchar*) (mask.data);
 		float* pd = (float*) (depth.data);
 		uchar* pi = (uchar*) (projImg.data);
-		cv::Mat oPatch = itr->scaledPatch[hs];
+		const cv::Mat& oPatch = itr->scaledPatch[hs];
 		vpMatrix A(3, 3), 
 				 b(3, 1);
         float coefficient[6];    
