@@ -33,13 +33,13 @@ superResolutionTracker::superResolutionTracker()
 void
 superResolutionTracker::track(void)
 {
-	int len = faces.getPolygon().size();
+	int len = vpMbEdgeTracker::faces.getPolygon().size();
 	float rate = getRate(maxDownScale, numOfPatchScale);
 	vpImageConvert::convert(curImg,I);
 
 	// maintain the visibility test
 	int i = 0;
-	for (std::list<vpMbtPolygon *>::iterator itr = faces.getPolygon().begin(); itr != faces.getPolygon().end(); ++itr)
+	for (std::vector<vpMbtPolygon *>::iterator itr = vpMbEdgeTracker::faces.getPolygon().begin(); itr != vpMbEdgeTracker::faces.getPolygon().end(); ++itr)
 	{
 		isVisible[i] = (*itr)->isVisible(cMo, vpMath::rad(faceAngle));
 		++i;
@@ -76,7 +76,7 @@ superResolutionTracker::track(void)
 
 	// maintain the visibility test
 	i = 0;
-	for (std::list<vpMbtPolygon*>::iterator itr = faces.getPolygon().begin(); itr != faces.getPolygon().end(); ++itr)
+	for (std::vector<vpMbtPolygon *>::iterator itr = vpMbEdgeTracker::faces.getPolygon().begin(); itr != vpMbEdgeTracker::faces.getPolygon().end(); ++itr)
 	{
 		isVisible[i] = (*itr)->isVisible(cMo, vpMath::rad(faceAngle));
 		++i;
@@ -215,7 +215,7 @@ superResolutionTracker::findPatchScale(int faceID)
 	
 	cv::Mat mask = cv::Mat::zeros(rows, cols, CV_8UC1);
 
-	std::list<vpMbtPolygon*>::iterator itr = faces.getPolygon().begin();
+	std::vector<vpMbtPolygon*>::iterator itr = vpMbEdgeTracker::faces.getPolygon().begin();
 	for (int i = 0; i < faceID; i++)
 		++itr;
 
@@ -531,7 +531,7 @@ void
 superResolutionTracker::refreshDataset(void)
 {
 	omp_set_lock(&dataLock);
-	int len = faces.getPolygon().size();
+	int len = vpMbEdgeTracker::faces.getPolygon().size();
 
 	// reset the isChanged flags
 	for (int i = 0; i < numOfPatchScale; i++)	
@@ -856,7 +856,7 @@ superResolutionTracker::obtainPatch(int faceID, patch& p)
 	cv::Mat mask = cv::Mat::zeros(rows, cols, CV_8UC1);
 	cv::Mat depth = cv::Mat::zeros(rows, cols, CV_32FC1);
 
-	std::list<vpMbtPolygon*>::iterator itr = faces.getPolygon().begin();
+	std::vector<vpMbtPolygon*>::iterator itr = vpMbEdgeTracker::faces.getPolygon().begin();
 	for (int i = 0; i < faceID; i++)
 		++itr;
 	int npt = (*itr)->getNbPoint();
@@ -1081,7 +1081,7 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 			// for pre-frame
 			vpMatrix invK = cam.get_K().inverseByLU();
 			// for pre-frame
-			for (size_t i = 0; i < faces.getPolygon().size(); i++)
+			for (size_t i = 0; i < vpMbEdgeTracker::faces.getPolygon().size(); i++)
 				if (isVisible[i])
 					if(!prePatch[i].empty())
 					{
@@ -1171,7 +1171,7 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 			// virtual camera is used here
 			vpCameraParameters vc;
 			vc.initFromCalibrationMatrix(virtualCam);
-			for (size_t i = 0; i < faces.getPolygon().size(); i++)
+			for (size_t i = 0; i < vpMbEdgeTracker::faces.getPolygon().size(); i++)
 				if (isVisible[i])
 					for (std::list<patch>::iterator pp = dataPatches[i].begin(); pp != dataPatches[i].end(); ++pp)
 					{
@@ -1276,7 +1276,7 @@ superResolutionTracker::isKeyFrame(void)
 	pose.buildFrom(cMo);
 	omp_set_lock(&dataLock);
 	float diff = 0;
-	for (size_t i = 0; i < faces.getPolygon().size(); i++)
+	for (size_t i = 0; i < vpMbEdgeTracker::faces.getPolygon().size(); i++)
 		for (std::list<patch>::iterator itr = dataset[i].begin(); itr != dataset[i].end(); ++itr)
 		{
 			vpPoseVector curPose;
@@ -1326,19 +1326,19 @@ superResolutionTracker::initialization(cv::Mat& src, std::string config_file, st
 	rows = curImg.rows;
 	cols = curImg.cols;
 
-	for (size_t i = 0; i < faces.getPolygon().size(); i++)
+	for (size_t i = 0; i < vpMbEdgeTracker::faces.getPolygon().size(); i++)
 		isVisible.push_back(false);
 	// once the model has been read, we can init this important structure
 	initFaceScaleInfo();
 
 	// for first frame tracking
 	int i = 0;
-	for (std::list<vpMbtPolygon*>::iterator itr = faces.getPolygon().begin(); itr != faces.getPolygon().end(); ++itr)
+	for (std::vector<vpMbtPolygon*>::iterator itr = vpMbEdgeTracker::faces.getPolygon().begin(); itr != vpMbEdgeTracker::faces.getPolygon().end(); ++itr)
 	{
 		isVisible[i] = (*itr)->isVisible(cMo, vpMath::rad(faceAngle));
 		++i;
 	}
-	for (size_t i = 0; i < faces.getPolygon().size(); i++)
+	for (size_t i = 0; i < vpMbEdgeTracker::faces.getPolygon().size(); i++)
 	{
 		prePatch[i].clear();
 		if (isVisible[i])
@@ -1374,7 +1374,7 @@ void
 superResolutionTracker::initFaceScaleDepth(void)
 {
 	int i = 0;
-	for (std::list<vpMbtPolygon*>::iterator itr = faces.getPolygon().begin(); itr != faces.getPolygon().end(); ++itr)
+	for (std::vector<vpMbtPolygon*>::iterator itr = vpMbEdgeTracker::faces.getPolygon().begin(); itr != vpMbEdgeTracker::faces.getPolygon().end(); ++itr)
 	{
 		vpPoint p = (*itr)->p[0];
 		p.changeFrame(faceScaleInfo[i].cMo);
@@ -1387,7 +1387,7 @@ void
 superResolutionTracker::initFaceScalePose(void)
 {
 	int i = 0;
-	for (std::list<vpMbtPolygon*>::iterator itr = faces.getPolygon().begin(); itr != faces.getPolygon().end(); ++itr)
+	for (std::vector<vpMbtPolygon*>::iterator itr = vpMbEdgeTracker::faces.getPolygon().begin(); itr != vpMbEdgeTracker::faces.getPolygon().end(); ++itr)
 	{
 		vpPose pose;
 		// 4 points are enough for computing the pose
@@ -1436,7 +1436,7 @@ superResolutionTracker::initFaceScaleSize(void)
 	float aspectRatio = (float) cols / (float) rows;
 
 	int i = 0;
-	for (std::list<vpMbtPolygon*>::iterator itr = faces.getPolygon().begin(); itr != faces.getPolygon().end(); ++itr)
+	for (std::vector<vpMbtPolygon*>::iterator itr = vpMbEdgeTracker::faces.getPolygon().begin(); itr != vpMbEdgeTracker::faces.getPolygon().end(); ++itr)
 	{
 		// width / height
 		float height = pointDistance3D((*itr)->p[0], (*itr)->p[1]);
@@ -1470,7 +1470,7 @@ void
 superResolutionTracker::initFaceScaleVirtualCam(void)
 {
 	float rate = getRate(maxDownScale, numOfPatchScale);
-	for (size_t i = 0; i < faces.getPolygon().size(); i++)
+	for (size_t i = 0; i < vpMbEdgeTracker::faces.getPolygon().size(); i++)
 	{
 		faceScaleInfo[i].Ks[numOfPatchScale-1] = cam.get_K(); 
 		for (int j = 0; j < numOfPatchScale-1; j++)

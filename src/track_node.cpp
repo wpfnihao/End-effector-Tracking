@@ -6,7 +6,7 @@
  * @date 2013-03-20
  */
 
-#include <ros/ros.h>
+//#include <ros/ros.h>
 
 // for opencv
 #include "opencv2/opencv.hpp"
@@ -35,8 +35,8 @@ tracking_status status = INITIAL;
 
 
 
-image_transport::Subscriber subCam;
-image_transport::Publisher imgPub;
+//image_transport::Subscriber subCam;
+//image_transport::Publisher imgPub;
 // several config file obtained from the launch file
 std::string camera_topic;
 std::string config_file;
@@ -85,8 +85,8 @@ int rows, cols;
 vpCameraParameters cam;
 
 // different type of trackers
-mbtEdgeTracker meTracker;
-kltFbTracker fbTracker;
+//mbtEdgeTracker meTracker;
+//kltFbTracker fbTracker;
 superResolutionTracker srTracker;
 // TODO: init the super-resolution tracker here, and make sure that both the following sections can use the tracker.
 
@@ -219,46 +219,46 @@ omp_set_nested(1);
  * @param srcImg 	the sensor_msgs of ROS topic, 
  * 					the message will be transfered to OpenCV image and then stored.
  */
-void 
-trackCallback(const sensor_msgs::ImageConstPtr& srcImg)
-{
-	// transform the image msg into cv::Mat and store in the member variable
-	msg2mat(srcImg, curImg);
-
-	//tracking based on different status
-	if (status == LOST || status == INITIAL)
-	{
-		// init the model from file
-		// only requires when initializing
-		if (status == INITIAL)
-		{
-			// get some basic info about the video
-			cv::Mat grayImg;
-			cv::cvtColor(curImg, grayImg, CV_BGR2GRAY);
-			rows = grayImg.rows;
-			cols = grayImg.cols;
-			
-			//initializeTracker(srcImg);
-			srTracker.initialization(curImg, config_file, model_name, init_file);
-			//fbTracker.getInitPoints(init_file);
-			//fbTracker.init(curImg);
-
-			//meTracker.retrieveImage(srcImg);
-			//meTracker.initialize(config_file, model_name, init_file);
-		}
-
-		//fbTracker.retrieveImage(curImg);
-		//fbTracker.initialize(cam, cMo, poseVector, rows, cols);
-
-		//finish the initialization step and start to track
-		status = TRACKING;
-	}	
-	else if (status == TRACKING)
-	{
-		srTracker.retrieveImage(curImg);
-		srTracker.track();
-	}
-}
+//void 
+//trackCallback(const sensor_msgs::ImageConstPtr& srcImg)
+//{
+//	// transform the image msg into cv::Mat and store in the member variable
+//	msg2mat(srcImg, curImg);
+//
+//	//tracking based on different status
+//	if (status == LOST || status == INITIAL)
+//	{
+//		// init the model from file
+//		// only requires when initializing
+//		if (status == INITIAL)
+//		{
+//			// get some basic info about the video
+//			cv::Mat grayImg;
+//			cv::cvtColor(curImg, grayImg, CV_BGR2GRAY);
+//			rows = grayImg.rows;
+//			cols = grayImg.cols;
+//			
+//			//initializeTracker(srcImg);
+//			srTracker.initialization(curImg, config_file, model_name, init_file);
+//			//fbTracker.getInitPoints(init_file);
+//			//fbTracker.init(curImg);
+//
+//			//meTracker.retrieveImage(srcImg);
+//			//meTracker.initialize(config_file, model_name, init_file);
+//		}
+//
+//		//fbTracker.retrieveImage(curImg);
+//		//fbTracker.initialize(cam, cMo, poseVector, rows, cols);
+//
+//		//finish the initialization step and start to track
+//		status = TRACKING;
+//	}	
+//	else if (status == TRACKING)
+//	{
+//		srTracker.retrieveImage(curImg);
+//		srTracker.track();
+//	}
+//}
 
 /**
  * @brief convert from the ros image message to a CvImage
@@ -266,57 +266,57 @@ trackCallback(const sensor_msgs::ImageConstPtr& srcImg)
  * @param srcImg
  * @param curImg_
  */
-void 
-msg2mat(const sensor_msgs::ImageConstPtr& srcImg, cv::Mat& curImg_)	
-{
-	cv_bridge::CvImagePtr cv_ptr;
-	try
-	{
-		cv_ptr = cv_bridge::toCvCopy(srcImg, sensor_msgs::image_encodings::BGR8);
-	}
-	catch (cv_bridge::Exception& e)
-	{
-		ROS_ERROR("%s",e.what());
-		return;
-	}	
-
-	curImg_ = cv_ptr->image; 
-
-}
+//void 
+//msg2mat(const sensor_msgs::ImageConstPtr& srcImg, cv::Mat& curImg_)	
+//{
+//	cv_bridge::CvImagePtr cv_ptr;
+//	try
+//	{
+//		cv_ptr = cv_bridge::toCvCopy(srcImg, sensor_msgs::image_encodings::BGR8);
+//	}
+//	catch (cv_bridge::Exception& e)
+//	{
+//		ROS_ERROR("%s",e.what());
+//		return;
+//	}	
+//
+//	curImg_ = cv_ptr->image; 
+//
+//}
 
 /**
  * @brief 			use the vpMbEdgeTracker to initialize the tracker
  *
  * @param srcImg 	the sensor_msgs of ROS topic, it will be transfered to vpImage in the function
  */
-void 
-initializeTracker(const sensor_msgs::ImageConstPtr& srcImg)
-{
-	// the vpImg is a mono channel image
-	vpImage<uchar> vpImg;
-	// the operator:=() will allocate the memory automatically
-	vpImg = visp_bridge::toVispImage(*srcImg);
-
-	// We only use the tracker in visp to initialize the program
-	vpMbEdgeTracker initializer;
-	// NOTE:the params can also be retrieved from the sensor_msgs::CameraInfo using the visp_bridge package
-	initializer.loadConfigFile(config_file);		
-	initializer.getCameraParameters(cam);
-	initializer.loadModel(model_name);
-	initializer.setCovarianceComputation(true);
-
-	//initial the display
-	//these steps are not shown in the manual document
-	d.init(vpImg);
-
-	initializer.initClick(vpImg, init_file);
-	// obtain the initial pose of the model
-	cMo = initializer.getPose();
-	poseVector.buildFrom(cMo);
-
-	//clean up
-	vpXmlParser::cleanup();
-}
+//void 
+//initializeTracker(const sensor_msgs::ImageConstPtr& srcImg)
+//{
+//	// the vpImg is a mono channel image
+//	vpImage<uchar> vpImg;
+//	// the operator:=() will allocate the memory automatically
+//	vpImg = visp_bridge::toVispImage(*srcImg);
+//
+//	// We only use the tracker in visp to initialize the program
+//	vpMbEdgeTracker initializer;
+//	// NOTE:the params can also be retrieved from the sensor_msgs::CameraInfo using the visp_bridge package
+//	initializer.loadConfigFile(config_file);		
+//	initializer.getCameraParameters(cam);
+//	initializer.loadModel(model_name);
+//	initializer.setCovarianceComputation(true);
+//
+//	//initial the display
+//	//these steps are not shown in the manual document
+//	d.init(vpImg);
+//
+//	initializer.initClick(vpImg, init_file);
+//	// obtain the initial pose of the model
+//	cMo = initializer.getPose();
+//	poseVector.buildFrom(cMo);
+//
+//	//clean up
+//	vpXmlParser::cleanup();
+//}
 
 /**
  * @brief publish the processed Img or the tracking rst
@@ -324,15 +324,15 @@ initializeTracker(const sensor_msgs::ImageConstPtr& srcImg)
  *
  * @param srcImg
  */
-void
-pubRst(const sensor_msgs::ImageConstPtr& srcImg)
-{
-	// Step 5: publish the tracking result
-
-	cv_bridge::CvImage out_msg;
-	out_msg.header = srcImg->header;
-	out_msg.encoding = sensor_msgs::image_encodings::BGR8;
-	out_msg.image = processedImg;
-
-	imgPub.publish(out_msg.toImageMsg());
-}
+//void
+//pubRst(const sensor_msgs::ImageConstPtr& srcImg)
+//{
+//	// Step 5: publish the tracking result
+//
+//	cv_bridge::CvImage out_msg;
+//	out_msg.header = srcImg->header;
+//	out_msg.encoding = sensor_msgs::image_encodings::BGR8;
+//	out_msg.image = processedImg;
+//
+//	imgPub.publish(out_msg.toImageMsg());
+//}

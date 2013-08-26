@@ -9,6 +9,7 @@
 
 // ViSP
 #include <visp/vpMbEdgeTracker.h>
+#include <visp/vpMbEdgeKltTracker.h>
 #include <visp/vpImageConvert.h>
 #include "visp/vpMeterPixelConversion.h"
 #include "visp/vpPixelMeterConversion.h"
@@ -28,7 +29,7 @@
 
 // TODO; change the two structs into class with embedded member functions
 // TODO: the klt tracker seems not very stable
-class superResolutionTracker: public vpMbEdgeTracker
+class superResolutionTracker: public vpMbEdgeKltTracker
 {
 	// the definition of the most important structures in the program
 	public:
