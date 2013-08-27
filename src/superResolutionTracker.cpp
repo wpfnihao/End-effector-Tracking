@@ -70,7 +70,15 @@ superResolutionTracker::track(void)
 	// TODO: this function runs rather slow
 	optimizePose(upScaleImg, prePatch, dataPatches);
 	p_cMo = cMo;
-	//vpMbEdgeTracker::track(I);
+	vpMbEdgeTracker::track(I);
+	vpPoseVector pre, cur, mm;
+	vpMatrix m;
+	pre.buildFrom(p_cMo);
+	cur.buildFrom(cMo);
+	m = (pre + cur) / 2;
+	for (int i = 0; i < 6; i++)
+		mm[i] = m[i][0];
+	cMo.buildFrom(mm);
 	//pose.buildFrom(cMo);
 	//std::cout<<pose<<std::endl;
 
@@ -1104,7 +1112,7 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 								);
 						// detect good features in pre-patch
 						std::vector<cv::Point2f> corners;
-						cv::goodFeaturesToTrack(orgPatch, corners, 100, 0.01, 5, mask);
+						cv::goodFeaturesToTrack(orgPatch, corners, 50, 0.01, 5, mask);
 						// DEBUG only
 						//cv::imshow("mask", mask);
 						//cv::Mat pImg = orgPatch.clone();
@@ -1178,7 +1186,7 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 						// detect good features in pp-patch
 						std::vector<cv::Point2f> corners;
 						cv::erode(pp->mask, pp->mask, element);
-						cv::goodFeaturesToTrack(pp->orgPatch, corners, 100, 0.01, 5, pp->mask);
+						cv::goodFeaturesToTrack(pp->orgPatch, corners, 50, 0.01, 5, pp->mask);
 						if (corners.empty())
 							continue;
 						// DEBUG only
