@@ -152,7 +152,7 @@ class superResolutionTracker: public vpMbEdgeKltTracker
 		int numOfPatches;
 		int numOfPatchesUsed;
 		int rows, cols;
-		int upScale;
+		int superScale;
 		int winSize;
 		int maxLevel;
 		int minFrameCount;
@@ -439,5 +439,14 @@ class superResolutionTracker: public vpMbEdgeKltTracker
 				const std::vector<uchar>& 	fStatus, 
 				std::vector<bool>& 			finalStatus, 
 				float 						rate);
+
+		void computeVVS(
+				const vpImage<unsigned char>& I, 
+				vpPoseFeatures& pf,
+				vpColVector &w_mbt, 
+				vpColVector &w_klt, 
+				const unsigned int lvl = 0);
+
+		void getPose(const vpImage<unsigned char>& I, vpPoseFeatures& pf);
 	private:
 };

@@ -15,7 +15,7 @@ superResolutionTracker::superResolutionTracker()
 ,buffSize(20)
 ,numOfPatches(10)
 ,numOfPatchesUsed(2)
-,upScale(1)
+,superScale(1)
 ,winSize(7)
 ,maxLevel(1)
 ,maxDownScale(16)
@@ -69,16 +69,16 @@ superResolutionTracker::track(void)
 	//std::cout<<pose<<std::endl;
 	// TODO: this function runs rather slow
 	optimizePose(upScaleImg, prePatch, dataPatches);
-	p_cMo = cMo;
-	vpMbEdgeTracker::track(I);
-	vpPoseVector pre, cur, mm;
-	vpMatrix m;
-	pre.buildFrom(p_cMo);
-	cur.buildFrom(cMo);
-	m = (pre + cur) / 2;
-	for (int i = 0; i < 6; i++)
-		mm[i] = m[i][0];
-	cMo.buildFrom(mm);
+	//p_cMo = cMo;
+	//vpMbEdgeTracker::track(I);
+	//vpPoseVector pre, cur, mm;
+	//vpMatrix m;
+	//pre.buildFrom(p_cMo);
+	//cur.buildFrom(cMo);
+	//m = (pre + cur) / 2;
+	//for (int i = 0; i < 6; i++)
+	//	mm[i] = m[i][0];
+	//cMo.buildFrom(mm);
 	//pose.buildFrom(cMo);
 	//std::cout<<pose<<std::endl;
 
@@ -674,7 +674,7 @@ superResolutionTracker::findCopyProcessPatch(
 	int highestID = 0;
 	for (std::list<patch>::iterator itr = dataset[faceID].begin(); itr != dataset[faceID].end(); ++itr)
 	{
-		if (itr->highestConfidenceScale >= std::min(patchScale + upScale, numOfPatchScale-1))
+		if (itr->highestConfidenceScale >= std::min(patchScale + superScale, numOfPatchScale-1))
 			id.push_back(count);
 		if (itr->highestConfidenceScale > highestScale)
 		{
@@ -1240,18 +1240,21 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 		}
 	}
 
-	//
-	// compute pose
-	featuresComputePose.setLambda(0.6);
 	p_cMo = cMo;
-	try
-	{
-		featuresComputePose.computePose(cMo, vpPoseFeatures::ROBUST_VIRTUAL_VS);
-	}
-	catch(...) // catch all kinds of Exceptions
-	{
-		std::cout<<"Exception raised in computePose"<<std::endl;
-	}
+	getPose(I, featuresComputePose);
+
+	////
+	//// compute pose
+	//featuresComputePose.setLambda(0.6);
+	//p_cMo = cMo;
+	//try
+	//{
+	//	featuresComputePose.computePose(cMo, vpPoseFeatures::ROBUST_VIRTUAL_VS);
+	//}
+	//catch(...) // catch all kinds of Exceptions
+	//{
+	//	std::cout<<"Exception raised in computePose"<<std::endl;
+	//}
 }
 
 void
@@ -1746,4 +1749,227 @@ superResolutionTracker::findMinCost(float tar, int pos, const cv::Mat& img , int
 		tar = 255;
 	subMat = cv::abs(subMat - (uchar)tar);	
 	return *std::min_element(subMat.begin<uchar>(), subMat.end<uchar>());
+}
+
+// virtual inherit the vpMbTracker class, so only one cMo is available here
+// 95% of the codes here are copied from the vpMbEdgeKltTracker class
+void
+superResolutionTracker::computeVVS(
+		const vpImage<unsigned char>& I, 
+		vpPoseFeatures& pf,
+		vpColVector &w_mbt, 
+		vpColVector &w_klt, 
+		const unsigned int lvl)
+{
+	// modified by wpf
+	thresholdKLT = 2;
+
+	vpColVector factor;
+	unsigned int nbrow = trackFirstLoop(I, factor, lvl);
+
+	// for the klt tracker
+	vpMatrix J_mbt, J_klt; // interaction matrix
+	vpColVector R_mbt, R_klt; // residu
+	pf.error_and_interaction(cMo, R_klt, J_klt);
+	int nbInfos = R_klt.size() / 2;
+
+	if(nbrow < 4 && nbInfos < 4)
+	{
+		vpERROR_TRACE("\n\t\t Error-> not enough data") ;
+		throw vpTrackingException(vpTrackingException::notEnoughPointError, "\n\t\t Error-> not enough data");
+	}
+	else if(nbrow < 4)
+		nbrow = 0;
+
+	double residu = 0;
+	double residu_1 = -1;
+	unsigned int iter = 0;
+
+	vpMatrix *J;
+	vpColVector *R;
+	vpMatrix J_true;
+	vpColVector R_true;
+	vpColVector w_true;
+
+	if(nbrow != 0)
+	{
+		J_mbt.resize(nbrow,6);
+		R_mbt.resize(nbrow);
+	}
+
+	if(nbInfos != 0){
+		J_klt.resize(2*nbInfos,6);
+		R_klt.resize(2*nbInfos);
+	}
+
+	vpColVector w; // weight from MEstimator
+	vpColVector v; // "speed" for VVS
+	vpRobust robust_mbt(0), robust_klt(0);
+	vpHomography H;
+
+	vpMatrix JTJ, JTR;
+
+	double factorMBT = 1.0;
+	double factorKLT = 1.0;
+
+	//More efficient weight repartition for hybrid tracker should come soon...
+	// factorMBT = 1.0 - (double)nbrow / (double)(nbrow + nbInfos);
+	// factorKLT = 1.0 - factorMBT;
+	factorMBT = 0.2;
+	factorKLT = 0.8;
+
+	double residuMBT = 0;
+	double residuKLT = 0;
+
+	while( ((int)((residu - residu_1)*1e8) !=0 ) && (iter<maxIter) )
+	{
+		J = new vpMatrix();
+		R = new vpColVector();
+
+		if(nbrow >= 4)
+			trackSecondLoop(I,J_mbt,R_mbt,cMo,lvl);
+
+		if(nbInfos >= 4)
+			pf.error_and_interaction(cMo, R_klt, J_klt);
+
+		if(iter == 0)
+		{
+			w.resize(nbrow + 2*nbInfos);
+			w=1;
+
+			w_mbt.resize(nbrow);
+			w_mbt = 1;
+			robust_mbt.resize(nbrow);
+
+			w_klt.resize(2*nbInfos);
+			w_klt = 1;
+			robust_klt.resize(2*nbInfos);
+
+			w_true.resize(nbrow + 2*nbInfos);
+		}
+
+		/* robust */
+		if(nbrow > 3){
+			residuMBT = 0;
+			for(unsigned int i = 0; i < R_mbt.getRows(); i++)
+				residuMBT += fabs(R_mbt[i]);
+			residuMBT /= R_mbt.getRows();
+
+			robust_mbt.setIteration(iter);
+			robust_mbt.setThreshold(thresholdMBT/cam.get_px());
+			robust_mbt.MEstimator( vpRobust::TUKEY, R_mbt, w_mbt);
+			J->stackMatrices(J_mbt);
+			R->stackMatrices(R_mbt);
+		}
+
+		if(nbInfos > 3){
+			residuKLT = 0;
+			for(unsigned int i = 0; i < R_klt.getRows(); i++)
+				residuKLT += fabs(R_klt[i]);
+			residuKLT /= R_klt.getRows();
+
+			robust_klt.setIteration(iter);
+			robust_klt.setThreshold(thresholdKLT/cam.get_px());
+			robust_klt.MEstimator( vpRobust::TUKEY, R_klt, w_klt);
+
+			J->stackMatrices(J_klt);
+			R->stackMatrices(R_klt);
+		}
+
+		unsigned int cpt = 0;
+		while(cpt< (nbrow+2*nbInfos))
+		{
+			if(cpt<(unsigned)nbrow)
+				w[cpt] = ((w_mbt[cpt] * factor[cpt]) * factorMBT) ;
+			else
+				w[cpt] = (w_klt[cpt-nbrow] * factorKLT);
+			cpt++;
+		}
+
+		if(computeCovariance){
+			R_true = (*R);
+			J_true = (*J);
+		}
+
+		residu_1 = residu;
+		residu = 0;
+		double num = 0;
+		double den = 0;
+		for (unsigned int i = 0; i < static_cast<unsigned int>(R->getRows()); i++){
+			num += w[i]*vpMath::sqr((*R)[i]);
+			den += w[i];
+
+			w_true[i] = w[i]*w[i];
+			(*R)[i] *= w[i];
+			if(compute_interaction){
+				for (unsigned int j = 0; j < 6; j += 1){
+					(*J)[i][j] *= w[i];
+				}
+			}
+		}
+
+		residu = sqrt(num/den);
+
+		JTJ = J->AtA();
+		computeJTR(*J, *R, JTR);
+		v = -lambda * JTJ.pseudoInverse() * JTR;
+		cMo = vpExponentialMap::direct(v).inverse() * cMo;
+		ctTc0 = vpExponentialMap::direct(v).inverse() * ctTc0;
+
+		iter++;
+
+		delete J;
+		delete R;
+	}
+
+	if(computeCovariance){
+		vpMatrix D;
+		D.diag(w_true);
+		covarianceMatrix = vpMatrix::computeCovarianceMatrix(J_true,v,-lambda*R_true,D);
+	}
+}
+
+// 95% of the codes here are copied from the vpMbEdgeKltTracker class
+void
+superResolutionTracker::getPose(const vpImage<unsigned char>& I, vpPoseFeatures& pf)
+{
+	unsigned int nbInfos;
+	vpColVector w_klt;
+	vpColVector w_mbt;
+
+	vpMbEdgeTracker::trackMovingEdge(I);
+
+	computeVVS(I, pf, w_mbt, w_klt);
+
+	if(postTracking(I, w_mbt, w_klt))
+	{
+
+		initPyramid(I, Ipyramid);
+
+		unsigned int n = 0;
+		for(size_t i = 0; i < vpMbEdgeTracker::faces.getPolygon().size() ; i++)
+			if(isVisible[i])
+			{
+				vpMbEdgeTracker::faces[i]->isvisible = true;
+				n++;
+			}
+			else
+				vpMbEdgeTracker::faces[i]->isvisible = false;
+
+		vpMbEdgeTracker::nbvisiblepolygone = n;
+
+		unsigned int i = (unsigned int)scales.size();
+		do 
+		{
+			i--;
+			if(scales[i])
+			{
+				downScale(i);
+				initMovingEdge(*Ipyramid[i], cMo);
+				upScale(i);
+			}
+		} while(i != 0);
+
+		cleanPyramid(Ipyramid);
+	}
 }
