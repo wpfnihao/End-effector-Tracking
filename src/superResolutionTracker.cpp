@@ -14,14 +14,15 @@ superResolutionTracker::superResolutionTracker()
 :numOfPatchScale(10)
 ,buffSize(20)
 ,numOfPatches(10)
-,numOfPatchesUsed(2)
+,numOfPatchesUsed(3)
 ,superScale(1)
 ,winSize(7)
 ,maxLevel(1)
 ,maxDownScale(16)
 ,faceAngle(80)
 ,frameCount(0)
-,minFrameCount(20)
+,minFrameCount(10)
+,res(0)
 {
 	omp_init_lock(&buffLock);
 	omp_init_lock(&dataLock);
@@ -69,18 +70,7 @@ superResolutionTracker::track(void)
 	//std::cout<<pose<<std::endl;
 	// TODO: this function runs rather slow
 	optimizePose(upScaleImg, prePatch, dataPatches);
-	//p_cMo = cMo;
 	//vpMbEdgeTracker::track(I);
-	//vpPoseVector pre, cur, mm;
-	//vpMatrix m;
-	//pre.buildFrom(p_cMo);
-	//cur.buildFrom(cMo);
-	//m = (pre + cur) / 2;
-	//for (int i = 0; i < 6; i++)
-	//	mm[i] = m[i][0];
-	//cMo.buildFrom(mm);
-	//pose.buildFrom(cMo);
-	//std::cout<<pose<<std::endl;
 
 	// maintain the visibility test
 	i = 0;
@@ -461,7 +451,8 @@ superResolutionTracker::superResolution(int scaleID, int patchID, patch& patchDa
 	// process
 	// hight to low projection
 	scaleInfo& si = faceScaleInfo[patchData.faceID];
-	vpMatrix K = si.Ks[scaleID-1];
+	//vpMatrix K = si.Ks[scaleID-1];
+	vpMatrix K = si.Ks[patchData.patchScale];
 	vpMatrix invK = si.Ks[scaleID].inverseByLU();
 	vpMatrix invP = si.cMo.inverseByLU();
 	vpHomogeneousMatrix P = si.cMo;
@@ -493,7 +484,7 @@ superResolutionTracker::superResolution(int scaleID, int patchID, patch& patchDa
 	findLight(tarLowPatch, lowPatch, light);
 
 	// DEBUG only
-	std::cout<<"start fill patch"<<std::endl;
+	//std::cout<<"start fill patch"<<std::endl;
 	// END OF DEBUG
 
 	// generate the super resolution patch
@@ -508,7 +499,7 @@ superResolutionTracker::superResolution(int scaleID, int patchID, patch& patchDa
 	//patchData.scaledPatch[scaleID] = curHighPatch;	
 
 	// DEBUG only
-	std::cout<<"after fill patch"<<std::endl;
+	//std::cout<<"after fill patch"<<std::endl;
 	// END OF DEBUG
 	
 	// DEBUG only
@@ -527,11 +518,12 @@ superResolutionTracker::superResolution(int scaleID, int patchID, patch& patchDa
 
 	//DEBUG only
 	//cv::imshow("tarLowPatch", tarLowPatch / 255);
-	//cv::imshow("light", (light - 0.8) * 2.5);
+	//cv::imshow("light", (light - 0.5) / 4.5);
 	//cv::imshow("hightPatch", highPatch);
 	//cv::imshow("lowPatch", lowPatch);
-	//cv::imshow("curHighPatch", curHighPatch);
+	//cv::imshow("curHighPatch", patchData.scaledPatch[scaleID]);
 	//cv::waitKey(100);
+	//std::cout<<"dummy sentence, for debug only."<<std::endl;
 	// END OF DEBUG
 }
 
@@ -592,17 +584,17 @@ superResolutionTracker::findLight(const cv::Mat& tarLowPatch,const cv::Mat& lowP
 	int num_pixels = light.rows * light.cols;
 	int width = light.cols;
 	int height = light.rows;
-	int num_labels = 10;
+	int num_labels = 50;
 
 	// setup the weight of labels
-	float low = 0.8,
-		  high = 1.2;
+	float low = 0.5,
+		  high = 5;
 	std::vector<float> lightWeight(num_labels);
 	for (int i = 0; i < num_labels; i++)
 		lightWeight[i] = low + (float)i / num_labels * (high - low);
 
 	// FIXME: tune this value
-	int smoothWeight = 50;
+	int smoothWeight = 20;
 	int ws = 2;
 	try
 	{
@@ -1133,7 +1125,7 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 						cv::calcOpticalFlowPyrLK(cPyramid, pPyramid, cFeatures, bFeatures, bStatus, bErr, cv::Size(winSize, winSize), maxLevel);
 						std::vector<bool> finalStatus(corners.size());
 						float th = 0.5;
-						float rate = 0.5;
+						float rate = 0.7;
 						findStableFeatures(finalStatus, corners, bFeatures, fStatus, bStatus, fErr, th, rate);
 						// DEBUG only
 						//cv::Mat cImg = curImg.clone();
@@ -1203,7 +1195,7 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 						std::vector<uchar> fStatus;
 						cv::buildOpticalFlowPyramid(pp->orgPatch, prePatchPyr, cv::Size(winSize, winSize), maxLevel);
 						cv::calcOpticalFlowPyrLK(prePatchPyr, upScaleCPyramid, corners, cFeatures, fStatus, fErr, cv::Size(winSize, winSize), maxLevel);
-						float rate = 0.5;
+						float rate = 0.7;
 						std::vector<bool> finalStatus(corners.size());
 						findStableFeaturesWithRate(fErr, fStatus, finalStatus, rate);
 						// DEBUG only
@@ -1240,8 +1232,20 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 		}
 	}
 
+	// find the scale of the target
+	float tarScale = 0;
+	int faceCount = 0;
+	for (size_t i = 0; i < vpMbEdgeTracker::faces.getPolygon().size(); i++)
+		if (isVisible[i])
+			if(!prePatch[i].empty())
+			{
+				tarScale += prePatch[i].front().patchScale;
+				++faceCount;
+			}
+	tarScale /= faceCount;
+
 	p_cMo = cMo;
-	getPose(I, featuresComputePose);
+	res = getPose(I, featuresComputePose, tarScale);
 
 	////
 	//// compute pose
@@ -1274,7 +1278,7 @@ bool
 superResolutionTracker::isKeyFrame(void)
 {
 	float th1 = 0.001;
-	float th2 = 0.015;
+	float th2 = 0.01;
 	bool frameDist = true, 
 		 poseDiff  = true, 
 		 matchness = true;
@@ -1295,7 +1299,7 @@ superResolutionTracker::isKeyFrame(void)
 			diff = 0;
 			for (int j = 0; j < 6; j++)
 				diff += fabs(pose[j] - curPose[j]);
-			std::cout<<"diff1 = "<<diff<<std::endl;
+			//std::cout<<"diff1 = "<<diff<<std::endl;
 			if (diff < 6 * th1)
 			{
 				poseDiff = false;
@@ -1304,14 +1308,9 @@ superResolutionTracker::isKeyFrame(void)
 		}
 	omp_unset_lock(&dataLock);
 
-	// the pose similarity between the klt tracker and the edge detector
-	diff = 0;
-	vpPoseVector pPose;
-	pPose.buildFrom(p_cMo);
-	for (int j = 0; j < 6; j++)
-		diff += fabs(pose[j] - pPose[j]);
-	std::cout<<"diff2 = "<<diff<<std::endl;
-	matchness = diff < th2 * 6 ? true : false;
+	// the residual
+	std::cout<<"res = "<<res<<std::endl;
+	matchness = res < th2 ? true : false;
 
 
 	// matchness
@@ -1753,16 +1752,17 @@ superResolutionTracker::findMinCost(float tar, int pos, const cv::Mat& img , int
 
 // virtual inherit the vpMbTracker class, so only one cMo is available here
 // 95% of the codes here are copied from the vpMbEdgeKltTracker class
-void
+double
 superResolutionTracker::computeVVS(
 		const vpImage<unsigned char>& I, 
 		vpPoseFeatures& pf,
 		vpColVector &w_mbt, 
 		vpColVector &w_klt, 
+		float scale_,
 		const unsigned int lvl)
 {
 	// modified by wpf
-	thresholdKLT = 2;
+	//thresholdKLT = 2;
 
 	vpColVector factor;
 	unsigned int nbrow = trackFirstLoop(I, factor, lvl);
@@ -1809,14 +1809,26 @@ superResolutionTracker::computeVVS(
 
 	vpMatrix JTJ, JTR;
 
-	double factorMBT = 1.0;
-	double factorKLT = 1.0;
+	double factorMBT = 0.2;
+	double factorKLT = 0.8;
 
 	//More efficient weight repartition for hybrid tracker should come soon...
-	// factorMBT = 1.0 - (double)nbrow / (double)(nbrow + nbInfos);
-	// factorKLT = 1.0 - factorMBT;
-	factorMBT = 0.2;
-	factorKLT = 0.8;
+	//factorMBT = 1.0 - (double)nbrow / (double)(nbrow + nbInfos);
+	//factorKLT = 1.0 - factorMBT;
+	//if (scale_ < 4)
+	//{
+	//	factorMBT = 0.2;
+	//	factorKLT = 0.8;
+	//}
+	//else
+	//{
+	//	factorMBT = 0.1;
+	//	factorKLT = 0.9;
+	//}
+	// for DEBUG only
+	
+	std::cout<<"scale_ = "<<scale_<<std::endl;
+	// END OF DEBUG
 
 	double residuMBT = 0;
 	double residuKLT = 0;
@@ -1927,19 +1939,22 @@ superResolutionTracker::computeVVS(
 		D.diag(w_true);
 		covarianceMatrix = vpMatrix::computeCovarianceMatrix(J_true,v,-lambda*R_true,D);
 	}
+
+	return residu;
 }
 
 // 95% of the codes here are copied from the vpMbEdgeKltTracker class
-void
-superResolutionTracker::getPose(const vpImage<unsigned char>& I, vpPoseFeatures& pf)
+double
+superResolutionTracker::getPose(const vpImage<unsigned char>& I, vpPoseFeatures& pf, float scale_)
 {
+	double res;
 	unsigned int nbInfos;
 	vpColVector w_klt;
 	vpColVector w_mbt;
 
 	vpMbEdgeTracker::trackMovingEdge(I);
 
-	computeVVS(I, pf, w_mbt, w_klt);
+	res = computeVVS(I, pf, w_mbt, w_klt, scale_);
 
 	if(postTracking(I, w_mbt, w_klt))
 	{
@@ -1972,4 +1987,6 @@ superResolutionTracker::getPose(const vpImage<unsigned char>& I, vpPoseFeatures&
 
 		cleanPyramid(Ipyramid);
 	}
+
+	return res;
 }

@@ -162,6 +162,7 @@ class superResolutionTracker: public vpMbEdgeKltTracker
 		 * the angle is in degree (not rad)
 		 */
 		int faceAngle;
+		double res;
 
 
 		vpHomogeneousMatrix p_cMo;
@@ -440,13 +441,14 @@ class superResolutionTracker: public vpMbEdgeKltTracker
 				std::vector<bool>& 			finalStatus, 
 				float 						rate);
 
-		void computeVVS(
+		double computeVVS(
 				const vpImage<unsigned char>& I, 
 				vpPoseFeatures& pf,
 				vpColVector &w_mbt, 
 				vpColVector &w_klt, 
+				float scale_,
 				const unsigned int lvl = 0);
 
-		void getPose(const vpImage<unsigned char>& I, vpPoseFeatures& pf);
+		double getPose(const vpImage<unsigned char>& I, vpPoseFeatures& pf, float scale_);
 	private:
 };
