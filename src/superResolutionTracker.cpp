@@ -19,7 +19,7 @@ superResolutionTracker::superResolutionTracker()
 ,winSize(7)
 ,maxLevel(1)
 ,maxDownScale(16)
-,faceAngle(80)
+,faceAngle(85)
 ,frameCount(0)
 ,minFrameCount(10)
 ,res(0)
@@ -549,13 +549,7 @@ superResolutionTracker::refreshDataset(void)
 					int patchID;
 					if (findConfidence(i, patchID, *itrPatch))
 					{
-						// DEBUG only
-						std::cout<<"start super resolution scale "<<i<<std::endl;
-						// END OF DEBUG
 						superResolution(i, patchID, *itrPatch);
-						// DEBUG only
-						std::cout<<"end super resolution scale "<<i<<std::endl;
-						// END OF DEBUG
 						itrPatch->confidence[i] = true;
 						itrPatch->isChanged[i] = true;
 					}
@@ -666,13 +660,13 @@ superResolutionTracker::findCopyProcessPatch(
 	int highestID = 0;
 	for (std::list<patch>::iterator itr = dataset[faceID].begin(); itr != dataset[faceID].end(); ++itr)
 	{
-		if (itr->highestConfidenceScale >= std::min(patchScale + superScale, numOfPatchScale-1))
+		//if (itr->highestConfidenceScale >= std::min(patchScale + superScale, numOfPatchScale-1))
 			id.push_back(count);
-		if (itr->highestConfidenceScale > highestScale)
-		{
-			highestScale = itr->highestConfidenceScale;
-			highestID = count;
-		}
+		//if (itr->highestConfidenceScale > highestScale)
+		//{
+		//	highestScale = itr->highestConfidenceScale;
+		//	highestID = count;
+		//}
 		++count;
 	}
 
@@ -684,6 +678,10 @@ superResolutionTracker::findCopyProcessPatch(
 			++itr;
 		for (int i = 0; i < numOfPatchesUsed; i++)
 			deepCopyPatch(patchList, *itr);
+		//DEBUG only
+		std::cout<<"without hight patches!"<<std::endl;
+		std::cout<<"id = "<<highestID<<std::endl;
+		// END OF DEBUG
 	}
 	else
 	{
@@ -694,9 +692,12 @@ superResolutionTracker::findCopyProcessPatch(
 		for (int i = 0; i < numOfPatchesUsed; i++)
 		{
 			std::list<patch>::iterator itr = dataset[faceID].begin();
-			for (int j = 0; j < idx[j]; j++)
+			for (int j = 0; j < idx[i]; j++)
 				++itr;
 			deepCopyPatch(patchList, *itr);
+			//DEBUG only
+			std::cout<<"id = "<<idx[i]<<std::endl;
+			// END OF DEBUG
 		}
 	}
 	omp_unset_lock(&dataLock);
@@ -1125,7 +1126,7 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 						cv::calcOpticalFlowPyrLK(cPyramid, pPyramid, cFeatures, bFeatures, bStatus, bErr, cv::Size(winSize, winSize), maxLevel);
 						std::vector<bool> finalStatus(corners.size());
 						float th = 0.5;
-						float rate = 0.7;
+						float rate = 0.5;
 						findStableFeatures(finalStatus, corners, bFeatures, fStatus, bStatus, fErr, th, rate);
 						// DEBUG only
 						//cv::Mat cImg = curImg.clone();
@@ -1182,10 +1183,10 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 						if (corners.empty())
 							continue;
 						// DEBUG only
-						//cv::Mat pImg = pp->orgPatch.clone();
-						//for (size_t j = 0; j < corners.size(); j++)
-						//	cv::circle(pImg, corners[j], 3, cv::Scalar(255, 0, 0));
-						//cv::imshow("orgPatch", pImg);
+						cv::Mat pImg = pp->orgPatch.clone();
+						for (size_t j = 0; j < corners.size(); j++)
+							cv::circle(pImg, corners[j], 3, cv::Scalar(255, 0, 0));
+						cv::imshow("orgPatch", pImg);
 						// END OF DEBUG
 
 						// KLT search them in cur-image
@@ -1195,7 +1196,7 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 						std::vector<uchar> fStatus;
 						cv::buildOpticalFlowPyramid(pp->orgPatch, prePatchPyr, cv::Size(winSize, winSize), maxLevel);
 						cv::calcOpticalFlowPyrLK(prePatchPyr, upScaleCPyramid, corners, cFeatures, fStatus, fErr, cv::Size(winSize, winSize), maxLevel);
-						float rate = 0.7;
+						float rate = 0.5;
 						std::vector<bool> finalStatus(corners.size());
 						findStableFeaturesWithRate(fErr, fStatus, finalStatus, rate);
 						// DEBUG only
@@ -1278,7 +1279,7 @@ bool
 superResolutionTracker::isKeyFrame(void)
 {
 	float th1 = 0.001;
-	float th2 = 0.01;
+	float th2 = 0.007;
 	bool frameDist = true, 
 		 poseDiff  = true, 
 		 matchness = true;
@@ -1725,7 +1726,7 @@ superResolutionTracker::findClosestPatch(
 		float min = 1e5;
 		int minIdx = 0;
 		for (int j = 0; j < len; j++)
-			if (min < diff[j])
+			if (min > diff[j])
 			{
 				min = diff[j];
 				idx[i] = id[j];
