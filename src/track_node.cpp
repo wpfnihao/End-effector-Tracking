@@ -134,7 +134,7 @@ omp_set_nested(1);
 			//n.param<std::string>("endeffector_tracking/init_file", init_file, "config.init");
 			//		
 			//image_transport::ImageTransport it(n);
-			cv::VideoCapture cap("/home/sai/Desktop/cracker.avi"); // open the default video file
+			cv::VideoCapture cap("/home/pengfei/Desktop/cracker.avi"); // open the default video file
 
 
 			int MODE = VIDEO;
@@ -145,39 +145,42 @@ omp_set_nested(1);
 					model_name = "config.cao";
 					init_file = "config.init";
 					// capture frames
-					//if(!cap.isOpened()) // check if we succeeded
-						//return -1;
-
-					for (;;)
-					{
-						// retrieve image from the camera
-						cv::Mat curImg;
-						cap >> curImg; // get a new frame from camera
-						//tracking based on different status
-						if (status == LOST || status == INITIAL)
+					if(cap.isOpened()) // check if we succeeded
+						for (;;)
 						{
-							// init the model from file
-							// only requires when initializing
-							if (status == INITIAL)
+							// retrieve image from the camera
+							cv::Mat curImg;
+							cap >> curImg; // get a new frame from camera
+							if(curImg.empty())
 							{
-								// get some basic info about the video
-								cv::Mat grayImg;
-								cv::cvtColor(curImg, grayImg, CV_BGR2GRAY);
-								rows = grayImg.rows;
-								cols = grayImg.cols;
-
-								//initializeTracker(srcImg);
-								srTracker.initialization(curImg, config_file, model_name, init_file);
+								std::cout<<"The tracking procedure finished successfully!"<<std::endl;
+								break;
 							}
-							//finish the initialization step and start to track
-							status = TRACKING;
-						}	
-						else if (status == TRACKING)
-						{
-							srTracker.retrieveImage(curImg);
-							srTracker.track();
+							//tracking based on different status
+							if (status == LOST || status == INITIAL)
+							{
+								// init the model from file
+								// only requires when initializing
+								if (status == INITIAL)
+								{
+									// get some basic info about the video
+									cv::Mat grayImg;
+									cv::cvtColor(curImg, grayImg, CV_BGR2GRAY);
+									rows = grayImg.rows;
+									cols = grayImg.cols;
+
+									//initializeTracker(srcImg);
+									srTracker.initialization(curImg, config_file, model_name, init_file);
+								}
+								//finish the initialization step and start to track
+								status = TRACKING;
+							}	
+							else if (status == TRACKING)
+							{
+								srTracker.retrieveImage(curImg);
+								srTracker.track();
+							}
 						}
-					}
 					break;
 				//case ROS:
 				//	// subCam is member variable subscribe to the msg published by the camera

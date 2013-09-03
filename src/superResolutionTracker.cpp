@@ -1757,7 +1757,7 @@ superResolutionTracker::findMinCost(float tar, int pos, const cv::Mat& img , int
 }
 
 // virtual inherit the vpMbTracker class, so only one cMo is available here
-// 95% of the codes here are copied from the vpMbEdgeKltTracker class
+// 90% of the codes here are copied from the vpMbEdgeKltTracker class
 double
 superResolutionTracker::computeVVS(
 		unsigned int _nbInfos,
@@ -1768,9 +1768,6 @@ superResolutionTracker::computeVVS(
 		float scale_,
 		const unsigned int lvl)
 {
-	// modified by wpf
-	//thresholdKLT = 2;
-
 	vpColVector factor;
 	unsigned int nbrow = trackFirstLoop(I, factor, lvl);
 
@@ -1852,7 +1849,7 @@ superResolutionTracker::computeVVS(
 		if(nbInfos >= 4)
 		{
 			unsigned int shift = 0;
-			for (unsigned int i = 0; i < vpMbKltTracker::faces.size(); i += 1)
+			for (unsigned int i = 0; i < vpMbKltTracker::faces.size(); i++)
 				if(vpMbKltTracker::faces[i]->isVisible() && vpMbKltTracker::faces[i]->hasEnoughPoints())
 				{
 					vpSubColVector subR(R_klt, shift, 2*vpMbKltTracker::faces[i]->getNbPointsCur());
@@ -1862,9 +1859,11 @@ superResolutionTracker::computeVVS(
 					shift += 2*vpMbKltTracker::faces[i]->getNbPointsCur();
 				}
 			// the points obtained from patches
-			vpSubColVector subR(R_klt, 2*_nbInfos, 2*nbInfos_);
-			vpSubMatrix subJ(J_klt, 2*_nbInfos, 0, 2*nbInfos_, 6);
-			pf.error_and_interaction(cMo, subR, subJ);
+			vpSubColVector subR(R_klt, 2*_nbInfos, 2*nbInfos_), sR;
+			vpSubMatrix subJ(J_klt, 2*_nbInfos, 0, 2*nbInfos_, 6), sJ;
+			pf.error_and_interaction(cMo, sR, sJ);
+			subR = sR;
+			subJ = sJ;
 		}
 
 		if(iter == 0)
@@ -1884,7 +1883,8 @@ superResolutionTracker::computeVVS(
 		}
 
 		/* robust */
-		if(nbrow > 3){
+		if(nbrow > 3)
+		{
 			residuMBT = 0;
 			for(unsigned int i = 0; i < R_mbt.getRows(); i++)
 				residuMBT += fabs(R_mbt[i]);
@@ -1897,7 +1897,8 @@ superResolutionTracker::computeVVS(
 			R->stackMatrices(R_mbt);
 		}
 
-		if(nbInfos > 3){
+		if(nbInfos > 3)
+		{
 			residuKLT = 0;
 			for(unsigned int i = 0; i < R_klt.getRows(); i++)
 				residuKLT += fabs(R_klt[i]);
@@ -1966,7 +1967,7 @@ superResolutionTracker::computeVVS(
 	return residu;
 }
 
-// 95% of the codes here are copied from the vpMbEdgeKltTracker class
+// 90% of the codes of this function are copied from the vpMbEdgeKltTracker class
 double
 superResolutionTracker::getPose(const vpImage<unsigned char>& I, vpPoseFeatures& pf, float scale_)
 {
@@ -1995,7 +1996,7 @@ superResolutionTracker::getPose(const vpImage<unsigned char>& I, vpPoseFeatures&
 
 	vpMbEdgeTracker::trackMovingEdge(I);
 
-	//if(postTracking(I, w_mbt, w_klt))
+	if(postTracking(I, w_mbt, w_klt))
 	{
 
 		initPyramid(I, Ipyramid);
