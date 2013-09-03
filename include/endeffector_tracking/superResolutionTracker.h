@@ -171,6 +171,7 @@ class superResolutionTracker: public vpMbEdgeKltTracker
 
 		dataset_t prePatch;
 
+		// for display only
 		vpDisplayX disp;
 		vpImage<uchar> I;
 
@@ -436,12 +437,15 @@ class superResolutionTracker: public vpMbEdgeKltTracker
 		inline int findMinCost(float tar, int pos, const cv::Mat& img , int rows, int cols, int ws);
 
 		void findStableFeaturesWithRate(
-				const std::vector<float>& 	fErr, 
-				const std::vector<uchar>& 	fStatus, 
-				std::vector<bool>& 			finalStatus, 
-				float 						rate);
+				const std::vector<float>& 	 	fErr, 
+				const std::vector<uchar>& 	 	fStatus, 
+				std::vector<bool>& 			 	finalStatus, 
+				const std::vector<cv::Point2f>& corners,
+				const std::vector<cv::Point2f>& cFeatures,
+				float 						 	rate);
 
 		double computeVVS(
+				unsigned int _nbInfos,
 				const vpImage<unsigned char>& I, 
 				vpPoseFeatures& pf,
 				vpColVector &w_mbt, 
@@ -450,5 +454,7 @@ class superResolutionTracker: public vpMbEdgeKltTracker
 				const unsigned int lvl = 0);
 
 		double getPose(const vpImage<unsigned char>& I, vpPoseFeatures& pf, float scale_);
+
+		inline double pointDistance2D(const cv::Point& p1, const cv::Point& p2);
 	private:
 };

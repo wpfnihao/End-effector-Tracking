@@ -14,12 +14,12 @@ superResolutionTracker::superResolutionTracker()
 :numOfPatchScale(10)
 ,buffSize(20)
 ,numOfPatches(10)
-,numOfPatchesUsed(3)
+,numOfPatchesUsed(2)
 ,superScale(1)
 ,winSize(7)
 ,maxLevel(1)
 ,maxDownScale(16)
-,faceAngle(85)
+,faceAngle(80)
 ,frameCount(0)
 ,minFrameCount(10)
 ,res(0)
@@ -36,7 +36,7 @@ superResolutionTracker::track(void)
 {
 	int len = vpMbEdgeTracker::faces.getPolygon().size();
 	float rate = getRate(maxDownScale, numOfPatchScale);
-	vpImageConvert::convert(curImg,I);
+	vpImageConvert::convert(curImg, I);
 
 	// maintain the visibility test
 	int i = 0;
@@ -678,10 +678,6 @@ superResolutionTracker::findCopyProcessPatch(
 			++itr;
 		for (int i = 0; i < numOfPatchesUsed; i++)
 			deepCopyPatch(patchList, *itr);
-		//DEBUG only
-		std::cout<<"without hight patches!"<<std::endl;
-		std::cout<<"id = "<<highestID<<std::endl;
-		// END OF DEBUG
 	}
 	else
 	{
@@ -695,9 +691,6 @@ superResolutionTracker::findCopyProcessPatch(
 			for (int j = 0; j < idx[i]; j++)
 				++itr;
 			deepCopyPatch(patchList, *itr);
-			//DEBUG only
-			std::cout<<"id = "<<idx[i]<<std::endl;
-			// END OF DEBUG
 		}
 	}
 	omp_unset_lock(&dataLock);
@@ -1062,14 +1055,15 @@ superResolutionTracker::meanPoint(const std::vector<cv::Point>& p)
 void 
 superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_t& dataPatches)
 {
+	//vpMbEdgeKltTracker::track(I);
 	vpPoseFeatures featuresComputePose;
 	// build the image pyramid for tracking
 	std::vector<cv::Mat> cPyramid;
 	std::vector<cv::Mat> upScaleCPyramid;
 	std::vector<cv::Mat> pPyramid;
-	cv::buildOpticalFlowPyramid(curImg, cPyramid, cv::Size(winSize, winSize), maxLevel);
+	cv::buildOpticalFlowPyramid(curImg, cPyramid, cv::Size(21, 21), 3);
 	cv::buildOpticalFlowPyramid(img, upScaleCPyramid, cv::Size(winSize, winSize), maxLevel);
-	cv::buildOpticalFlowPyramid(preImg, pPyramid, cv::Size(winSize, winSize), maxLevel);
+	cv::buildOpticalFlowPyramid(preImg, pPyramid, cv::Size(21, 21), 3);
 
 	vpMatrix invP = cMo.inverseByLU();
 
@@ -1122,11 +1116,11 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 						std::vector<float> fErr, bErr;
 						std::vector<uchar> fStatus, bStatus;
 						// forward-backward track
-						cv::calcOpticalFlowPyrLK(pPyramid, cPyramid, corners, cFeatures, fStatus, fErr, cv::Size(winSize, winSize), maxLevel);
-						cv::calcOpticalFlowPyrLK(cPyramid, pPyramid, cFeatures, bFeatures, bStatus, bErr, cv::Size(winSize, winSize), maxLevel);
+						cv::calcOpticalFlowPyrLK(pPyramid, cPyramid, corners, cFeatures, fStatus, fErr, cv::Size(21, 21), 3, cv::TermCriteria(cv::TermCriteria::COUNT+cv::TermCriteria::EPS, 20, 0.03));
+						cv::calcOpticalFlowPyrLK(cPyramid, pPyramid, cFeatures, bFeatures, bStatus, bErr, cv::Size(21, 21), 3, cv::TermCriteria(cv::TermCriteria::COUNT+cv::TermCriteria::EPS, 20, 0.03));
 						std::vector<bool> finalStatus(corners.size());
 						float th = 0.5;
-						float rate = 0.5;
+						float rate = 0.2;
 						findStableFeatures(finalStatus, corners, bFeatures, fStatus, bStatus, fErr, th, rate);
 						// DEBUG only
 						//cv::Mat cImg = curImg.clone();
@@ -1195,17 +1189,17 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 						std::vector<float> fErr;
 						std::vector<uchar> fStatus;
 						cv::buildOpticalFlowPyramid(pp->orgPatch, prePatchPyr, cv::Size(winSize, winSize), maxLevel);
-						cv::calcOpticalFlowPyrLK(prePatchPyr, upScaleCPyramid, corners, cFeatures, fStatus, fErr, cv::Size(winSize, winSize), maxLevel);
-						float rate = 0.5;
+						cv::calcOpticalFlowPyrLK(prePatchPyr, upScaleCPyramid, corners, cFeatures, fStatus, fErr, cv::Size(winSize, winSize), maxLevel, cv::TermCriteria(cv::TermCriteria::COUNT+cv::TermCriteria::EPS, 20, 0.05));
+						float rate = 0.7;
 						std::vector<bool> finalStatus(corners.size());
-						findStableFeaturesWithRate(fErr, fStatus, finalStatus, rate);
+						findStableFeaturesWithRate(fErr, fStatus, finalStatus, corners, cFeatures, rate);
 						// DEBUG only
-						//cv::Mat cImg = img.clone();
-						//for (size_t j = 0; j < cFeatures.size(); j++)
-						//	if (finalStatus[j]) // only the tracked features are used
-						//		cv::circle(cImg, cFeatures[j], 3, cv::Scalar(255, 0, 0));
-						//cv::imshow("patch features", cImg);
-						//cv::waitKey(30);
+						cv::Mat cImg = img.clone();
+						for (size_t j = 0; j < cFeatures.size(); j++)
+							if (finalStatus[j]) // only the tracked features are used
+								cv::circle(cImg, cFeatures[j], 3, cv::Scalar(255, 0, 0));
+						cv::imshow("patch features", cImg);
+						cv::waitKey(30);
 						// END OF DEBUG
 
 						// find the 3d point: based on the tracked features and the 3d point calculated based on the pre-features
@@ -1627,9 +1621,7 @@ superResolutionTracker::findStableFeatures(
 	{
 		if (fStatus[i] && bStatus[i])
 		{
-			float dx = corners[i].x - bFeatures[i].x;
-			float dy = corners[i].y - bFeatures[i].y;
-			float dist = std::sqrt(dx * dx + dy * dy);
+			double dist = pointDistance2D(corners[i], bFeatures[i]);;
 			if (dist < th)
 				finalStatus[i] = true;
 			else
@@ -1666,13 +1658,29 @@ superResolutionTracker::findStableFeatures(
 
 void
 superResolutionTracker::findStableFeaturesWithRate(
-		const std::vector<float>& 	fErr, 
-		const std::vector<uchar>& 	fStatus, 
-		std::vector<bool>& 			finalStatus, 
-		float 						rate)
+		const std::vector<float>& 	 	fErr, 
+		const std::vector<uchar>& 	 	fStatus, 
+		std::vector<bool>& 			 	finalStatus, 
+		const std::vector<cv::Point2f>& corners,
+		const std::vector<cv::Point2f>& cFeatures,
+		float 						 	rate)
 {
 	int len = fErr.size();
 	std::vector<std::pair<float, int> > pErr(len);
+
+	double dist = 0;
+	double maxRate = 3;
+	std::vector<double> pd;
+	for (int i = 0; i < len; i++)
+		if (fStatus[i] == 1)
+			pd.push_back(pointDistance2D(corners[i], cFeatures[i]));
+	size_t n = pd.size() / 2;
+	std::nth_element(pd.begin(), pd.begin()+n, pd.end());
+	double maxD = pd[n] * maxRate;
+	// DEBUG only
+	std::cout<<"maxD = "<<maxD<<std::endl;
+	// END OF DEBUG
+
 
 #pragma omp parallel for num_threads(2)
 	for (int i = 0; i < len; i++)
@@ -1685,14 +1693,11 @@ superResolutionTracker::findStableFeaturesWithRate(
 
 	for (int i = 0, count = 0; i < len; i++)
 	{
-		if (count < rate * len)
-			if (fStatus[pErr[i].second] == 1)
-			{
-				++count;
-				finalStatus[pErr[i].second] = true;
-			}
-			else
-				finalStatus[pErr[i].second] = false;
+		if ((count < rate * len) && (fStatus[pErr[i].second] == 1))// && (pointDistance2D(corners[pErr[i].second], cFeatures[pErr[i].second]) < maxD))
+		{
+			++count;
+			finalStatus[pErr[i].second] = true;
+		}
 		else
 			finalStatus[pErr[i].second] = false;
 	}
@@ -1755,6 +1760,7 @@ superResolutionTracker::findMinCost(float tar, int pos, const cv::Mat& img , int
 // 95% of the codes here are copied from the vpMbEdgeKltTracker class
 double
 superResolutionTracker::computeVVS(
+		unsigned int _nbInfos,
 		const vpImage<unsigned char>& I, 
 		vpPoseFeatures& pf,
 		vpColVector &w_mbt, 
@@ -1772,7 +1778,8 @@ superResolutionTracker::computeVVS(
 	vpMatrix J_mbt, J_klt; // interaction matrix
 	vpColVector R_mbt, R_klt; // residu
 	pf.error_and_interaction(cMo, R_klt, J_klt);
-	int nbInfos = R_klt.size() / 2;
+	int nbInfos_ = R_klt.size() / 2;
+	int nbInfos  = nbInfos_ + _nbInfos;
 
 	if(nbrow < 4 && nbInfos < 4)
 	{
@@ -1843,7 +1850,22 @@ superResolutionTracker::computeVVS(
 			trackSecondLoop(I,J_mbt,R_mbt,cMo,lvl);
 
 		if(nbInfos >= 4)
-			pf.error_and_interaction(cMo, R_klt, J_klt);
+		{
+			unsigned int shift = 0;
+			for (unsigned int i = 0; i < vpMbKltTracker::faces.size(); i += 1)
+				if(vpMbKltTracker::faces[i]->isVisible() && vpMbKltTracker::faces[i]->hasEnoughPoints())
+				{
+					vpSubColVector subR(R_klt, shift, 2*vpMbKltTracker::faces[i]->getNbPointsCur());
+					vpSubMatrix subJ(J_klt, shift, 0, 2*vpMbKltTracker::faces[i]->getNbPointsCur(), 6);
+					vpMbKltTracker::faces[i]->computeHomography(ctTc0, H);
+					vpMbKltTracker::faces[i]->computeInteractionMatrixAndResidu(subR, subJ);
+					shift += 2*vpMbKltTracker::faces[i]->getNbPointsCur();
+				}
+			// the points obtained from patches
+			vpSubColVector subR(R_klt, 2*_nbInfos, 2*nbInfos_);
+			vpSubMatrix subJ(J_klt, 2*_nbInfos, 0, 2*nbInfos_, 6);
+			pf.error_and_interaction(cMo, subR, subJ);
+		}
 
 		if(iter == 0)
 		{
@@ -1953,11 +1975,27 @@ superResolutionTracker::getPose(const vpImage<unsigned char>& I, vpPoseFeatures&
 	vpColVector w_klt;
 	vpColVector w_mbt;
 
+	//
+	// compute pose
+	//pf.setLambda(0.6);
+	//p_cMo = cMo;
+	//try
+	//{
+	//	pf.computePose(cMo, vpPoseFeatures::ROBUST_VIRTUAL_VS);
+	//}
+	//catch(...) // catch all kinds of Exceptions
+	//{
+	//	std::cout<<"Exception raised in computePose"<<std::endl;
+	//}
+
+	unsigned int nbFaceUsed;
+	vpMbKltTracker::preTracking(I, nbInfos, nbFaceUsed);
+
+	res = computeVVS(nbInfos, I, pf, w_mbt, w_klt, scale_);
+
 	vpMbEdgeTracker::trackMovingEdge(I);
 
-	res = computeVVS(I, pf, w_mbt, w_klt, scale_);
-
-	if(postTracking(I, w_mbt, w_klt))
+	//if(postTracking(I, w_mbt, w_klt))
 	{
 
 		initPyramid(I, Ipyramid);
@@ -1990,4 +2028,12 @@ superResolutionTracker::getPose(const vpImage<unsigned char>& I, vpPoseFeatures&
 	}
 
 	return res;
+}
+
+inline double
+superResolutionTracker::pointDistance2D(const cv::Point& p1, const cv::Point& p2)
+{
+	double dx = p1.x - p2.x;
+	double dy = p1.y - p2.y;
+	return std::sqrt(dx * dx + dy * dy);
 }
