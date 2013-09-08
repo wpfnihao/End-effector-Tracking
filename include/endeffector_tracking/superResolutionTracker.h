@@ -113,6 +113,7 @@ class superResolutionTracker: public vpMbEdgeKltTracker
 			++frameCount;
 			preImg = curImg.clone();
 			cv::cvtColor(src, curImg, CV_RGB2GRAY);	
+			colorImg = src.clone();
 		}
 
 
@@ -129,6 +130,7 @@ class superResolutionTracker: public vpMbEdgeKltTracker
 		dataset_t dataset;
 
 		cv::Mat curImg, preImg;
+		cv::Mat colorImg;
 
 		/**
 		 * @brief the size and the pose under which can obtain the size of faces is saved in this structure
@@ -157,6 +159,7 @@ class superResolutionTracker: public vpMbEdgeKltTracker
 		int maxLevel;
 		int minFrameCount;
 		int frameCount;
+		int frame_num;
 		/**
 		 * @brief the angle define the which face can be identified as visible
 		 * the angle is in degree (not rad)
@@ -453,8 +456,10 @@ class superResolutionTracker: public vpMbEdgeKltTracker
 				float scale_,
 				const unsigned int lvl = 0);
 
-		double getPose(const vpImage<unsigned char>& I, vpPoseFeatures& pf, float scale_);
+		double getPose(const vpImage<unsigned char>& I, float scale_, cv::Mat& img, dataset_t& prePatch, dataset_t& dataPatches);
 
 		inline double pointDistance2D(const cv::Point& p1, const cv::Point& p2);
+
+		void trackPatch(vpPoseFeatures& featuresComputePose, cv::Mat& img, dataset_t& prePatch, dataset_t& dataPatches);
 	private:
 };

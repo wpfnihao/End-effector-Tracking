@@ -16,6 +16,9 @@
 // user defined
 #include "endeffector_tracking/track_ros.h"
 
+// file io
+#include <fstream>
+
 #define VIDEO 0
 #define ROS   1
 
@@ -134,10 +137,11 @@ omp_set_nested(1);
 			//n.param<std::string>("endeffector_tracking/init_file", init_file, "config.init");
 			//		
 			//image_transport::ImageTransport it(n);
-			cv::VideoCapture cap("/home/pengfei/Desktop/cracker.avi"); // open the default video file
+			cv::VideoCapture cap("/home/sai/Desktop/stick2.avi"); // open the default video file
 
 
 			int MODE = VIDEO;
+			std::ofstream f1("pose_tracked.log");
 			switch (MODE)
 			{
 				case VIDEO:
@@ -145,6 +149,7 @@ omp_set_nested(1);
 					model_name = "config.cao";
 					init_file = "config.init";
 					// capture frames
+							
 					if(cap.isOpened()) // check if we succeeded
 						for (;;)
 						{
@@ -171,6 +176,7 @@ omp_set_nested(1);
 
 									//initializeTracker(srcImg);
 									srTracker.initialization(curImg, config_file, model_name, init_file);
+									srTracker.vpMbTracker::getPose(cMo);
 								}
 								//finish the initialization step and start to track
 								status = TRACKING;
@@ -179,7 +185,13 @@ omp_set_nested(1);
 							{
 								srTracker.retrieveImage(curImg);
 								srTracker.track();
+								srTracker.vpMbTracker::getPose(cMo);
 							}
+
+							// save the pose into the file
+							poseVector.buildFrom(cMo);
+
+							f1<<poseVector[0]<<" "<<poseVector[1]<<" "<<poseVector[2]<<" "<<poseVector[3]<<" "<<poseVector[4]<<" "<<poseVector[5]<<" "<<std::endl;
 						}
 					break;
 				//case ROS:
@@ -195,6 +207,7 @@ omp_set_nested(1);
 				default:
 					break;
 			}
+			f1.close();
 		}
 
 #pragma omp section
