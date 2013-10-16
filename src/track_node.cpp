@@ -137,7 +137,12 @@ omp_set_nested(1);
 			//n.param<std::string>("endeffector_tracking/init_file", init_file, "config.init");
 			//		
 			//image_transport::ImageTransport it(n);
-			cv::VideoCapture cap("/home/sai/Desktop/stick2.avi"); // open the default video file
+			//cv::VideoCapture cap(0); // open the default video file
+			cv::VideoCapture cap("/home/sai/Desktop/6.avi"); // open the default video file
+			cv::Mat tmp;
+			for (int i = 0; i < 174; i++)
+				cap >> tmp;
+
 
 
 			int MODE = VIDEO;
