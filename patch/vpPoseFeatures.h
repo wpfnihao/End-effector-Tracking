@@ -571,6 +571,7 @@ public:
   void setVerbose(const bool &mode){ verbose = mode; }
  
   
+  // here is modified by wpf
 public:
   void error_and_interaction(vpHomogeneousMatrix & cMo, vpColVector &err, vpMatrix &L);
  private: 
