@@ -121,7 +121,6 @@ class superResolutionTracker: public vpMbEdgeKltTracker
 	protected:
 		omp_lock_t buffLock;
 		omp_lock_t dataLock;
-		omp_lock_t featureLock;
 
 		/**
 		 * @brief dataset here is the structure saving all the patches.

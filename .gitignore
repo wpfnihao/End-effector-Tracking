@@ -35,3 +35,10 @@ tags
 
 #tmp
 *.pos
+
+#saved frames
+*.jpg
+*.jpeg
+frames/*
+6_frames/*
+7_frames/*
