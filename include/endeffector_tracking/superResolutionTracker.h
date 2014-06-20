@@ -314,10 +314,9 @@ class superResolutionTracker: public vpMbEdgeKltTracker
 			/**
 			 * @brief change a pixel from one frame to another with the Z-buff
 			 */
-		void projPoint(
+		inline void projPoint(
 					const vpMatrix& invK, 
-					const vpMatrix& invP, 
-					const vpHomogeneousMatrix& P, 
+					const vpMatrix& PinvP, 
 					const vpMatrix& K, 
 					float 			depth, 
 					float 			ix, 
@@ -325,6 +324,22 @@ class superResolutionTracker: public vpMbEdgeKltTracker
 					int& 			xc, 
 					int& 			yc, 
 					float& 			Z);
+
+		// old api
+//			/**
+//			 * @brief change a pixel from one frame to another with the Z-buff
+//			 */
+//		inline void projPoint(
+//					const vpMatrix& invK, 
+//					const vpMatrix& invP, 
+//					const vpHomogeneousMatrix& P, 
+//					const vpMatrix& K, 
+//					float 			depth, 
+//					float 			ix, 
+//					float 			iy, 
+//					int& 			xc, 
+//					int& 			yc, 
+//					float& 			Z);
 
 		/**
 		 * @brief obtain a face patch based on the current image and pose

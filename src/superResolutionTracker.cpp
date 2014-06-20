@@ -340,7 +340,8 @@ superResolutionTracker::genOrgScalePatch(patch& patchData)
 	vpMatrix K = cam.get_K();
 	vpMatrix invK = si.Ks[patchData.patchScale].inverseByLU();
 	vpMatrix invP = si.cMo.inverseByLU();
-	vpHomogeneousMatrix P = patchData.pose;
+	vpMatrix P = patchData.pose;
+	vpMatrix PinvP = P * invP;
 	int shiftX = patchData.patchRect.x;
 	int shiftY = patchData.patchRect.y;
 
@@ -355,7 +356,7 @@ superResolutionTracker::genOrgScalePatch(patch& patchData)
 		{
 			int xc, yc;
 			float Z;
-			projPoint(invK, invP, P, K, depth, j, i, xc, yc, Z);
+			projPoint(invK, PinvP, K, depth, j, i, xc, yc, Z);
 			xc -= shiftX;
 			yc -= shiftY;
 			xc = std::min(xc, patchData.orgPatch.cols-1);
@@ -465,7 +466,8 @@ superResolutionTracker::superResolution(int scaleID, int patchID, patch& patchDa
 	vpMatrix K = si.Ks[patchData.patchScale];
 	vpMatrix invK = si.Ks[scaleID].inverseByLU();
 	vpMatrix invP = si.cMo.inverseByLU();
-	vpHomogeneousMatrix P = si.cMo;
+	vpMatrix P = si.cMo;
+	vpMatrix PinvP = P * invP;
 	float depth = si.depth;
 	const uchar* hp = (const uchar*) (highPatch.data);
 	int* xp = (int*) (xCoor.data);
@@ -476,7 +478,7 @@ superResolutionTracker::superResolution(int scaleID, int patchID, patch& patchDa
 			// project
 			int xc, yc;
 			float Z;
-			projPoint(invK, invP, P, K, depth, j, i, xc, yc, Z);
+			projPoint(invK, PinvP, K, depth, j, i, xc, yc, Z);
 			xc = std::min(xc, lowSize.width-1);
 			yc = std::min(yc, lowSize.height-1);
 			xc = std::max(xc, 0);
@@ -742,6 +744,8 @@ superResolutionTracker::projPatch(vpHomogeneousMatrix pose, int id, std::list<pa
 		vpMatrix invK = faceScaleInfo[id].Ks[hs].inverseByLU();
 		vpMatrix invP = faceScaleInfo[id].cMo.inverseByLU();
 		vpHomogeneousMatrix P = itr->pose;
+		vpMatrix PP= itr->pose;
+		vpMatrix PinvP = PP * invP;
 		vpMatrix K = virtualCam;
 		float dp = faceScaleInfo[id].depth;
 
@@ -776,7 +780,7 @@ superResolutionTracker::projPatch(vpHomogeneousMatrix pose, int id, std::list<pa
 			// project the corners 
 			int xc, yc;
 			float Z;
-			projPoint(invK, invP, P, K, dp, x, y, xc, yc, Z);
+			projPoint(invK, PinvP, K, dp, x, y, xc, yc, Z);
 			corners.push_back(cv::Point(xc, yc));
 		}
 		// fill the mask
@@ -795,6 +799,8 @@ superResolutionTracker::projPatch(vpHomogeneousMatrix pose, int id, std::list<pa
 		invK = invVirtualCam;
 		invP = (itr->pose).inverseByLU();
 		P = faceScaleInfo[id].cMo;
+		PP = faceScaleInfo[id].cMo;
+		PinvP = PP * invP;
 		K = faceScaleInfo[id].Ks[hs];
 		uchar* pm = (uchar*) (mask.data);
 		float* pd = (float*) (depth.data);
@@ -823,7 +829,7 @@ superResolutionTracker::projPatch(vpHomogeneousMatrix pose, int id, std::list<pa
 					*(pd + offset) = calcDepth(A, b, coefficient, invP, invK, cv::Point(j, i));
 					int xc, yc;
 					float Z;
-					projPoint(invK, invP, P, K, *(pd + offset), j, i, xc, yc, Z);
+					projPoint(invK, PinvP, K, *(pd + offset), j, i, xc, yc, Z);
 					xc = std::min(xc, oPatch.cols-1);
 					yc = std::min(yc, oPatch.rows-1);
 					xc = std::max(xc, 0);
@@ -968,8 +974,38 @@ superResolutionTracker::getVirtualCam(void)
 	return K;
 }
 
-//TODO: improve the performance here
-	inline void
+// old version backup, new version can be found in the next function
+//
+//inline void
+//superResolutionTracker::backProj(
+//		const vpMatrix& invK, 
+//		const vpMatrix& invP, 
+//		float 			depth, 
+//		float 			ix, 
+//		float 			iy, 
+//		vpPoint&        p)
+//{
+//	// 2d coordinate in org frame
+//	vpMatrix x(3, 1);
+//	x[0][0] = ix;
+//	x[1][0] = iy;
+//	x[2][0] = 1;
+//
+//	// 3d coordinate without homo
+//	x = depth * invK * x;
+//	// 3d coordinate homo
+//	vpMatrix X(4, 1);
+//	X[0][0] = x[0][0];
+//	X[1][0] = x[1][0];
+//	X[2][0] = x[2][0];
+//	X[3][0] = 1;
+//	X = invP * X;
+//
+//	// 3d homo coordinatein the org frame
+//	p.setWorldCoordinates(X[0][0], X[1][0], X[2][0]);
+//}
+
+inline void
 superResolutionTracker::backProj(
 		const vpMatrix& invK, 
 		const vpMatrix& invP, 
@@ -980,30 +1016,58 @@ superResolutionTracker::backProj(
 {
 	// 2d coordinate in org frame
 	vpMatrix x(3, 1);
-	x[0][0] = ix;
-	x[1][0] = iy;
-	x[2][0] = 1;
-
 	// 3d coordinate without homo
-	x = depth * invK * x;
+	x[0][0] = depth * (ix * invK[0][0] + iy * invK[0][1] + invK[0][2]);
+	x[1][0] = depth * (ix * invK[1][0] + iy * invK[1][1] + invK[1][2]);
+	x[2][0] = depth * (ix * invK[2][0] + iy * invK[2][1] + invK[2][2]);
+
 	// 3d coordinate homo
 	vpMatrix X(4, 1);
-	X[0][0] = x[0][0];
-	X[1][0] = x[1][0];
-	X[2][0] = x[2][0];
-	X[3][0] = 1;
-	X = invP * X;
+	X[0][0] = x[0][0] * invP[0][0] + x[1][0] * invP[0][1] + x[2][0] * invP[0][2] + invP[0][3];
+	X[1][0] = x[0][0] * invP[1][0] + x[1][0] * invP[1][1] + x[2][0] * invP[1][2] + invP[1][3];
+	X[2][0] = x[0][0] * invP[2][0] + x[1][0] * invP[2][1] + x[2][0] * invP[2][2] + invP[2][3];
 
 	// 3d homo coordinatein the org frame
 	p.setWorldCoordinates(X[0][0], X[1][0], X[2][0]);
 }
 
-// TODO: improve the performance here
-void
+// old version backup, new version can be found in the next function
+//
+//inline void
+//superResolutionTracker::projPoint(
+//		const vpMatrix& invK, 
+//		const vpMatrix& invP, 
+//		const vpHomogeneousMatrix& P, 
+//		const vpMatrix& K, 
+//		float 			depth, 
+//		float 			ix, 
+//		float 			iy, 
+//		int& 			xc, 
+//		int& 			yc, 
+//		float& 			Z)
+//{
+//	vpPoint p;
+//	backProj(invK, invP, depth, ix, iy, p);
+//	// 3d homo coordinate in the target frame
+//	p.changeFrame(P);
+//	// 3d coordinate in the target frame
+//	vpMatrix X(3, 1); 
+//	X[0][0] = p.get_X();
+//	X[1][0] = p.get_Y();
+//	X[2][0] = p.get_Z();
+//	// 2d coordinate in the target frame
+//	X = K * X;
+//	xc = X[0][0] / X[2][0];
+//	yc = X[1][0] / X[2][0];
+//
+//	// final depth required
+//	Z = p.get_Z();
+//}
+
+inline void
 superResolutionTracker::projPoint(
 		const vpMatrix& invK, 
-		const vpMatrix& invP, 
-		const vpHomogeneousMatrix& P, 
+		const vpMatrix& PinvP, 
 		const vpMatrix& K, 
 		float 			depth, 
 		float 			ix, 
@@ -1012,22 +1076,27 @@ superResolutionTracker::projPoint(
 		int& 			yc, 
 		float& 			Z)
 {
-	vpPoint p;
-	backProj(invK, invP, depth, ix, iy, p);
-	// 3d homo coordinate in the target frame
-	p.changeFrame(P);
-	// 3d coordinate in the target frame
-	vpMatrix X(3, 1); 
-	X[0][0] = p.get_X();
-	X[1][0] = p.get_Y();
-	X[2][0] = p.get_Z();
+	// 2d coordinate in org frame
+	vpMatrix x(3, 1);
+	// 3d coordinate without homo
+	x[0][0] = depth * (ix * invK[0][0] + iy * invK[0][1] + invK[0][2]);
+	x[1][0] = depth * (ix * invK[1][0] + iy * invK[1][1] + invK[1][2]);
+	x[2][0] = depth * (ix * invK[2][0] + iy * invK[2][1] + invK[2][2]);
+
+	// 3d coordinate homo
+	vpMatrix X(3, 1);
+	X[0][0] = x[0][0] * PinvP[0][0] + x[1][0] * PinvP[0][1] + x[2][0] * PinvP[0][2] + PinvP[0][3];
+	X[1][0] = x[0][0] * PinvP[1][0] + x[1][0] * PinvP[1][1] + x[2][0] * PinvP[1][2] + PinvP[1][3];
+	X[2][0] = x[0][0] * PinvP[2][0] + x[1][0] * PinvP[2][1] + x[2][0] * PinvP[2][2] + PinvP[2][3];
+
 	// 2d coordinate in the target frame
 	X = K * X;
-	xc = X[0][0] / X[2][0];
-	yc = X[1][0] / X[2][0];
+	float tmp = 1 / X[2][0];
+	xc = X[0][0] * tmp;
+	yc = X[1][0] * tmp;
 
 	// final depth required
-	Z = p.get_Z();
+	Z = X[2][0];
 }
 
 // note this function is obsoleted
