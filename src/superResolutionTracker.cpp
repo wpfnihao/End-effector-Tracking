@@ -31,9 +31,7 @@
 	omp_init_lock(&dataLock);
 }
 
-// TODO: check the lock, by search dataset
-// TODO: check any pointer like data in the patches shared unconsciously
-	void
+void
 superResolutionTracker::track(void)
 {
 	int len = vpMbEdgeTracker::faces.getPolygon().size();
@@ -156,7 +154,7 @@ superResolutionTracker::track(void)
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
-	void
+void
 superResolutionTracker::updateDataBase(void)
 {
 	bool isNewData = false;
@@ -185,12 +183,12 @@ superResolutionTracker::updateDataBase(void)
 	}
 }
 
-	void 
+void 
 superResolutionTracker::initDataset(void)
 {
 }
 
-	void 
+void 
 superResolutionTracker::pushDataIntoBuff(patch& patchData)
 {
 	omp_set_lock(&buffLock);
@@ -201,7 +199,7 @@ superResolutionTracker::pushDataIntoBuff(patch& patchData)
 	omp_unset_lock(&buffLock);
 }
 
-	bool 
+bool 
 superResolutionTracker::getDataFromBuff(patch& patchData)
 {
 	bool isNewData;
@@ -219,7 +217,7 @@ superResolutionTracker::getDataFromBuff(patch& patchData)
 	return isNewData;
 }
 
-	void 
+void 
 superResolutionTracker::updataDataset(patch& patchData)
 {
 	omp_set_lock(&dataLock);
@@ -1132,7 +1130,7 @@ return dp;
 }
 */
 
-	inline cv::Point
+inline cv::Point
 superResolutionTracker::meanPoint(const std::vector<cv::Point>& p)
 {
 	cv::Point cvp;
@@ -1146,7 +1144,7 @@ superResolutionTracker::meanPoint(const std::vector<cv::Point>& p)
 	return cvp;
 }
 
-	void 
+void 
 superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_t& dataPatches)
 {
 
@@ -1593,7 +1591,7 @@ superResolutionTracker::findStableFeaturesWithRate(
 	std::vector<std::pair<float, int> > pErr(len);
 
 	double dist = 0;
-	double maxRate = 3;
+	double maxRate = 3; // the actual rate is sqrt(3), since we don't take the square root while calculating the distance
 	std::vector<double> pd;
 	for (int i = 0; i < len; i++)
 		if (fStatus[i] == 1)
@@ -1962,12 +1960,22 @@ superResolutionTracker::getPose(const vpImage<unsigned char>& I, float scale_, c
 	return res;
 }
 
+
+/**
+ * @brief for efficiency, no square root is computed here
+ *
+ * @param p1
+ * @param p2
+ *
+ * @return 
+ */
 inline double
 superResolutionTracker::pointDistance2D(const cv::Point& p1, const cv::Point& p2)
 {
 	double dx = p1.x - p2.x;
 	double dy = p1.y - p2.y;
-	return std::sqrt(dx * dx + dy * dy);
+	//return std::sqrt(dx * dx + dy * dy);
+	return (dx * dx + dy * dy);
 }
 
 
@@ -2000,7 +2008,8 @@ superResolutionTracker::trackPatch(vpPoseFeatures& featuresComputePose, cv::Mat&
 
 	vpMatrix invP = cMo.inverseByLU();
 
-	cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(15,15), cv::Point(7, 7)); // erode the mask so the feature points detected will not be at the border
+	// erode the mask so the feature points detected will not be at the border
+	cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(15,15), cv::Point(7, 7)); 
 
 	// for better parallel
 	std::vector<vpPoint> pSetsOne;
@@ -2055,7 +2064,7 @@ superResolutionTracker::trackPatch(vpPoseFeatures& featuresComputePose, cv::Mat&
 						cv::calcOpticalFlowPyrLK(pPyramid, cPyramid, corners, cFeatures, fStatus, fErr, cv::Size(21, 21), 3, cv::TermCriteria(cv::TermCriteria::COUNT+cv::TermCriteria::EPS, 20, 0.03));
 						cv::calcOpticalFlowPyrLK(cPyramid, pPyramid, cFeatures, bFeatures, bStatus, bErr, cv::Size(21, 21), 3, cv::TermCriteria(cv::TermCriteria::COUNT+cv::TermCriteria::EPS, 20, 0.03));
 						std::vector<bool> finalStatus(corners.size());
-						float th = 0.5;
+						float th = 0.5 * 0.5; // the threshold of distance is 0.5
 						float rate = 0.2;
 						findStableFeatures(finalStatus, corners, bFeatures, fStatus, bStatus, fErr, th, rate);
 						// DEBUG only
