@@ -12,20 +12,20 @@
 #include <visp/vpImageIo.h>
 #include <sstream>
 
-	superResolutionTracker::superResolutionTracker()
-	:numOfPatchScale(10)
-	,buffSize(20)
-	,numOfPatches(10)
-	,numOfPatchesUsed(2)
-	,superScale(1)
-	,winSize(7)
-	,maxLevel(1)
-	,maxDownScale(16)
-	,faceAngle(70)
-	,frameCount(0)
-	,minFrameCount(10)
-	,res(0)
-	 ,frame_num(0)
+superResolutionTracker::superResolutionTracker()
+:numOfPatchScale(10)
+,buffSize(20)
+,numOfPatches(10)
+,numOfPatchesUsed(2)
+,superScale(1)
+,winSize(7)
+,maxLevel(1)
+,maxDownScale(16)
+,faceAngle(70)
+,frameCount(0)
+,minFrameCount(10)
+,res(0)
+,frame_num(0)
 {
 	omp_init_lock(&buffLock);
 	omp_init_lock(&dataLock);
@@ -68,7 +68,7 @@ superResolutionTracker::track(void)
 	//vpPoseVector pose;
 	//pose.buildFrom(cMo);
 	//std::cout<<pose<<std::endl;
-	// TODO: this function runs rather slow
+	// FIXME: this function runs rather slow
 	optimizePose(upScaleImg, prePatch, dataPatches);
 	//vpMbEdgeTracker::track(I);
 
@@ -80,6 +80,7 @@ superResolutionTracker::track(void)
 		++i;
 	}
 
+	// TODO: performance tuning: it seems that there's no need to project the current frame if it is not the key frame
 	// save the patch for next frame tracking
 #pragma omp parallel for num_threads(4) schedule(dynamic, 1)
 	for (int i = 0; i < len; i++)
@@ -851,7 +852,7 @@ superResolutionTracker::projPatch(vpHomogeneousMatrix pose, int id, std::list<pa
 	}
 }
 
-	void
+void
 superResolutionTracker::deepCopyPatch(std::list<patch>& dataPatches, patch& src)
 {
 	patch p;
@@ -865,7 +866,7 @@ superResolutionTracker::deepCopyPatch(std::list<patch>& dataPatches, patch& src)
 }
 
 // FIXME: note that the codes here assume that the faces are rectangles
-	void
+void
 superResolutionTracker::obtainPatch(int faceID, patch& p)
 {
 	// note: the patchRect should be handled here
@@ -960,7 +961,7 @@ superResolutionTracker::obtainPatch(int faceID, patch& p)
 	findPatchScale(p);
 }
 
-	vpMatrix 
+vpMatrix 
 superResolutionTracker::getVirtualCam(void)
 {
 	float rate = getRate(maxDownScale, numOfPatchScale);
@@ -1177,7 +1178,7 @@ superResolutionTracker::optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_
 	//}
 }
 
-	void
+void
 superResolutionTracker::deepCopyPrePatch(patch& src, patch& p)
 {
 	p.patchScale 	= src.patchScale;
@@ -1635,7 +1636,7 @@ superResolutionTracker::findStableFeaturesWithRate(
 	}
 }
 
-	void
+void
 superResolutionTracker::findClosestPatch(
 		vpPoseVector& 		vp, 
 		std::vector<int>& 	id, 
@@ -1690,7 +1691,7 @@ superResolutionTracker::findMinCost(float tar, int pos, const cv::Mat& img , int
 
 // virtual inherit the vpMbTracker class, so only one cMo is available here
 // 90% of the codes here are copied from the vpMbEdgeKltTracker class
-	double
+double
 superResolutionTracker::computeVVS(
 		unsigned int _nbInfos,
 		const vpImage<unsigned char>& I, 
@@ -1900,7 +1901,7 @@ superResolutionTracker::computeVVS(
 }
 
 // 90% of the codes of this function are copied from the vpMbEdgeKltTracker class
-	double
+double
 superResolutionTracker::getPose(const vpImage<unsigned char>& I, float scale_, cv::Mat& img, dataset_t& prePatch, dataset_t& dataPatches)
 {
 	double res;
@@ -1978,15 +1979,6 @@ superResolutionTracker::pointDistance2D(const cv::Point& p1, const cv::Point& p2
 	return (dx * dx + dy * dy);
 }
 
-
-/**
- * @brief the tracking procedure is actually done here
- *
- * @param featuresComputePose
- * @param img
- * @param prePatch
- * @param dataPatches
- */
 void
 superResolutionTracker::trackPatch(vpPoseFeatures& featuresComputePose, cv::Mat& img, dataset_t& prePatch, dataset_t& dataPatches)
 {

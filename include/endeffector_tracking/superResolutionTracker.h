@@ -265,7 +265,14 @@ class superResolutionTracker: public vpMbEdgeKltTracker
 		 */
 		bool findConfidence(int scaleID, int& patchID, patch& patchData);
 
-		// TODO: check lock in this function
+		/**
+		 * @brief // find the corresponding patches, and copy them out of the dataset // then project them onto the current pose with the virtual camera
+		 *
+		 * @param faceID 		the id of the face under investigation
+		 * @param patchScale 	scale of current patch in the frame, used to choose the patches in the database with higher scale
+		 * @param pose 			current pose
+		 * @param patchList 	where the found, projected patches are copied to 
+		 */
 		void findCopyProcessPatch(
 				int faceID,
 				int patchScale,
@@ -400,7 +407,9 @@ class superResolutionTracker: public vpMbEdgeKltTracker
 		/**
 		 * @brief the core function of the whole tracking procedure
 		 *
-		 * @param dataPatches
+		 * @param img 			one scale upped image of the current frame
+		 * @param prePatch 		previous frame
+		 * @param dataPatches 	related patched in the database
 		 */
 		void optimizePose(cv::Mat& img, dataset_t& prePatch, dataset_t& dataPatches);
 
@@ -422,8 +431,21 @@ class superResolutionTracker: public vpMbEdgeKltTracker
 		void initFaceScaleSize(void);
 		void initFaceScalePose(void);
 		void initFaceScaleDepth(void);
+		/**
+		 * @brief the virtual camera her is one scale upped camera
+		 *
+		 * @return one scale upped camera compared with the true matrix of the webcam
+		 */
 		vpMatrix getVirtualCam(void);
 
+		/**
+		 * @brief get the scale rate between each scale
+		 *
+		 * @param maxDownScale  	maximum scale rate between the smallest and biggest patches
+		 * @param numOfPatchScale 	number of patch scales
+		 *
+		 * @return 					the scale rate between each scale
+		 */
 		inline float getRate(float maxDownScale, float numOfPatchScale)
 		{
 			return pow(maxDownScale, 1.0/(numOfPatchScale-1));
@@ -461,6 +483,19 @@ class superResolutionTracker: public vpMbEdgeKltTracker
 				const std::vector<cv::Point2f>& cFeatures,
 				float 						 	rate);
 
+		/**
+		 * @brief // virtual inherit the vpMbTracker class, so only one cMo is available here // 90% of the codes here are copied from the vpMbEdgeKltTracker class
+		 *
+		 * @param _nbInfos
+		 * @param I
+		 * @param pf
+		 * @param w_mbt
+		 * @param w_klt
+		 * @param scale_ 		the mean patch scale chosen for the model, the scale here is for balancing between the edge based tracker and feature point based tracker. However, the technology is not used yet.
+		 * @param lvl
+		 *
+		 * @return residuals
+		 */
 		double computeVVS(
 				unsigned int _nbInfos,
 				const vpImage<unsigned char>& I, 
@@ -470,10 +505,29 @@ class superResolutionTracker: public vpMbEdgeKltTracker
 				float scale_,
 				const unsigned int lvl = 0);
 
+		/**
+		 * @brief 				calculate the pose of the current frame
+		 *
+		 * @param I
+		 * @param scale_ 		the mean patch scale chosen for the model, the scale here is for balancing between the edge based tracker and feature point based tracker. However, the technology is not used yet.
+		 * @param img 			one scale upped image of the current frame
+		 * @param prePatch 		previous frame
+		 * @param dataPatches 	patches in the dataset
+		 *
+		 * @return 				residuals
+		 */
 		double getPose(const vpImage<unsigned char>& I, float scale_, cv::Mat& img, dataset_t& prePatch, dataset_t& dataPatches);
 
 		inline double pointDistance2D(const cv::Point& p1, const cv::Point& p2);
 
+		/**
+		 * @brief the tracking procedure is actually done here
+		 *
+		 * @param featuresComputePose
+		 * @param img
+		 * @param prePatch 		previous frame
+		 * @param dataPatches 	patches in the dataset
+		 */
 		void trackPatch(vpPoseFeatures& featuresComputePose, cv::Mat& img, dataset_t& prePatch, dataset_t& dataPatches);
 	private:
 };
