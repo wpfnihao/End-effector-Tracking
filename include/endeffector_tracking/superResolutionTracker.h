@@ -529,5 +529,20 @@ class superResolutionTracker: public vpMbEdgeKltTracker
 		 * @param dataPatches 	patches in the dataset
 		 */
 		void trackPatch(vpPoseFeatures& featuresComputePose, cv::Mat& img, dataset_t& prePatch, dataset_t& dataPatches);
+
+		/**
+		 * @brief the tracking procedure is actually done here
+		 *        this is the version based on the orb detector
+		 *
+		 * @param featuresComputePose
+		 * @param img
+		 * @param prePatch 		previous frame
+		 * @param dataPatches 	patches in the dataset
+		 */
+		void trackPatchOrb(vpPoseFeatures& featuresComputePose, cv::Mat& img, dataset_t& prePatch, dataset_t& dataPatches);
+
+		void findCorner(cv::Mat& mask, cv::Point& upLeft, cv::Point& rightbottom);
+
+		inline void genMask(cv::Mat& curMask, cv::Point& upLeft, cv::Point& rightbottom, int erodeSize);
 	private:
 };
