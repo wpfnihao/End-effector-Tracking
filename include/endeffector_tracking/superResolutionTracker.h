@@ -20,6 +20,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/video/tracking.hpp>
+#include <opencv2/nonfree/features2d.hpp>
 // OpenMP
 #include <omp.h>
 // Graph Cut Optimization
@@ -540,6 +541,17 @@ class superResolutionTracker: public vpMbEdgeKltTracker
 		 * @param dataPatches 	patches in the dataset
 		 */
 		void trackPatchOrb(vpPoseFeatures& featuresComputePose, cv::Mat& img, dataset_t& prePatch, dataset_t& dataPatches);
+
+		/**
+		 * @brief the tracking procedure is actually done here
+		 *        this is the version based on the sift detector
+		 *
+		 * @param featuresComputePose
+		 * @param img
+		 * @param prePatch 		previous frame
+		 * @param dataPatches 	patches in the dataset
+		 */
+		void trackPatchSIFT(vpPoseFeatures& featuresComputePose, cv::Mat& img, dataset_t& prePatch, dataset_t& dataPatches);
 
 		void findCorner(cv::Mat& mask, cv::Point& upLeft, cv::Point& rightbottom);
 
