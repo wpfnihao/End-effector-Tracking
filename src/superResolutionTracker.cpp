@@ -228,7 +228,7 @@ superResolutionTracker::updataDataset(patch& patchData)
 	omp_unset_lock(&dataLock);
 }
 
-	void 
+void 
 superResolutionTracker::processKeyPatch(patch& patchData)
 {
 	// generate the scale patch which is in the scale closest to the orgPatch
@@ -326,9 +326,53 @@ superResolutionTracker::findPatchScale(patch& patchData)
 	patchData.patchScale = patchScale;
 }
 
-// TODO: check all the project, make sure whether a project will produce holes in the map
-// TODO: check the performance issues
-	void
+/* old version, new version see below
+//void
+//superResolutionTracker::genOrgScalePatch(patch& patchData)
+//{
+//	// set the confidence
+//	patchData.confidence[patchData.patchScale] = true;
+//	patchData.highestConfidenceScale = patchData.patchScale;
+//	// gen the patch
+//	scaleInfo& si = faceScaleInfo[patchData.faceID];
+//	vpMatrix K = cam.get_K();
+//	vpMatrix invK = si.Ks[patchData.patchScale].inverseByLU();
+//	vpMatrix invP = si.cMo.inverseByLU();
+//	vpMatrix P = patchData.pose;
+//	vpMatrix PinvP = P * invP;
+//	int shiftX = patchData.patchRect.x;
+//	int shiftY = patchData.patchRect.y;
+//	
+//	int height = si.faceSizes[patchData.patchScale].height;
+//	int width = si.faceSizes[patchData.patchScale].width;
+//	float depth = si.depth;
+//	//float* pd = (float*) (patchData.depth.data);
+//	cv::Mat sp(si.faceSizes[patchData.patchScale], CV_8UC1);
+//	uchar* ps = (uchar*) (sp.data);
+//	for (int i = 0; i < height; i++)
+//		for (int j = 0; j < width; j++)
+//		{
+//			int xc, yc;
+//			float Z;
+//			projPoint(invK, PinvP, K, depth, j, i, xc, yc, Z);
+//			xc -= shiftX;
+//			yc -= shiftY;
+//			xc = std::min(xc, patchData.orgPatch.cols-1);
+//			yc = std::min(yc, patchData.orgPatch.rows-1);
+//			xc = std::max(xc, 0);
+//			yc = std::max(yc, 0);
+//			*ps++ = patchData.orgPatch.at<uchar>(yc, xc);
+//		}
+//	patchData.scaledPatch[patchData.patchScale] = sp;
+//	// DEBUG only
+//	cv::imshow("patch", sp);
+//	cv::imshow("orgPatch", patchData.orgPatch);
+//	cv::waitKey(100);
+//	//END OF DEBUG
+//}
+*******************************************/
+
+void
 superResolutionTracker::genOrgScalePatch(patch& patchData)
 {
 	// set the confidence
@@ -343,27 +387,60 @@ superResolutionTracker::genOrgScalePatch(patch& patchData)
 	vpMatrix PinvP = P * invP;
 	int shiftX = patchData.patchRect.x;
 	int shiftY = patchData.patchRect.y;
-
+	
+	// get four corners
 	int height = si.faceSizes[patchData.patchScale].height;
 	int width = si.faceSizes[patchData.patchScale].width;
 	float depth = si.depth;
-	//float* pd = (float*) (patchData.depth.data);
 	cv::Mat sp(si.faceSizes[patchData.patchScale], CV_8UC1);
-	uchar* ps = (uchar*) (sp.data);
-	for (int i = 0; i < height; i++)
-		for (int j = 0; j < width; j++)
+	// define the corresponding points
+	std::vector<cv::Point2f> orgPoints(4);
+	std::vector<cv::Point2f> transPoints(4);
+	// only calculate the four corners
+	for (int i = 0; i < 4; i++)
+	{
+		// xc, yc the coordinate in the orgPatch
+		// ox, oy the coordinate in the scale patch
+		int xc, yc, ox, oy;
+		float Z;
+		switch (i)
 		{
-			int xc, yc;
-			float Z;
-			projPoint(invK, PinvP, K, depth, j, i, xc, yc, Z);
-			xc -= shiftX;
-			yc -= shiftY;
-			xc = std::min(xc, patchData.orgPatch.cols-1);
-			yc = std::min(yc, patchData.orgPatch.rows-1);
-			xc = std::max(xc, 0);
-			yc = std::max(yc, 0);
-			*ps++ = patchData.orgPatch.at<uchar>(yc, xc);
-		}
+			case 0:
+				ox = 0;
+				oy = 0;
+				break;
+			case 1:
+				ox = width;
+				oy = 0;
+				break;
+			case 2:
+				ox = 0;
+				oy = height;
+				break;
+			case 3:
+				ox = width;
+				oy = height;
+				break;
+			default:
+				break;
+		}	
+		projPoint(invK, PinvP, K, depth, ox, oy, xc, yc, Z);
+		xc -= shiftX;
+		yc -= shiftY;
+		xc = std::min(xc, patchData.orgPatch.cols-1);
+		yc = std::min(yc, patchData.orgPatch.rows-1);
+		xc = std::max(xc, 0);
+		yc = std::max(yc, 0);
+		orgPoints[i]   = cv::Point2f(xc, yc);
+		transPoints[i] = cv::Point2f(ox, oy);
+	}
+
+	// find the perspective transform
+	cv::Mat warp_matrix = cv::getPerspectiveTransform(orgPoints, transPoints);
+	// perspective transform the patch
+	cv::warpPerspective(patchData.orgPatch, sp, warp_matrix, cv::Size(width, height));
+
+
 	patchData.scaledPatch[patchData.patchScale] = sp;
 	// DEBUG only
 	//cv::imshow("patch", sp);
@@ -457,6 +534,28 @@ superResolutionTracker::superResolution(int scaleID, int patchID, patch& patchDa
 	patchData.scaledPatch[scaleID] = cv::Mat(highSize, CV_8UC1);
 	cv::Mat xCoor(highSize, CV_32SC1);
 	cv::Mat yCoor(highSize, CV_32SC1);
+
+	
+
+	//// define the corresponding points
+	//std::vector<cv::Point2f> orgPoints(4);
+	//std::vector<cv::Point2f> transPoints(4);
+	//// save the corresponding points
+	//orgPoints[0]   = cv::Point2f(0, 				 0);
+	//transPoints[0] = cv::Point2f(0, 				 0);
+	//orgPoints[1]   = cv::Point2f(highSize.width - 1, 0);
+	//transPoints[1] = cv::Point2f(lowSize.width  - 1, 0);
+	//orgPoints[2]   = cv::Point2f(0, 				 highSize.height - 1);
+	//transPoints[2] = cv::Point2f(0, 				 lowSize.height  - 1);
+	//orgPoints[3]   = cv::Point2f(highSize.width - 1, highSize.height - 1);
+	//transPoints[3] = cv::Point2f(lowSize.width  - 1, lowSize.height  - 1);
+	//// find the perspective transform
+	//cv::Mat warp_matrix = cv::getPerspectiveTransform(orgPoints, transPoints);
+	//// perspective transform the patch
+	//cv::warpPerspective(highPatch, tarLowPatch, warp_matrix, cv::Size(lowSize.width, lowSize.height));
+
+
+
 
 	// process
 	// hight to low projection
@@ -722,9 +821,8 @@ superResolutionTracker::findCopyProcessPatch(
 	projPatch(pose, faceID, patchList);
 }
 
-// FIXME: some computational expensive steps in this function, try to tune it
-// TODO: something still goes wrong here, and the program will crash
-	void
+/* old version back up
+void
 superResolutionTracker::projPatch(vpHomogeneousMatrix pose, int id, std::list<patch>& dataPatches)
 {
 	float rate = getRate(maxDownScale, numOfPatchScale);
@@ -748,7 +846,7 @@ superResolutionTracker::projPatch(vpHomogeneousMatrix pose, int id, std::list<pa
 		vpMatrix K = virtualCam;
 		float dp = faceScaleInfo[id].depth;
 
-		// find the four corners
+		// find the four corners in the org rectangle patch
 		cv::Size pSize = faceScaleInfo[id].faceSizes[hs];
 		std::vector<cv::Point> corners;
 		for (int i = 0; i < 4; i++)
@@ -776,7 +874,7 @@ superResolutionTracker::projPatch(vpHomogeneousMatrix pose, int id, std::list<pa
 					break;
 			}
 
-			// project the corners 
+			// project the corners to the target quadrangle patch
 			int xc, yc;
 			float Z;
 			projPoint(invK, PinvP, K, dp, x, y, xc, yc, Z);
@@ -814,7 +912,7 @@ superResolutionTracker::projPatch(vpHomogeneousMatrix pose, int id, std::list<pa
 		//  a12a21
 		//  a01a22		
 		//  a02a11
-		cv::Point lu, rb;
+		cv::Point lu, rb; //left up, right bottom
 		findMinMax(corners, lu, rb);
 		prepCalcDepth(corners3d, A, b, coefficient);
 		int maxy = rb.y + 1;
@@ -836,6 +934,138 @@ superResolutionTracker::projPatch(vpHomogeneousMatrix pose, int id, std::list<pa
 					// still have the possibility to get segmentation fault here
 					*(pi + offset) = oPatch.at<uchar>(yc, xc);
 				}
+			}
+
+		// copy to the patches
+		itr->orgPatch = projImg;
+		itr->depth = depth;
+		itr->mask = mask;
+		//DEBUG only
+		//cv::imshow("scalepatch", itr->scaledPatch[hs]);
+		//cv::imshow("projImg", itr->orgPatch);
+		//cv::imshow("mask", itr->mask);
+		//cv::imshow("depth", itr->depth);
+		//cv::waitKey();
+		// END OF DEBUG
+	}
+}
+end of old version back up */
+
+void
+superResolutionTracker::projPatch(vpHomogeneousMatrix pose, int id, std::list<patch>& dataPatches)
+{
+	float rate = getRate(maxDownScale, numOfPatchScale);
+	int r = rate * rows,
+		c = rate * cols;
+	for (std::list<patch>::iterator itr = dataPatches.begin(); itr != dataPatches.end(); ++itr)
+	{
+		itr->pose = pose;
+
+		int hs = itr->highestConfidenceScale;
+
+		cv::Mat projImg = cv::Mat::zeros(r, c, CV_8UC1);		
+		cv::Mat depth   = cv::Mat::zeros(r, c, CV_32FC1);		
+		cv::Mat mask    = cv::Mat::zeros(r, c, CV_8UC1);		
+
+		vpMatrix invK = faceScaleInfo[id].Ks[hs].inverseByLU();
+		vpMatrix invP = faceScaleInfo[id].cMo.inverseByLU();
+		vpHomogeneousMatrix P = itr->pose;
+		vpMatrix PP= itr->pose;
+		vpMatrix PinvP = PP * invP;
+		vpMatrix K = virtualCam;
+		float dp = faceScaleInfo[id].depth;
+
+		// define the corresponding points
+		std::vector<cv::Point2f> orgPoints(4);
+		std::vector<cv::Point2f> transPoints(4);
+		// find the four corners in the org rectangle patch
+		cv::Size pSize = faceScaleInfo[id].faceSizes[hs];
+		std::vector<cv::Point> corners;
+		for (int i = 0; i < 4; i++)
+		{
+			int x, y;
+			switch (i)
+			{
+				case 0:
+					x = 0;
+					y = 0;
+					break;
+				case 1:
+					x = 0;
+					y = pSize.height - 1;
+					break;
+				case 2:
+					x = pSize.width  - 1;
+					y = pSize.height - 1;
+					break;
+				case 3:
+					x = pSize.width  - 1;
+					y = 0;
+					break;
+				default:
+					break;
+			}
+
+			// project the corners to the target quadrangle patch
+			int xc, yc;
+			float Z;
+			projPoint(invK, PinvP, K, dp, x, y, xc, yc, Z);
+			corners.push_back(cv::Point(xc, yc));
+
+			// save the corresponding points
+			orgPoints[i]   = cv::Point2f(x, y);
+			transPoints[i] = cv::Point2f(xc, yc);
+		}
+		// fill the mask
+		for (size_t i = 0; i < 4; i++)
+			cv::line(mask, corners[i], corners[(i+1) % 4], 255);
+		cv::floodFill(mask, meanPoint(corners), 255);
+
+		// find the perspective transform
+		cv::Mat warp_matrix = cv::getPerspectiveTransform(orgPoints, transPoints);
+		// perspective transform the patch
+		const cv::Mat& oPatch = itr->scaledPatch[hs];
+		cv::warpPerspective(oPatch, projImg, warp_matrix, cv::Size(c, r));
+
+
+
+		// restore the four corners in 3d space
+		vpPoint corners3d[4];
+		for (int i = 0; i < 4; i++)
+		{
+			backProj(invK, invP, dp, corners[i].x, corners[i].y, corners3d[i]);
+			corners3d[i].changeFrame(P);
+		}
+
+		invK = invVirtualCam;
+		invP = (itr->pose).inverseByLU();
+		P = faceScaleInfo[id].cMo;
+		PP = faceScaleInfo[id].cMo;
+		PinvP = PP * invP;
+		K = faceScaleInfo[id].Ks[hs];
+		uchar* pm = (uchar*) (mask.data);
+		float* pd = (float*) (depth.data);
+		uchar* pi = (uchar*) (projImg.data);
+		vpMatrix A(3, 3), 
+				 b(3, 1);
+		float coefficient[6];    
+		//	a11a22
+		//  a01a12
+		//  a02a21
+		//  a12a21
+		//  a01a22		
+		//  a02a11
+		cv::Point lu, rb; //left up, right bottom
+		findMinMax(corners, lu, rb);
+		prepCalcDepth(corners3d, A, b, coefficient);
+		int maxy = rb.y + 1;
+#pragma omp parallel for num_threads(4)
+		for (int i = lu.y; i < maxy; i++)
+			for (int j = lu.x; j < rb.x + 1; j++)
+			{
+				int offset = c * i + j;
+				if (*(pm + offset) == 255)
+					*(pd + offset) = calcDepth(A, b, coefficient, invP, invK, cv::Point(j, i));
 			}
 
 		// copy to the patches
@@ -929,8 +1159,8 @@ superResolutionTracker::obtainPatch(int faceID, patch& p)
 	prepCalcDepth((*itr)->p, A, b, coefficient); 
 	uchar* pm = (uchar*) (mask.data);
 	float* pd = (float*) (depth.data);
-//#pragma omp parallel for num_threads(4)
-// obtainPatch is paralleled in the upper level functions which call it
+	// obtainPatch is paralleled in the upper level functions which call it
+	// TODO: by using the perspective transform, the depth map here might be useless
 	for (int i = 0; i < mask.rows; i++)
 		for (int j = 0; j < mask.cols; j++)
 		{
@@ -1282,7 +1512,7 @@ superResolutionTracker::initialization(cv::Mat& src, std::string config_file, st
 	}
 }
 
-	void
+void
 superResolutionTracker::initFaceScaleInfo(void)
 {
 	// for faceSizes
@@ -1311,7 +1541,7 @@ superResolutionTracker::initFaceScaleDepth(void)
 	}
 }
 
-	void
+void
 superResolutionTracker::initFaceScalePose(void)
 {
 	int i = 0;
@@ -1394,7 +1624,7 @@ superResolutionTracker::initFaceScaleSize(void)
 	}
 }
 
-	void
+void
 superResolutionTracker::initFaceScaleVirtualCam(void)
 {
 	float rate = getRate(maxDownScale, numOfPatchScale);
@@ -1406,7 +1636,7 @@ superResolutionTracker::initFaceScaleVirtualCam(void)
 	}
 }
 
-	vpMatrix
+vpMatrix
 superResolutionTracker::scaleCam(vpMatrix K, float rate)
 {
 	K[0][0] /= rate;
@@ -1924,6 +2154,7 @@ superResolutionTracker::getPose(const vpImage<unsigned char>& I, float scale_, c
 	trackPatch(pf, img, prePatch, dataPatches);	
 	//trackPatchOrb(pf, img, prePatch, dataPatches);	
 	//trackPatchSIFT(pf, img, prePatch, dataPatches);	
+	//trackPatchSURF(pf, img, prePatch, dataPatches);	
 
 	vpMbEdgeTracker::trackMovingEdge(I);
 
@@ -2434,13 +2665,13 @@ superResolutionTracker::trackPatchSIFT(vpPoseFeatures& featuresComputePose, cv::
 						}  
 
 						// DEBUG only
-						cv::Mat img_matches;  
-						cv::drawMatches(orgPatch, keyPoints_1, curImg, keyPoints_2,  
-								good_matches, img_matches, cv::Scalar::all(-1), cv::Scalar::all(-1),  
-								std::vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);  
-						cv::imshow("Curmask", curMask);
-						cv::imshow( "Match", img_matches);  
-						cv::waitKey();  
+						//cv::Mat img_matches;  
+						//cv::drawMatches(orgPatch, keyPoints_1, curImg, keyPoints_2,  
+						//		good_matches, img_matches, cv::Scalar::all(-1), cv::Scalar::all(-1),  
+						//		std::vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);  
+						//cv::imshow("Curmask", curMask);
+						//cv::imshow( "Match", img_matches);  
+						//cv::waitKey();  
 						// end of DEBUG
 
 						// find the 3d point: based on the tracked features and the 3d point calculated based on the pre-features
@@ -2520,6 +2751,225 @@ superResolutionTracker::trackPatchSIFT(vpPoseFeatures& featuresComputePose, cv::
 						for( int i = 0; i < descriptors_1.rows; i++ )  
 						{   
 							if( matches[i].distance < 0.3*max_dist )  
+							{   
+								good_matches.push_back( matches[i]);   
+							}  
+						}  
+
+						// DEBUG only
+						cv::Mat img_matches;  
+						cv::drawMatches(pp->orgPatch, keyPoints_1, img, keyPoints_2,  
+								good_matches, img_matches, cv::Scalar::all(-1), cv::Scalar::all(-1),  
+								std::vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);  
+						cv::imshow( "Match", img_matches);  
+						cv::imshow("Curmask", curMask);
+						cv::waitKey();  
+						// end of DEBUG
+
+
+						// find the 3d point: based on the tracked features and the 3d point calculated based on the pre-features
+						// push back to compute pose
+						for (size_t j = 0; j < good_matches.size(); j++)
+							{
+							// extract the two 2d points
+							float px = keyPoints_1[good_matches[j].queryIdx].pt.x;
+							float py = keyPoints_1[good_matches[j].queryIdx].pt.y;
+							float cx = keyPoints_2[good_matches[j].queryIdx].pt.x;
+							float cy = keyPoints_2[good_matches[j].queryIdx].pt.y;
+
+								vpPoint p;	
+								// 2d point
+								double u, v;
+								vpPixelMeterConversion::convertPoint(vc, cx,cy,u,v);
+								p.set_x(u);
+								p.set_y(v);
+								p.set_w(1);
+								// 3d point
+								float depth = pp->depth.at<float>(py, px);
+								if (depth < 1e-5)
+									continue;
+								backProj(invVirtualK, invP, depth, px, py, p);
+								pSetsTwo.push_back(p);
+							}
+					}
+		}
+	}
+	for (size_t i = 0; i < pSetsOne.size(); i++)
+		featuresComputePose.addFeaturePoint(pSetsOne[i]);
+	for (size_t i = 0; i < pSetsTwo.size(); i++)
+		featuresComputePose.addFeaturePoint(pSetsTwo[i]);
+}
+
+void
+superResolutionTracker::trackPatchSURF(vpPoseFeatures& featuresComputePose, cv::Mat& img, dataset_t& prePatch, dataset_t& dataPatches)
+{
+	//vpMbEdgeKltTracker::track(I);
+
+	// erode the mask so the feature points detected will not be at the border
+	cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(15,15), cv::Point(7, 7)); 
+
+	vpMatrix invP = cMo.inverseByLU();
+
+	// the allowed movement range between two consecutive frames
+	int erodeSize = 50;
+
+	// for better parallel
+	std::vector<vpPoint> pSetsOne;
+	std::vector<vpPoint> pSetsTwo;
+#pragma omp parallel sections
+	{
+#pragma omp section
+		{
+			// for pre-frame
+			vpMatrix invK = cam.get_K().inverseByLU();
+			// for pre-frame
+			for (size_t i = 0; i < vpMbEdgeTracker::faces.getPolygon().size(); i++)
+				if (isVisible[i])
+					if(!prePatch[i].empty())
+					{
+						patch& pp = prePatch[i].front();
+						// restore the patch to the image size
+						cv::Mat orgPatch = cv::Mat::zeros(cv::Size(cols, rows), CV_8UC1);
+						cv::Mat mask 	 = cv::Mat::zeros(cv::Size(cols, rows), CV_8UC1);
+						cv::Mat curMask  = cv::Mat::zeros(cv::Size(cols, rows), CV_8UC1);
+						pp.orgPatch.copyTo(
+								orgPatch(
+									cv::Range(pp.patchRect.y, pp.patchRect.y + pp.patchRect.height),
+									cv::Range(pp.patchRect.x, pp.patchRect.x + pp.patchRect.width)
+									)
+								);
+						cv::erode(pp.mask, pp.mask, element);
+						pp.mask.copyTo(
+								mask(
+									cv::Range(pp.patchRect.y, pp.patchRect.y + pp.patchRect.height),
+									cv::Range(pp.patchRect.x, pp.patchRect.x + pp.patchRect.width)
+									)
+								);
+						// generate the mask for current image, since we don't know where the object is, the mask should be relatively large
+						cv::Point upLeft, rightbottom;
+						findCorner(mask, upLeft, rightbottom);
+						genMask(curMask, upLeft, rightbottom, erodeSize);
+						
+						// init the detector
+						cv::SURF surf;
+						std::vector<cv::KeyPoint> keyPoints_1, keyPoints_2;  
+						cv::Mat descriptors_1, descriptors_2;  
+						// detect
+						surf(orgPatch,  mask, keyPoints_1, descriptors_1);  
+						surf(curImg, curMask, keyPoints_2, descriptors_2);  
+						// match
+						cv::BruteForceMatcher<cv::L2<float> >  matcher;	
+						std::vector<cv::DMatch> matches;  
+						matcher.match(descriptors_1, descriptors_2, matches);  
+
+						double max_dist = 0; double min_dist = 100;  
+						//-- Quick calculation of max and min distances between keypoints  
+						for( int i = 0; i < descriptors_1.rows; i++ )  
+						{   
+							double dist = matches[i].distance;  
+							if( dist < min_dist ) min_dist = dist;  
+							if( dist > max_dist ) max_dist = dist;  
+						}  
+						//printf("-- Max dist : %f \n", max_dist );  
+						//printf("-- Min dist : %f \n", min_dist );  
+						//-- Draw only "good" matches (i.e. whose distance is less than 0.6*max_dist )  
+						//-- PS.- radiusMatch can also be used here.  
+						std::vector< cv::DMatch > good_matches;  
+						for( int i = 0; i < descriptors_1.rows; i++ )  
+						{   
+							if( matches[i].distance < 2*min_dist )  
+							{   
+								good_matches.push_back( matches[i]);   
+							}  
+						}  
+
+						// DEBUG only
+						//cv::Mat img_matches;  
+						//cv::drawMatches(orgPatch, keyPoints_1, curImg, keyPoints_2,  
+						//		good_matches, img_matches, cv::Scalar::all(-1), cv::Scalar::all(-1),  
+						//		std::vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);  
+						//cv::imshow("Curmask", curMask);
+						//cv::imshow( "Match", img_matches);  
+						//cv::waitKey();  
+						// end of DEBUG
+
+						// find the 3d point: based on the tracked features and the 3d point calculated based on the pre-features
+						// push back to compute pose
+						// extract the matched points
+						int dx = pp.patchRect.x;
+						int dy = pp.patchRect.y;
+						for (size_t j = 0; j < good_matches.size(); j++)
+						{
+							// extract the two 2d points
+							float px = keyPoints_1[good_matches[j].queryIdx].pt.x;
+							float py = keyPoints_1[good_matches[j].queryIdx].pt.y;
+							float cx = keyPoints_2[good_matches[j].queryIdx].pt.x;
+							float cy = keyPoints_2[good_matches[j].queryIdx].pt.y;
+							
+							vpPoint p;	
+							// 2d point in current frame
+							double u, v;
+							vpPixelMeterConversion::convertPoint(cam, cx, cy, u, v);
+							p.set_x(u);
+							p.set_y(v);
+							p.set_w(1);
+							// 3d point in previous frame
+							float depth = pp.depth.at<float>(py - dy, px - dx);
+							if (depth < 1e-5)
+								continue;
+							backProj(invK, invP, depth, px, py, p);
+							pSetsOne.push_back(p);
+						}
+					}
+		}
+
+#pragma omp section
+		{
+			// for dataset
+			vpMatrix invVirtualK = invVirtualCam;
+			//
+			// detect good features in dataPatches
+			// virtual camera is used here
+			vpCameraParameters vc;
+			vc.initFromCalibrationMatrix(virtualCam);
+			for (size_t i = 0; i < vpMbEdgeTracker::faces.getPolygon().size(); i++)
+				if (isVisible[i])
+					for (std::list<patch>::iterator pp = dataPatches[i].begin(); pp != dataPatches[i].end(); ++pp)
+					{
+						cv::erode(pp->mask, pp->mask, element);
+						cv::SURF surf;
+						std::vector<cv::KeyPoint> keyPoints_1, keyPoints_2;  
+						cv::Mat descriptors_1, descriptors_2;  
+						// detect
+						surf(pp->orgPatch, pp->mask, keyPoints_1, descriptors_1);  
+						// TODO: check the scale of patches here
+						cv::Mat curMask = pp->mask.clone();
+						// generate the mask for current image, since we don't know where the object is, the mask should be relatively large
+						cv::Point upLeft, rightbottom;
+						findCorner(pp->mask, upLeft, rightbottom);
+						genMask(curMask, upLeft, rightbottom, erodeSize);
+						surf(img, curMask, keyPoints_2, descriptors_2);  
+						// match
+						cv::BruteForceMatcher<cv::L2<float> >  matcher;
+						std::vector<cv::DMatch> matches;  
+						matcher.match(descriptors_1, descriptors_2, matches);  
+
+						double max_dist = 0; double min_dist = 100;  
+						//-- Quick calculation of max and min distances between keypoints  
+						for( int i = 0; i < descriptors_1.rows; i++ )  
+						{   
+							double dist = matches[i].distance;  
+							if( dist < min_dist ) min_dist = dist;  
+							if( dist > max_dist ) max_dist = dist;  
+						}  
+						//printf("-- Max dist : %f \n", max_dist );  
+						//printf("-- Min dist : %f \n", min_dist );  
+						//-- Draw only "good" matches (i.e. whose distance is less than 0.6*max_dist )  
+						//-- PS.- radiusMatch can also be used here.  
+						std::vector< cv::DMatch > good_matches;  
+						for( int i = 0; i < descriptors_1.rows; i++ )  
+						{   
+							if( matches[i].distance < 2*min_dist )  
 							{   
 								good_matches.push_back( matches[i]);   
 							}  

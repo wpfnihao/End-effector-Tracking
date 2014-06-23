@@ -421,15 +421,22 @@ class superResolutionTracker: public vpMbEdgeKltTracker
 		/**
 		 * @brief generate the virtual camera to produce different scales of the image
 		 *
-		 * @param K
-		 * @param rate
+		 * @param K input camera
+		 * @param rate the scale rate
 		 *
-		 * @return 
+		 * @return the scaled camera matrix K
 		 */
 		vpMatrix scaleCam(vpMatrix K, float rate);
 
+		/**
+		 * @brief the virtual camera in the largest patch scale is set to the same as the true camera,
+		 * 			while the virtual cameras in the lower scale are set by using the scaleCam() function.
+		 */
 		void initFaceScaleVirtualCam(void);
 		void initFaceScaleSize(void);
+		/**
+		 * @brief the face scale pose is the same for all the scales.
+		 */
 		void initFaceScalePose(void);
 		void initFaceScaleDepth(void);
 		/**
@@ -552,6 +559,17 @@ class superResolutionTracker: public vpMbEdgeKltTracker
 		 * @param dataPatches 	patches in the dataset
 		 */
 		void trackPatchSIFT(vpPoseFeatures& featuresComputePose, cv::Mat& img, dataset_t& prePatch, dataset_t& dataPatches);
+
+		/**
+		 * @brief the tracking procedure is actually done here
+		 *        this is the version based on the surf detector
+		 *
+		 * @param featuresComputePose
+		 * @param img
+		 * @param prePatch 		previous frame
+		 * @param dataPatches 	patches in the dataset
+		 */
+		void trackPatchSURF(vpPoseFeatures& featuresComputePose, cv::Mat& img, dataset_t& prePatch, dataset_t& dataPatches);
 
 		void findCorner(cv::Mat& mask, cv::Point& upLeft, cv::Point& rightbottom);
 
