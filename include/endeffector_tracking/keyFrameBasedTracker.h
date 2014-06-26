@@ -105,6 +105,7 @@ class keyFrameBasedTracker: public vpMbEdgeKltTracker
 			std::vector<patch> orgPatches;
 			cv::Mat frame;
 			vpHomogeneousMatrix pose;
+			double res;
 		}keyFrame;
 
 		typedef std::vector<keyFrame> keyFrameDataset_t;

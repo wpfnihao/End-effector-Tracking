@@ -80,28 +80,22 @@ keyFrameBasedTracker::track(void)
 		}
 	}
 
-	// measure whether the tracked frame is the key frame
-	// if true
-	// push the frame into the buff
-	if (isKeyFrame())
+	// save all the previous frames
+	keyFrame curFrame;
+	curFrame.pose = cMo;
+	curFrame.frame = curImg;
+	curFrame.orgPatches.resize(vpMbEdgeTracker::faces.getPolygon().size());
+	curFrame.res = res;
+	for (int i = 0; i < len; i++)
 	{
-		std::cout<<"key frame detected!"<<std::endl;
-		std::cout<<"----------------------------------------------------!"<<std::endl;
-		keyFrame curFrame;
-		curFrame.pose = cMo;
-		curFrame.frame = curImg;
-		curFrame.orgPatches.resize(vpMbEdgeTracker::faces.getPolygon().size());
-		for (int i = 0; i < len; i++)
+		if (isVisible[i])
 		{
-			if (isVisible[i])
-			{
-				patch p;
-				obtainPatch(i, p);
-				curFrame.orgPatches[i] = p;
-			}
+			patch p;
+			obtainPatch(i, p);
+			curFrame.orgPatches[i] = p;
 		}
-		keyFrames.push_back(curFrame);
 	}
+	keyFrames.push_back(curFrame);
 
 	// display
 	vpDisplay::display(I);
@@ -3040,14 +3034,16 @@ keyFrameBasedTracker::findClosestPatch(vpHomogeneousMatrix& cMo, keyFrameDataset
 	for (int i = 0; i < numPatches && i < keyFrames.size(); i++)
 	{
 		float min = 0.03; // maximum distance allowed to choose a key frame
+		double Res = 1e5;
 		int minIdx = 0;
 		for (int j = 0; j < keyFrames.size(); j++)
-			if (min > diff[j])
+			if (min > diff[j] && Res > keyFrames[i].res)
 			{
 				min = diff[j];
+				Res = keyFrames[i].res;
 				id.push_back(j);
 				minIdx = j;
 			}
-		diff[minIdx] = 0.03;
+		diff[minIdx] = 1e5;
 	}
 }
