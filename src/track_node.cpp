@@ -143,9 +143,9 @@ int main(int argc, char **argv)
 				//		
 				//image_transport::ImageTransport it(n);
 				//cv::VideoCapture cap(0); // open the default video file
-				cv::VideoCapture cap("/home/pengfei/Desktop/6.avi"); // open the default video file
+				cv::VideoCapture cap("/home/pengfei/Desktop/3.avi"); // open the default video file
 				cv::Mat tmp;
-				for (int i = 0; i < 174; i++)
+				for (int i = 0; i < 1; i++)  //174 for 6.avi
 					cap >> tmp;
 
 
@@ -199,7 +199,7 @@ int main(int argc, char **argv)
 									srTracker.track();
 									srTracker.vpMbTracker::getPose(cMo);
 									t = clock() - t;
-									std::cout<<"single tracking iteration consumes "<<((float)t)/CLOCKS_PER_SEC<<" seconds."<<std::endl;
+									//std::cout<<"single tracking iteration consumes "<<((float)t)/CLOCKS_PER_SEC<<" seconds."<<std::endl;
 								}
 
 								// save the pose into the file

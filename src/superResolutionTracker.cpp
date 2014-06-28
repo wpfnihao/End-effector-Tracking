@@ -47,7 +47,8 @@ superResolutionTracker::track(void)
 	}
 
 	// a copy of the whole dataset only including the tracking related patches
-	dataset_t dataPatches;
+	for (int i = 0; i < len; i++)
+		dataPatches[i].clear();
 
 	// upScale the src, pre, and database patches for tracking
 	// src
@@ -1421,18 +1422,29 @@ superResolutionTracker::deepCopyPrePatch(patch& src, patch& p)
 }
 
 // TODO: complete this function
-	bool
+bool
 superResolutionTracker::isKeyFrame(void)
 {
 	float th1 = 0.001;
-	float th2 = 0.0035;  // for stick
+	float th2 = 0.0035;  // for stick // back up
+	//float th2 = 0.004;  // for stick
 	//float th2 = 0.002; // for cracker
+	float th3 = 10;
 	bool frameDist = true, 
 		 poseDiff  = true, 
-		 matchness = true;
+		 matchness = true,
+		 ncc 	   = true;
 
 	// frameDist
 	frameDist = frameCount > minFrameCount ? true : false;
+	if (!frameDist)
+		return false;
+
+	// the residual
+	std::cout<<"res = "<<res<<std::endl;
+	matchness = res < th2 ? true : false;
+	if (!matchness)
+		return false;
 
 	// poseDiff
 	vpPoseVector pose;
@@ -1455,17 +1467,105 @@ superResolutionTracker::isKeyFrame(void)
 			}
 		}
 	omp_unset_lock(&dataLock);
+	if (!poseDiff)
+		return false;
 
-	// the residual
-	std::cout<<"res = "<<res<<std::endl;
-	matchness = res < th2 ? true : false;
+	/* ncc or mad
+	// ncc
+	// required information
+	cv::Mat AllprojImg = cv::Mat::zeros(rows, cols, CV_8UC1);		
+	cv::Mat Allmask    = cv::Mat::zeros(rows, cols, CV_8UC1);		
+	vpHomogeneousMatrix P = cMo;
+	vpMatrix PP= cMo;
+	vpMatrix K = cam.get_K();
+	// project prePatch using the current pose
+	int len = vpMbEdgeTracker::faces.getPolygon().size();
+	for (int i = 0; i < len; i++)
+		if (isVisible[i])
+		{
+			if (dataPatches[i].empty())
+				continue;
+			// orgPatch
+			patch& orgPatch = dataPatches[i].front();
+			int hs = orgPatch.highestConfidenceScale;
+			vpMatrix invK = faceScaleInfo[i].Ks[hs].inverseByLU();
+			vpMatrix invP = faceScaleInfo[i].cMo.inverseByLU();
+			vpMatrix PinvP = PP * invP;
+			float dp = faceScaleInfo[i].depth;
 
+			// define the corresponding points
+			std::vector<cv::Point2f> orgPoints(4);
+			std::vector<cv::Point2f> transPoints(4);
+			std::vector<cv::Point>   corners(4);
+			// find the four corners in the org rectangle patch
+			cv::Size pSize = faceScaleInfo[i].faceSizes[hs];
+			for (int i = 0; i < 4; i++)
+			{
+				int x, y;
+				switch (i)
+				{
+					case 0:
+						x = 0;
+						y = 0;
+						break;
+					case 1:
+						x = 0;
+						y = pSize.height - 1;
+						break;
+					case 2:
+						x = pSize.width  - 1;
+						y = pSize.height - 1;
+						break;
+					case 3:
+						x = pSize.width  - 1;
+						y = 0;
+						break;
+					default:
+						break;
+				}
 
-	// matchness
-	return frameDist & poseDiff & matchness;
+				// project the corners to the target quadrangle patch
+				int xc, yc;
+				float Z;
+				projPoint(invK, PinvP, K, dp, x, y, xc, yc, Z);
+
+				// save the corresponding points
+				orgPoints[i]   = cv::Point2f(x, y);
+				transPoints[i] = cv::Point2f(xc, yc);
+				corners[i]     = cv::Point(xc, yc);
+			}
+			cv::Mat projImg = cv::Mat::zeros(rows, cols, CV_8UC1);		
+			cv::Mat mask    = cv::Mat::zeros(rows, cols, CV_8UC1);		
+			// fill the mask
+			for (size_t i = 0; i < 4; i++)
+				cv::line(mask, transPoints[i], transPoints[(i+1) % 4], 255);
+			cv::floodFill(mask, meanPoint(corners), 255);
+
+			// find the perspective transform
+			cv::Mat warp_matrix = cv::getPerspectiveTransform(orgPoints, transPoints);
+			// perspective transform the patch
+			cv::warpPerspective(orgPatch.scaledPatch[hs], projImg, warp_matrix, cv::Size(cols, rows));
+			AllprojImg += projImg;
+			Allmask    += mask;
+		}
+
+	//DEBUG only
+	//cv::imshow("projImg", AllprojImg);
+	//cv::waitKey();
+	//end of DEBUG
+	
+	// calculate the MAD
+	//double score = CorrNormedWithMask(AllprojImg, curImg, Allmask);
+	double score = MADWithMask(AllprojImg, curImg, Allmask);
+	std::cout<<"MAD = "<<score<<std::endl;
+	ncc = score < th3 ? true : false;
+
+	end of ncc or mad*/
+
+	return frameDist & poseDiff & matchness & ncc;
 }
 
-	void 
+void 
 superResolutionTracker::initialization(cv::Mat& src, std::string config_file, std::string modelName, std::string initName)
 {
 	cv::cvtColor(src, curImg, CV_RGB2GRAY);	
@@ -1528,7 +1628,7 @@ superResolutionTracker::initFaceScaleInfo(void)
 	initFaceScaleDepth();
 }
 
-	void
+void
 superResolutionTracker::initFaceScaleDepth(void)
 {
 	int i = 0;
@@ -1587,7 +1687,7 @@ superResolutionTracker::initFaceScalePose(void)
 	}
 }
 
-	void
+void
 superResolutionTracker::initFaceScaleSize(void)
 {
 	float rate = getRate(maxDownScale, numOfPatchScale);
@@ -1758,7 +1858,7 @@ comparator(const std::pair<float, int>& l, const std::pair<float, int>& r)
 	return l.first < r.first; 
 }
 
-	void 
+void 
 superResolutionTracker::findStableFeatures(
 		std::vector<bool>& 		    		finalStatus, 
 		const std::vector<cv::Point2f>& 	corners, 
@@ -1809,7 +1909,7 @@ superResolutionTracker::findStableFeatures(
 	}
 }
 
-	void
+void
 superResolutionTracker::findStableFeaturesWithRate(
 		const std::vector<float>& 	 	fErr, 
 		const std::vector<uchar>& 	 	fStatus, 
@@ -1827,7 +1927,7 @@ superResolutionTracker::findStableFeaturesWithRate(
 	for (int i = 0; i < len; i++)
 		if (fStatus[i] == 1)
 			pd.push_back(pointDistance2D(corners[i], cFeatures[i]));
-	double maxD;
+	double minD;
 	if (pd.empty())
 	{
 		for (int i = 0; i < len; i++)
@@ -1838,10 +1938,10 @@ superResolutionTracker::findStableFeaturesWithRate(
 	{
 		size_t n = pd.size() / 2;
 		std::nth_element(pd.begin(), pd.begin()+n, pd.end());
-		maxD = pd[n] * maxRate;
+		minD = (*std::min_element(pd.begin(), pd.end()) + 1) * maxRate; // avoid the zero distance
 	}
 	// DEBUG only
-	std::cout<<"maxD = "<<maxD<<std::endl;
+	//std::cout<<"maxD = "<<maxD<<std::endl;
 	// END OF DEBUG
 
 
@@ -1856,7 +1956,7 @@ superResolutionTracker::findStableFeaturesWithRate(
 
 	for (int i = 0, count = 0; i < len; i++)
 	{
-		if ((count < rate * len) && (fStatus[pErr[i].second] == 1) && (pointDistance2D(corners[pErr[i].second], cFeatures[pErr[i].second]) < maxD))
+		if ((count < rate * len) && (fStatus[pErr[i].second] == 1) && (pointDistance2D(corners[pErr[i].second], cFeatures[pErr[i].second]) < minD))
 		{
 			++count;
 			finalStatus[pErr[i].second] = true;
@@ -1995,7 +2095,7 @@ superResolutionTracker::computeVVS(
 	//}
 	// for DEBUG only
 
-	std::cout<<"scale_ = "<<scale_<<std::endl;
+	//std::cout<<"scale_ = "<<scale_<<std::endl;
 	// END OF DEBUG
 
 	double residuMBT = 0;
@@ -2361,7 +2461,7 @@ superResolutionTracker::trackPatch(vpPoseFeatures& featuresComputePose, cv::Mat&
 						std::vector<uchar> fStatus;
 						cv::buildOpticalFlowPyramid(pp->orgPatch, prePatchPyr, cv::Size(winSize, winSize), maxLevel);
 						cv::calcOpticalFlowPyrLK(prePatchPyr, upScaleCPyramid, corners, cFeatures, fStatus, fErr, cv::Size(winSize, winSize), maxLevel, cv::TermCriteria(cv::TermCriteria::COUNT+cv::TermCriteria::EPS, 20, 0.05));
-						float rate = 0.7;
+						float rate = 3;
 						std::vector<bool> finalStatus(corners.size());
 						findStableFeaturesWithRate(fErr, fStatus, finalStatus, corners, cFeatures, rate);
 						// DEBUG only
@@ -3049,4 +3149,36 @@ superResolutionTracker::genMask(cv::Mat& curMask, cv::Point& upLeft, cv::Point& 
 	int up  	= std::max(upLeft.y - erodeSize, 0);
 	int bottom 	= std::min(rightbottom.y + erodeSize, curMask.rows);
 	curMask(cv::Range(up, bottom), cv::Range(left, right)) = 255;
+}
+
+double 
+superResolutionTracker::CorrNormedWithMask(cv::Mat& src1, cv::Mat& src2, cv::Mat& mask)
+{
+	double dot = 0;
+	double norm1 = 0;
+	double norm2 = 0;
+	for (int i = 0; i < src1.rows; i++)
+		for (int j = 0; j < src1.cols; j++)
+			if (mask.at<unsigned char>(i, j) == 255)
+			{
+				dot   += src1.at<unsigned char>(i, j) * src2.at<unsigned char>(i, j);
+				norm1 += src1.at<unsigned char>(i, j) * src1.at<unsigned char>(i, j);			
+				norm2 += src2.at<unsigned char>(i, j) * src2.at<unsigned char>(i, j);		
+			}
+	return dot / (std::sqrt(norm1 * norm2));
+}
+
+double 
+superResolutionTracker::MADWithMask(cv::Mat& src1, cv::Mat& src2, cv::Mat& mask)
+{
+	int iCount = 0;
+	double sum = 0;
+	for (int i = 0; i < src1.rows; i++)
+		for (int j = 0; j < src1.cols; j++)
+			if (mask.at<unsigned char>(i, j) == 255)
+			{
+				sum += abs((int)src1.at<unsigned char>(i, j) - (int)src2.at<unsigned char>(i, j));
+				iCount++;
+			}
+	return sum / iCount;
 }

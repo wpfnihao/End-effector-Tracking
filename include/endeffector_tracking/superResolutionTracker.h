@@ -173,6 +173,10 @@ class superResolutionTracker: public vpMbEdgeKltTracker
 		vpMatrix virtualCam, invVirtualCam;
 
 		dataset_t prePatch;
+		/**
+		 * @brief a copy of the whole dataset only including the tracking related patches
+		 */
+		dataset_t dataPatches;
 
 		// for display only
 		vpDisplayX disp;
@@ -574,5 +578,8 @@ class superResolutionTracker: public vpMbEdgeKltTracker
 		void findCorner(cv::Mat& mask, cv::Point& upLeft, cv::Point& rightbottom);
 
 		inline void genMask(cv::Mat& curMask, cv::Point& upLeft, cv::Point& rightbottom, int erodeSize);
+
+		double CorrNormedWithMask(cv::Mat& src1, cv::Mat& src2, cv::Mat& mask);
+		double MADWithMask(cv::Mat& src1, cv::Mat& src2, cv::Mat& mask);
 	private:
 };
