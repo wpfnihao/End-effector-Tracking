@@ -13,7 +13,8 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 // visp_bridge
-#include <conversions/image.h>
+//#include <conversions/image.h>
+#include <visp_bridge/image.h>
 
 
 mbtEdgeTracker::mbtEdgeTracker()

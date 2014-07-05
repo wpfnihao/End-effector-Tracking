@@ -4,10 +4,10 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 # FIND_PACKAGE(OpenCV REQUIRED)
 # include_directories(${OpenCV_INCLUDE_DIRS})
 
-# FIND_PACKAGE(VISP REQUIRED)
-# IF(VISP_FOUND)
-# 	INCLUDE(${VISP_USE_FILE})
-# ENDIF(VISP_FOUND)
+ FIND_PACKAGE(VISP REQUIRED)
+ IF(VISP_FOUND)
+ 	INCLUDE(${VISP_USE_FILE})
+ ENDIF(VISP_FOUND)
 
 # Set the build type.  Options are:
 #  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage

@@ -28,7 +28,8 @@
 #include <visp/vpPoseFeatures.h>
 
 // for convert between sensor_msgs and visp image
-#include <conversions/image.h>
+//#include <conversions/image.h>
+#include <visp_bridge/image.h>
 
 // std headers
 #include <vector>
