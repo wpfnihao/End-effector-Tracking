@@ -143,7 +143,7 @@ int main(int argc, char **argv)
 				//		
 				//image_transport::ImageTransport it(n);
 				//cv::VideoCapture cap(0); // open the default video file
-				cv::VideoCapture cap("/home/pengfei/Desktop/3.avi"); // open the default video file
+				cv::VideoCapture cap("/home/pengfei/Desktop/stick2.avi"); // open the default video file
 				cv::Mat tmp;
 				for (int i = 0; i < 1; i++)  //174 for 6.avi
 					cap >> tmp;
@@ -162,6 +162,7 @@ int main(int argc, char **argv)
 
 						if(cap.isOpened()) // check if we succeeded
 							for (;;)
+							//for (int j = 0; j < 1025; j++)
 							{
 								// retrieve image from the camera
 								cv::Mat curImg;
