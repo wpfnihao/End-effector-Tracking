@@ -107,34 +107,34 @@ keyFrameBasedTracker::track(void)
 
 	// writes a color RGBa image to a JPEG file on the disk.
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	//std::stringstream img_num;
-	//img_num<<frame_num;
-	//std::string ext = ".jpeg";
-	//std::string fold = "./frames/";
-	//std::string img_name = fold + img_num.str() + ext;
+	std::stringstream img_num;
+	img_num<<frame_num;
+	std::string ext = ".jpeg";
+	std::string fold = "./frames/";
+	std::string img_name = fold + img_num.str() + ext;
 
-	//cv::Mat img2write = colorImg;
-	//for (std::vector<vpMbtPolygon *>::iterator itr = vpMbEdgeTracker::faces.getPolygon().begin(); itr != vpMbEdgeTracker::faces.getPolygon().end(); ++itr)
-	//{
-	//	int npt = (*itr)->getNbPoint();
-	//	std::vector<cv::Point> pt(npt);
-	//	for (int i = 0; i < npt; i++)
-	//	{
-	//		vpPoint& vp = (*itr)->p[i];
-	//		vp.changeFrame(cMo);
-	//		vp.project();
+	cv::Mat img2write = colorImg;
+	for (std::vector<vpMbtPolygon *>::iterator itr = vpMbEdgeTracker::faces.getPolygon().begin(); itr != vpMbEdgeTracker::faces.getPolygon().end(); ++itr)
+	{
+		int npt = (*itr)->getNbPoint();
+		std::vector<cv::Point> pt(npt);
+		for (int i = 0; i < npt; i++)
+		{
+			vpPoint& vp = (*itr)->p[i];
+			vp.changeFrame(cMo);
+			vp.project();
 
-	//		double u, v;
-	//		vpMeterPixelConversion::convertPoint(cam, vp.get_x(), vp.get_y(), u, v);
-	//		pt[i].x = u;
-	//		pt[i].y = v;
-	//	}
+			double u, v;
+			vpMeterPixelConversion::convertPoint(cam, vp.get_x(), vp.get_y(), u, v);
+			pt[i].x = u;
+			pt[i].y = v;
+		}
 
-	//	for (int i = 0; i < 4; i++)
-	//		cv::line(img2write, pt[i], pt[(i+1)%4], cv::Scalar(0, 0, 255), 2);
-	//}
-	//cv::imwrite(img_name, img2write);
-	//frame_num++;
+		for (int i = 0; i < 4; i++)
+			cv::line(img2write, pt[i], pt[(i+1)%4], cv::Scalar(0, 0, 255), 2);
+	}
+	cv::imwrite(img_name, img2write);
+	frame_num++;
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
