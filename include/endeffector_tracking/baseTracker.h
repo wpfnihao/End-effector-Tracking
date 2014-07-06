@@ -18,7 +18,8 @@
 #include <visp/vpPoseFeatures.h>
 #include <image_transport/image_transport.h>
 
-#include <conversions/image.h>
+//#include <conversions/image.h>
+#include <visp_bridge/image.h>
 class baseTracker
 {
 	protected:

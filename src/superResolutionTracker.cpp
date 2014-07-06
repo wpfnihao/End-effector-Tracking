@@ -47,8 +47,7 @@ superResolutionTracker::track(void)
 	}
 
 	// a copy of the whole dataset only including the tracking related patches
-	for (int i = 0; i < len; i++)
-		dataPatches[i].clear();
+	dataPatches.clear();
 
 	// upScale the src, pre, and database patches for tracking
 	// src
@@ -81,7 +80,6 @@ superResolutionTracker::track(void)
 		++i;
 	}
 
-	// TODO: performance tuning: it seems that there's no need to project the current frame if it is not the key frame
 	// save the patch for next frame tracking
 #pragma omp parallel for num_threads(4) schedule(dynamic, 1)
 	for (int i = 0; i < len; i++)
@@ -240,7 +238,7 @@ superResolutionTracker::processKeyPatch(patch& patchData)
 		genRestScalePatch(patchData, i);
 }
 
-	int 
+int 
 superResolutionTracker::findPatchScale(int faceID)
 {
 	patch p;
@@ -277,7 +275,7 @@ superResolutionTracker::findPatchScale(int faceID)
 	return p.patchScale;
 }
 
-	void 
+void 
 superResolutionTracker::findPatchScale(patch& patchData)
 {	
 	cv::Scalar np = cv::sum(patchData.mask);	
@@ -1161,7 +1159,6 @@ superResolutionTracker::obtainPatch(int faceID, patch& p)
 	uchar* pm = (uchar*) (mask.data);
 	float* pd = (float*) (depth.data);
 	// obtainPatch is paralleled in the upper level functions which call it
-	// TODO: by using the perspective transform, the depth map here might be useless
 	for (int i = 0; i < mask.rows; i++)
 		for (int j = 0; j < mask.cols; j++)
 		{
@@ -2337,8 +2334,8 @@ superResolutionTracker::trackPatch(vpPoseFeatures& featuresComputePose, cv::Mat&
 	cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(15,15), cv::Point(7, 7)); 
 
 	// for better parallel
-	std::vector<vpPoint> pSetsOne;
-	std::vector<vpPoint> pSetsTwo;
+	std::list<vpPoint> pSetsOne;
+	std::list<vpPoint> pSetsTwo;
 #pragma omp parallel sections
 	{
 #pragma omp section
@@ -2352,14 +2349,7 @@ superResolutionTracker::trackPatch(vpPoseFeatures& featuresComputePose, cv::Mat&
 					{
 						patch& pp = prePatch[i].front();
 						// restore the patch to the image size
-						cv::Mat orgPatch = cv::Mat::zeros(cv::Size(cols, rows), CV_8UC1);
 						cv::Mat mask 	 = cv::Mat::zeros(cv::Size(cols, rows), CV_8UC1);
-						pp.orgPatch.copyTo(
-								orgPatch(
-									cv::Range(pp.patchRect.y, pp.patchRect.y + pp.patchRect.height),
-									cv::Range(pp.patchRect.x, pp.patchRect.x + pp.patchRect.width)
-									)
-								);
 						cv::erode(pp.mask, pp.mask, element);
 						pp.mask.copyTo(
 								mask(
@@ -2369,7 +2359,7 @@ superResolutionTracker::trackPatch(vpPoseFeatures& featuresComputePose, cv::Mat&
 								);
 						// detect good features in pre-patch
 						std::vector<cv::Point2f> corners;
-						cv::goodFeaturesToTrack(orgPatch, corners, 50, 0.01, 5, mask);
+						cv::goodFeaturesToTrack(preImg, corners, 50, 0.01, 5, mask);
 						// DEBUG only
 						//cv::imshow("mask", mask);
 						//cv::Mat pImg = orgPatch.clone();
@@ -2495,10 +2485,10 @@ superResolutionTracker::trackPatch(vpPoseFeatures& featuresComputePose, cv::Mat&
 					}
 		}
 	}
-	for (size_t i = 0; i < pSetsOne.size(); i++)
-		featuresComputePose.addFeaturePoint(pSetsOne[i]);
-	for (size_t i = 0; i < pSetsTwo.size(); i++)
-		featuresComputePose.addFeaturePoint(pSetsTwo[i]);
+	for (std::list<vpPoint>::iterator itr = pSetsOne.begin(); itr != pSetsOne.end(); ++itr)
+		featuresComputePose.addFeaturePoint(*itr);
+	for (std::list<vpPoint>::iterator itr = pSetsTwo.begin(); itr != pSetsTwo.end(); ++itr)
+		featuresComputePose.addFeaturePoint(*itr);
 }
 
 // TODO: good_matches not added in this tracker, ref trackPatchSIFT
@@ -2914,8 +2904,8 @@ superResolutionTracker::trackPatchSURF(vpPoseFeatures& featuresComputePose, cv::
 	int erodeSize = 50;
 
 	// for better parallel
-	std::vector<vpPoint> pSetsOne;
-	std::vector<vpPoint> pSetsTwo;
+	std::list<vpPoint> pSetsOne;
+	std::list<vpPoint> pSetsTwo;
 #pragma omp parallel sections
 	{
 #pragma omp section
@@ -3113,10 +3103,11 @@ superResolutionTracker::trackPatchSURF(vpPoseFeatures& featuresComputePose, cv::
 					}
 		}
 	}
-	for (size_t i = 0; i < pSetsOne.size(); i++)
-		featuresComputePose.addFeaturePoint(pSetsOne[i]);
-	for (size_t i = 0; i < pSetsTwo.size(); i++)
-		featuresComputePose.addFeaturePoint(pSetsTwo[i]);
+
+	for (std::list<vpPoint>::iterator itr = pSetsOne.begin(); itr != pSetsOne.end(); ++itr)
+		featuresComputePose.addFeaturePoint(*itr);
+	for (std::list<vpPoint>::iterator itr = pSetsTwo.begin(); itr != pSetsTwo.end(); ++itr)
+		featuresComputePose.addFeaturePoint(*itr);
 }
 
 void
