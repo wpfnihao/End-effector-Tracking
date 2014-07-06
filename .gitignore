@@ -20,10 +20,11 @@ catkin/*
 CATKIN_IGNORE
 catkin_generated/*
 
-#cmake
+#cmake MAKE
 CMakeFiles/*
 cmake_install.cmake
 CMakeCache.txt
+Makefile
 
 #ctags
 tags
@@ -31,3 +32,13 @@ tags
 
 #swapfile
 *.swp
+
+#tmp
+*.pos
+
+#saved frames
+*.jpg
+*.jpeg
+frames/*
+6_frames/*
+7_frames/*
