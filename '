@@ -179,8 +179,6 @@ superResolutionTracker::updateDataBase(void)
 		std::cout<<"start to sleep!"<<std::endl;
 		//usleep(8e6); 1e-6 second
 		sleep(3);
-		//for (int i = 0; i<1e8; i++)
-		//	;
 		std::cout<<"end sleep!"<<std::endl;
 	}
 }

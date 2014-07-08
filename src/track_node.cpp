@@ -198,6 +198,7 @@ int main(int argc, char **argv)
 									t = clock();
 									srTracker.retrieveImage(curImg);
 									srTracker.track();
+									std::cout<<"a frame tracked!"<<std::endl;
 									srTracker.vpMbTracker::getPose(cMo);
 									t = clock() - t;
 									//std::cout<<"single tracking iteration consumes "<<((float)t)/CLOCKS_PER_SEC<<" seconds."<<std::endl;
