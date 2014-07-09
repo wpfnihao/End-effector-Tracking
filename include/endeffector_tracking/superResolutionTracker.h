@@ -382,7 +382,7 @@ class superResolutionTracker: public vpMbEdgeKltTracker
 		 */
 		float calcDepth(
 				vpMatrix& A,
-				vpMatrix& b,
+				float detx,
 				float* coefficient,
 				vpMatrix invP,
 				vpMatrix invK,

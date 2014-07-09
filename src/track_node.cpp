@@ -143,9 +143,9 @@ int main(int argc, char **argv)
 				//		
 				//image_transport::ImageTransport it(n);
 				//cv::VideoCapture cap(0); // open the default video file
-				cv::VideoCapture cap("/home/pengfei/Desktop/6.avi"); // open the default video file
+				cv::VideoCapture cap("/home/pengfei/Desktop/1.avi"); // open the default video file
 				cv::Mat tmp;
-				for (int i = 0; i < 174; i++)  //174 for 6.avi
+				for (int i = 0; i < 1; i++)  //174 for 6.avi
 					cap >> tmp;
 
 
